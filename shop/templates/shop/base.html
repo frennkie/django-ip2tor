@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>{% block title %}{% endblock %}</title>
+
+    {% load static %}
+
+    <link rel="stylesheet" type="text/css" href="{% static 'shop/css/fontawesome.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'shop/css/brands.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'shop/css/solid.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'shop/css/bootstrap.min.css' %}">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'shop/css/style.css' %}">
+
+    <!-- CSS block per template page -->
+    {% block css %}
+    {% endblock %}
+
+</head>
+<body>
+
+{% load i18n %}
+
+<div class="container-fluid">
+    {#    {% include "shop/messages_snippet.html" %}#}
+    {% block content %}{% endblock %}
+</div>
+
+<!-- JavaScript block per template page -->
+{% block js %}
+{% endblock %}
+
+</body>
+</html>

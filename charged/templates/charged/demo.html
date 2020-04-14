@@ -1,0 +1,80 @@
+{% extends 'charged/base.html' %}
+{% load static %}
+{% block content %}
+    <p>
+        <button id="create_invoice" class="btn">create invoice</button>
+    </p>
+    <div id="output"></div>
+    <div id="qrcode"></div>
+
+{% endblock content %}
+{% block js %}
+
+
+    <script type="text/javascript" src="{% static 'charged/js/jquery-3.4.1.min.js' %}"></script>
+
+    {# requires jquery-qrcode v0.14.0 - https://larsjung.de/jquery-qrcode/ #}
+    {#    <script type="text/javascript" src="{% static 'charged/js/jquery-qrcode.js' %}"></script>#}
+    {#    #}
+
+    <script>
+
+        const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const ws = new WebSocket(ws_scheme + '://' + window.location.host + '/charged/lightning/ws');
+
+        let inv_req;
+
+        $(function () {
+            console.log("ready!");
+
+            ws.onmessage = function (message) {
+                console.log(message.data);
+
+                const mdata = JSON.parse(message.data);
+
+                if (mdata['message'] === "paid") {
+                    alert('invoice paid!');
+                }
+            };
+
+            ws.onopen = function () {
+                console.log("sending \"connected\"");
+                ws.send(JSON.stringify({type: 'channel_message', message: 'connected'}));
+            };
+        });
+
+        $('#create_invoice').click(function () {
+            inv_req = {
+                msatoshi: 10000000,
+                description: "description",
+                metadata: "{'sometext':'meta'}"
+            };
+            addData(inv_req);
+        });
+
+        function addData(data) {
+            console.log(data);
+            $.post("/ln/invoice", inv_req)
+                .done(function (data) {
+
+                    $('#output').text(data['bolt11']);
+
+                    {#QR Code Stuff#}
+                    {#const options = [];#}
+                    {#options['text'] = data['bolt11'];#}
+                    {#options['radius'] = 0.5;#}
+                    {#$('#qrcode').qrcode(options);#}
+
+                    console.log(data['payment_hash']);
+
+                    const ph = data['payment_hash'];
+                    const a = {message_type: "wait_invoice", payment_hash: ph};
+
+                    ws.send(JSON.stringify(a));
+
+                });
+        }
+
+    </script>
+
+{% endblock %}

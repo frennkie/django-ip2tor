@@ -1,0 +1,53 @@
+{% extends "shop/base.html" %}
+
+{% load i18n humanize %}
+
+{% block title %}
+    {# Translators: Title on Main Page #}
+    {% trans "List Host" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+
+
+    <div class="container">
+
+        {% for host in object_list %}
+
+            {% if not forloop.first %}
+                <hr>
+            {% endif %}
+
+            <div class="card border-dark mb-3">
+                <div class="card-header text-white bg-dark">
+                    <a href="{% url 'shop:host-purchase' pk=host.pk %}"
+                       class="text-light"><h5>{{ host }}</h5></a>
+                </div>
+            </div>
+
+        {% empty %}
+
+            <div class="row justify-content-center">
+                <div class="col">
+                    <div class="card border-dark mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">No Hosts.</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endfor %}
+
+        <!--
+        {% load tz %}
+        {% get_current_timezone as TIME_ZONE %}
+        {% timezone "Europe/Berlin" %}Berlin time: {{ now }}{% endtimezone %}
+        {% timezone None %}Server time: {{ now }}{% endtimezone %} ({{ TIME_ZONE }})
+        -->
+
+    </div>
+
+
+{% endblock %}

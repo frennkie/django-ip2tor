@@ -1,0 +1,59 @@
+{% load i18n humanize %}
+
+<div class="row">
+    <div class="col">
+        <div class="card border-dark mb-3">
+            <div class="card-header text-white bg-dark">
+                <a href="{% url 'shop:host-purchase' pk=host.pk %}"
+                   class="text-light"><h5>{{ host }}</h5></a>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% if host.offers_tor_bridges %}
+                    <li class="list-group-item">
+                        <div class="card border-dark mb-3">
+                            <div class="card-header text-white bg-success">
+                                <div class="card-title">Purchase Tor Bridge...</div>
+                            </div>
+                            <div class="card-body">
+                                <form action="{% url 'shop:host-purchase' pk=host.pk %}" method="post">
+                                    {% csrf_token %}
+                                    {% include 'shop/bs4_form.html' with form=form %}
+                                    <input class="btn btn-primary" type="submit"
+                                           value="Purchase for  {{ host.tor_bridge_price }} msat">
+                                </form>
+                            </div>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="list-group-item">
+                        <div class="card border-dark mb-3">
+                            <div class="card-header text-white bg-danger">
+                                <div class="card-title">Sorry, no Tor Bridges.</div>
+                            </div>
+                        </div>
+                    </li>
+                {% endif %}
+                {% if host.offers_rssh_tunnels %}
+                    <li class="list-group-item">
+                        <div class="card border-dark mb-3">
+                            <div class="card-header text-white bg-success">
+                                <div class="card-title">Purchase Reverse Tunnel...</div>
+                            </div>
+                            <div class="card-body">
+                                Link, Price ... {{ host.rssh_tunnel_price }}
+                            </div>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="list-group-item">
+                        <div class="card border-dark mb-3">
+                            <div class="card-header text-dark bg-light">
+                                <div class="card-title">Sorry, no Reverse Tunnels.</div>
+                            </div>
+                        </div>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+base58
+channels
+channels_redis
+django_extensions
+django-filter
+django-widget-tweaks
+djangorestframework
+lnd-rpc
+pylightning
+qrcode[pil]
+requests
+protobuf3-to-dict

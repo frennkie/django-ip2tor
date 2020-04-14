@@ -1,0 +1,15 @@
+{% extends "shop/base.html" %}
+
+{% load i18n humanize %}
+
+{% block title %}
+    {# Translators: Title on Main Page #}
+    {% trans "Host - Purchase Product" as title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% include "shop/host_snippet.html" with host=host form=form %}
+    </div>
+{% endblock %}

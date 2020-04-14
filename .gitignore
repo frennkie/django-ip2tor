@@ -1,0 +1,73 @@
+.idea
+.*.swp
+build/
+django_smail.egg-info/
+dist/
+.pytest_cache/
+.coverage
+
+docs/_build
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+tests/.xml
+tests/output/
+test_output/
+
+# Translations
+*.mo
+*.pot
+# dotenv
+.env
+
+# virtualenv
+.venv
+venv/
+ENV/
+
+# editor
+.vscode
+*.sublime-*
+/db.sqlite3
