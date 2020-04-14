@@ -26,3 +26,10 @@ ToDo
 - AGBs/ToS
 
 
+
+
+https://github.com/jazzband/django-taggit/commit/90c7224018c941b9a260c8e8bed166536f5870df
+
+
+https://medium.com/@balaraju.mme/best-practices-for-django-models-in-python-b47ff6e78966
+10.Do not heap all files loaded by user in the same folder

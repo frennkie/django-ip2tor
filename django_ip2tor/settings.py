@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'django_filters',
     'django_extensions',
     'widget_tweaks',
-    'charged.apps.ChargedConfig',
+    'charged',
+    'charged.lnnode',
     'shop.apps.ShopConfig'
 ]
 
@@ -169,3 +170,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static')
 
 SITE_ID = 1
+
+CHARGED_LND_TLS_VERIFICATION_EDITABLE = False
+CHARGED_LND_REJECT_ADMIN_MACAROON = True
