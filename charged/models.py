@@ -251,6 +251,9 @@ class LnInvoice(models.Model):
 
     backend = GenericForeignKey('backend_type', 'backend_id')
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         return str(self.label)
 

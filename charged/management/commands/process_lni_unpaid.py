@@ -12,7 +12,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        for lni in LnInvoice.objects.filter(status=LnInvoice.UNPAID):
+        ln_invoices_list = LnInvoice.objects.filter(status=LnInvoice.UNPAID)
+        if not ln_invoices_list:
+            self.stdout.write(self.style.SUCCESS('Nothing to process.'))
+            return
+
+        for lni in ln_invoices_list:
             self.stdout.write(self.style.HTTP_INFO('Running on ID: %s (%s)' % (lni.id, lni)))
 
             if not lni.backend:
@@ -33,5 +38,3 @@ class Command(BaseCommand):
 
                 lni.po.status = PurchaseOrder.PAID
                 lni.po.save()
-
-            self.stdout.write(self.style.SUCCESS('LnInvoice: %s' % lni.id))

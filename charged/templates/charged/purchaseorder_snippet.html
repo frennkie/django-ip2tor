@@ -1,0 +1,76 @@
+{% load humanize %}
+
+<table id="pos">
+    <tr>
+        <th>Purchase Order ID</th>
+        <th>{{ object.id }}</th>
+    </tr>
+    <tr>
+        <td>Created At</td>
+        <td>{{ object.created_at }} ({{ object.created_at|naturaltime }})</td>
+    <tr>
+        <td>Status</td>
+        <td>{{ object.get_status_display }}</td>
+    </tr>
+    <tr>
+        <td>Total Price (Milli-Satoshi)</td>
+        <td>{{ object.total_price_msat }}</td>
+    </tr>
+    <tr>
+        <td>Total Price (Satoshi)</td>
+        <td>{{ object.total_price_sat }}</td>
+    </tr>
+    <tr>
+        <th colspan="2">Items</th>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <table id="pos">
+                <tr>
+                    <th>Product</th>
+                    <!-- ToDo(frennkie) (mask this - unless paid!) -->
+                    <th>IP</th>
+                    <th>Name</th>
+                    <th>Port</th>
+                    <th>Status</th>
+                    <th>Quantity</th>
+                    <th>Price (msat)</th>
+                </tr>
+                {% for item in object.item_details.all %}
+                    <tr>
+                        <td>Tor Bridge</td>
+                        <td>{{ item.product.host.ip }}</td>
+                        <td>{{ item.product.host.name }}</td>
+                        <td>{{ item.product.port }}</td>
+                        <td>{{ item.product.get_status_display }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.price }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+    </tr>
+    <tr>
+        <th colspan="2">
+            Lightning Invoices
+        </th>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <table>
+                <tr>
+
+
+                    {% if object.ln_invoices.all|length_is:"0" %}
+                        <td>Not ready yet</td>
+                    {% elif object.ln_invoices.all|length_is:"1" %}
+                        {% include "charged/lninvoice_snippet.html" with object=object.ln_invoices.first %}
+                    {% else %}
+                        {% for ln_invoice in object.ln_invoices.all %}
+                            {% include "charged/lninvoice_snippet.html" with object=ln_invoice %}
+                        {% endfor %}
+                    {% endif %}
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>

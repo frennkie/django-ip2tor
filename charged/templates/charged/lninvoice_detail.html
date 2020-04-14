@@ -2,96 +2,17 @@
 
 {% load i18n humanize %}
 
+{% block head %}
+    <meta http-equiv="refresh" content="25">{% endblock %}
+
 {% block title %}
-    {# Translators: Title on Main Page #}
+    {# Translators: Title on Lightning Invoice Detail View #}
     {% trans "Lightning Invoice Detail View" as title %}
     {{ title }}
 {% endblock %}
 
-{% block css %}
-    <style>
-        #pos {
-            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-            border-collapse: collapse;
-            width: 780px;
-        }
-
-        #pos td, #pos th {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
-        #pos tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        #pos tr:hover {
-            background-color: #ddd;
-        }
-
-        #pos th {
-            padding-top: 12px;
-            padding-bottom: 12px;
-            text-align: left;
-            background-color: #3e88af;
-            color: white;
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
     <div class="container">
-
-        <table id="pos">
-            <tr>
-                <th colspan="2">Lightning Invoice</th>
-            </tr>
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-            </tr>
-
-            <tr>
-                <td>ID</td>
-                <td>{{ object.id }}</td>
-            </tr>
-            <tr>
-                <td>Created At</td>
-                <td>{{ object.created_at }} ({{ object.created_at|naturaltime }})</td>
-            <tr>
-                <td>Status</td>
-                <td>{{ object.get_status_display }}</td>
-            </tr>
-            <tr>
-                <td>Amount (Satoshi)</td>
-                <td>{{ object.amount_full_satoshi }} (Milli-Satohsi: {{ object.msatoshi }})</td>
-            </tr>
-
-            {% if not object.status == object.INITIAL %}
-                <tr>
-                    <td>Payment Request</td>
-                    <td>{{ object.payment_request }}</td>
-                </tr>
-                <tr>
-                    <td>Expire at</td>
-                    <td>{{ object.expires_at }}</td>
-                </tr>
-
-                <tr>
-                    <td>Payed at</td>
-                    <td>{{ object.paid_at }}</td>
-                </tr>
-
-                <tr>
-                    <td colspan="2">
-                        {% if object.qr_image %}
-                            <img src="{{ object.qr_image.url }}" width="{{ object.qr_image.width }}"
-                                 height="{{ object.qr_image.height }}" alt="Invoice QR Code"/>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endif %}
-        </table>
-
+        {% include "charged/lninvoice_snippet.html" with object=object %}
     </div>
 {% endblock %}

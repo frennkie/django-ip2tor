@@ -1,0 +1,67 @@
+{% load i18n humanize %}
+
+<table id="pos">
+    <tr>
+        <th>Invoice ID</th>
+        <th>{{ object.id }}</th>
+    </tr>
+    <tr>
+        <td>Link</td>
+        <td>
+            <a href="{% url 'charged:ln-invoice-detail' pk=object.id %}"
+               class="text-light">{{ object.id }}</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Label</td>
+        <td>
+            {{ object.label }}
+        </td>
+    </tr>
+    <tr>
+        <td>Created At</td>
+        <td>{{ object.created_at }} ({{ object.created_at|naturaltime }})</td>
+    <tr>
+        <td>Status</td>
+        <td>{{ object.get_status_display }}</td>
+    </tr>
+    <tr>
+        <td>Amount (Satoshi)</td>
+        <td>{{ object.amount_full_satoshi }} (Milli-Satohsi: {{ object.msatoshi }})</td>
+    </tr>
+
+    {% if not object.status == object.INITIAL %}
+        <tr>
+            <td>Payment Request</td>
+            <td><a href="{{ object.payment_request }}">{{ object.payment_request|truncatechars:40 }}</a></td>
+        </tr>
+
+        <tr>
+            <td>PR with scheme</td>
+            <td><a href="lightning:{{ object.payment_request }}">
+                lightning:{{ object.payment_request|truncatechars:40 }}</a></td>
+        </tr>
+
+        <tr>
+            <td>Expire at</td>
+            <td>{{ object.expires_at }}</td>
+        </tr>
+
+        <tr>
+            <td>Payed at</td>
+            <td>{{ object.paid_at }}</td>
+        </tr>
+
+        <tr>
+            {% if object.status == object.UNPAID %}
+                <td colspan="2">
+                    {% if object.qr_image %}
+                        <img src="{{ object.qr_image.url }}" width="{{ object.qr_image.width }}"
+                             height="{{ object.qr_image.height }}" alt="Invoice QR Code"/>
+                    {% endif %}
+                </td>
+            {% endif %}
+        </tr>
+    {% endif %}
+</table>
+

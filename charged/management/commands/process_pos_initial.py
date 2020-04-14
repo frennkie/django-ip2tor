@@ -9,7 +9,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        for po in PurchaseOrder.objects.filter(status=PurchaseOrder.INITIAL):
+        po_list = PurchaseOrder.objects.filter(status=PurchaseOrder.INITIAL)
+        if not po_list:
+            self.stdout.write(self.style.SUCCESS('Nothing to process.'))
+            return
+
+        for po in po_list:
             self.stdout.write(self.style.HTTP_INFO('Running on: %s' % po))
 
             # checks
@@ -33,7 +38,4 @@ class Command(BaseCommand):
             if inv:
                 po.status = PurchaseOrder.TOBEPAID
                 po.save()
-                self.stdout.write(self.style.SUCCESS('LnInvoice: %s' % inv))
-
-        else:
-            self.stdout.write(self.style.SUCCESS('Nothing to process...'))
+                self.stdout.write(self.style.SUCCESS('Created LnInvoice: %s (%s)' % (inv.id, inv)))
