@@ -1,26 +1,7 @@
-import json
-
 from django import forms
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 
-from charged.models import Backend, PurchaseOrderItemDetail
-
-
-class BackendForm(forms.ModelForm):
-    class Meta:
-        model = Backend
-        fields = '__all__'
-
-    def clean_settings(self):
-        data = self.cleaned_data['settings']
-        print(data)
-        try:
-            json.loads(data)
-        except json.decoder.JSONDecodeError:
-            raise ValidationError("Settings invalid.")
-
-        return data
+from charged.lnpurchase.models import PurchaseOrderItemDetail
 
 
 class PurchaseOrderItemDetailFormSet(forms.BaseInlineFormSet):

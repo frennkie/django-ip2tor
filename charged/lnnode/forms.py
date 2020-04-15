@@ -2,23 +2,20 @@ from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from charged.lnnode.models import NotANode, LndRestNode
+from charged.lnnode.models import LndRestNode, CLightningNode, FakeNode
 
 
-class NodeForm(forms.ModelForm):
+class FakeNodeForm(forms.ModelForm):
     class Meta:
-        model = NotANode
+        model = FakeNode
         fields = '__all__'
 
 
 class LndNodeForm(forms.ModelForm):
     class Meta:
         model = LndRestNode
-        fields = ['is_enabled',
-                  'name',
-                  'hostname', 'port',
-                  'tls_cert',
-                  'macaroon_admin', 'macaroon_invoice', 'macaroon_readonly']
+
+        fields = '__all__'
 
         widgets = {
             'tls_cert': forms.Textarea(attrs={'class': 'pem-textfield',
@@ -55,3 +52,11 @@ class LndRestNodeForm(LndNodeForm):
 
 class LndGRpcNodeForm(LndNodeForm):
     pass
+
+
+class CLightningNodeForm(forms.ModelForm):
+    class Meta:
+        model = CLightningNode
+        fields = ['is_enabled',
+                  'name',
+                  'socket_path']

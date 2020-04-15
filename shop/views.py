@@ -7,8 +7,7 @@ from rest_framework import permissions, mixins
 from rest_framework import viewsets
 from rest_framework.viewsets import GenericViewSet
 
-from charged.models import PurchaseOrder, PurchaseOrderItemDetail, LndBackend
-from charged.views import InfoView
+from charged.lnpurchase.models import PurchaseOrder, PurchaseOrderItemDetail
 from .forms import PurchaseTorBridgeOnHostForm
 from .models import TorBridge, Host
 from .serializers import TorBridgeSerializer, HostSerializer, SiteSerializer, UserSerializer, PublicTorBridgeSerializer
@@ -76,10 +75,6 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
 
 
-class ShopInfoView(InfoView):
-    model = LndBackend
-
-
 class HostListView(generic.ListView):
     model = Host
 
@@ -123,7 +118,7 @@ class PurchaseTorBridgeOnHostView(generic.UpdateView):
 
         po.item_details.all()
 
-        return redirect('charged:po-detail', pk=po.pk)
+        return redirect('lnpurchase:po-detail', pk=po.pk)
         # return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):

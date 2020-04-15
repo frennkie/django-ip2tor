@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'charged',
     'charged.lnnode',
+    'charged.lninvoice',
+    'charged.lnpurchase',
     'shop.apps.ShopConfig'
 ]
 
@@ -85,6 +87,16 @@ WSGI_APPLICATION = 'django_ip2tor.wsgi.application'
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
     }
 }
 

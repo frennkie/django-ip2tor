@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from shop.forms import TorBridgeAdminForm, RSshTunnelForm
-from shop.models import Host, PortRange, TorBridge, RSshTunnel, ShopLnInvoice
+from shop.models import Host, PortRange, TorBridge, RSshTunnel
 
 
 class TorBridgeInline(admin.TabularInline):
@@ -88,11 +88,6 @@ class HostAdmin(admin.ModelAdmin):
     def auth_token(self, obj):
         return obj.token_user.auth_token.key
 
-
-class ShopInvoiceAdmin(admin.ModelAdmin):
-    model = ShopLnInvoice
-
-
 #     list_display = ['label', 'amount', 'created_at', 'current_status']
 #     readonly_fields = ['amount', 'status', 'created_at', 'rhash', 'payreq',
 #                        'description', 'metadata', 'quoted_amount', 'quoted_currency', 'expires_at', 'paid_at',
@@ -127,5 +122,3 @@ class ShopInvoiceAdmin(admin.ModelAdmin):
 admin.site.register(RSshTunnel, RSshTunnelAdmin)
 admin.site.register(TorBridge, TorBridgeAdmin)
 admin.site.register(Host, HostAdmin)
-
-admin.site.register(ShopLnInvoice, ShopInvoiceAdmin)

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- head block per template page -->
+    {% block head %}{% endblock %}
+
+    <title>{% block title %}{% endblock %}</title>
+
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'charged/css/style.css' %}">
+    {#    <link rel="stylesheet" type="text/css" href="{% static 'shop/css/bootstrap.min.css' %}">#}
+
+    <!-- CSS block per template page -->
+    {% block css %}
+    {% endblock %}
+
+</head>
+<body>
+
+{% load i18n %}
+
+<div class="container-fluid">
+    {% include "charged/messages_snippet.html" %}
+    {% block content %}{% endblock %}
+</div>
+
+<!-- JavaScript block per template page -->
+{% block js %}
+{% endblock %}
+
+</body>
+</html>

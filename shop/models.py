@@ -11,7 +11,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 
-from charged.models import LnInvoice, Backend, Product
+from charged.lnpurchase.models import Product
 from shop.exceptions import PortNotInUseError, PortInUseError
 from shop.validators import validate_host_name_blacklist
 from shop.validators import validate_host_name_no_underscore
@@ -352,53 +352,3 @@ class RSshTunnel(Bridge):
     public_key = models.CharField(max_length=5000,
                                   verbose_name=_('SSH Public Key'),
                                   help_text=_('The SSH public key used to allow you access to the tunnel.'))
-
-
-class ShopLnInvoice(LnInvoice):
-    # tor_bridge = models.ForeignKey(
-    #     TorBridge,
-    #     on_delete=models.CASCADE,
-    #     null=True,
-    #     blank=True,
-    #     related_name='tor_invoices'
-    # )
-    #
-    # rssh = models.ForeignKey(
-    #     RSshTunnel,
-    #     on_delete=models.CASCADE,
-    #     null=True,
-    #     blank=True,
-    #     related_name='rssh_invoices'
-    # )
-
-    class Meta:
-        verbose_name = _("Invoice")
-        verbose_name_plural = _("Invoices")
-#
-#     def create_backend_invoice(self):
-#         host_id = self.tor_bridge.host.id
-#         host = Host.objects.get(id=host_id)
-#         sb = ShopBackend.objects.get(owner=host.owner)
-#
-#         create_result = sb.backend.create_invoice(memo=self.label, value=self.msatoshi)
-#         lookup_result = sb.backend.get_invoice(r_hash=create_result.r_hash)
-#
-#         _create_date = make_aware(timezone.datetime.fromtimestamp(lookup_result.creation_date))
-#         _expire_date = _create_date + timezone.timedelta(seconds=lookup_result.expiry)
-#
-#         self.rhash = create_result.r_hash
-#         self.payreq = lookup_result.payment_request
-#         self.description = lookup_result.creation_date
-#         self.expires_at = _expire_date
-#
-#         qr_code_temp_file = NamedTemporaryFile()
-#         qr_code_temp_name = 'qr_{}.png'.format(os.path.basename(qr_code_temp_file.name))
-#         qrcode.make(self.payreq).save(qr_code_temp_file)
-#
-#         data = File(qr_code_temp_file)
-#         self.qr_image.save(qr_code_temp_name, data, True)
-#         self.save()
-#
-#     @property
-#     def owner(self):
-#         return "foo"

@@ -10,6 +10,8 @@ class BaseLnNode(models.Model):
     type = None
     streaming = False
 
+    GET_INFO_FIELDS = {}
+
     is_enabled = models.BooleanField(
         default=True,
         verbose_name=_('Is enabled?'),
@@ -37,6 +39,10 @@ class BaseLnNode(models.Model):
         if self.streaming:
             return "{} (Streaming-Type: {})".format(self.name, self.type)
         return "{} (Type: {})".format(self.name, self.type)
+
+    @abstractmethod
+    def get_info_field(self):
+        raise NotImplementedError
 
     @abstractmethod
     def get_info(self):

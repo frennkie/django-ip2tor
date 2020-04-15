@@ -1,0 +1,25 @@
+{% if messages %}
+    <div class="container">
+        {% for message in messages %}
+            {% if message.tags == "error" %}
+                <div class="alert alert-danger text-center">
+                    <button type="button" class="close" onclick="this.parentElement.style.display='none';">&times;
+                    </button>
+                    <strong>Error: </strong> {{ message }}
+                </div>
+            {% elif message.tags %}
+                <div class="alert alert-{{ message.tags }} text-center">
+                    <button type="button" class="close" onclick="this.parentElement.style.display='none';">&times;
+                    </button>
+                    <strong>{{ message.tags|capfirst }}:</strong> {{ message }}
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <button type="button" class="close" onclick="this.parentElement.style.display='none';">&times;
+                    </button>
+                    <strong>Info!</strong> {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}

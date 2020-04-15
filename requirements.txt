@@ -3,6 +3,7 @@ channels
 channels_redis
 django_extensions
 django-filter
+django-redis
 django-widget-tweaks
 djangorestframework
 lnd-rpc

@@ -3,6 +3,8 @@ import os
 import grpc
 import lnrpc
 from django.conf import settings
+from django.core.cache import cache
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.functional import cached_property
@@ -11,21 +13,31 @@ from protobuf_to_dict import protobuf_to_dict
 
 from charged.lnnode.base import BaseLnNode
 
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
-class NotANode(models.Model):
-    name = models.CharField(
-        max_length=10,
-        default='N/A',
-        verbose_name=_('name'),
-        help_text=_('Name.')
-    )
+
+class FakeNode(BaseLnNode):
+    type = "Fake Node"
+    streaming = False
 
     class Meta:
-        verbose_name = _('not a node')
-        verbose_name_plural = _('not nodes')
+        verbose_name = _("Fake Node")
+        verbose_name_plural = _("Fake Nodes")
 
-    def __str__(self):
-        return self.name
+    def create_invoice(self, **kwargs):
+        return {'method': 'create_invoice', 'foo': 'bar'}
+
+    def get_info(self):
+        return {'method': 'get_info', 'foo': 'bar'}
+
+    def get_invoice(self, **kwargs):
+        return {'method': 'get_invoice', 'foo': 'bar'}
+
+    def stream_invoices(self, **kwargs):
+        if self.supports_streaming:
+            return {'method': 'stream_invoices', 'foo': 'bar'}
+        else:
+            raise NotImplementedError("Streaming not supported.")
 
 
 class LndNode(BaseLnNode):
@@ -33,6 +45,21 @@ class LndNode(BaseLnNode):
 
     CHARGED_LND_TLS_VERIFICATION_EDITABLE = \
         getattr(settings, 'CHARGED_LND_TLS_VERIFICATION_EDITABLE', False)
+
+    GET_INFO_FIELDS = {
+        'identity_pubkey': 'identity_pubkey',
+        'alias': 'alias',
+        'num_active_channels': 'num_active_channels',
+        'num_peers': 'num_peers',
+        'block_height': 'block_height',
+        'block_hash': 'block_hash',
+        'synced_to_chain': 'synced_to_chain',
+        'testnet': 'testnet',
+        'uris': 'uris',
+        'best_header_timestamp': 'best_header_timestamp',
+        'num_pending_channels': 'num_pending_channels',
+        'chains': 'chains'
+    }
 
     hostname = models.CharField(
         max_length=255,
@@ -95,10 +122,10 @@ class LndNode(BaseLnNode):
             return self.macaroon_readonly
         raise Exception("Missing readonly macaroon: {}".format(self))
 
-    def create_invoice(self, **kwargs):
+    def get_info(self):
         raise NotImplementedError
 
-    def get_info(self):
+    def create_invoice(self, **kwargs):
         raise NotImplementedError
 
     def get_invoice(self, **kwargs):
@@ -126,6 +153,62 @@ class LndGRpcNode(LndNode):
         verbose_name_plural = _("LND gRPC Nodes")
         unique_together = ('hostname', 'port')
 
+    def cached_get_info_value(self, name, default, timeout=60):
+        value = cache.get(f'{self.__class__.__qualname__}.{name}.{self.id}')
+        if value:
+            return value
+
+        value = self.get_info.get(name, default)
+        return cache.get_or_set(f'{self.__class__.__qualname__}.{name}.{self.id}', value, timeout)
+
+    @property
+    def identity_pubkey(self):
+        return self.cached_get_info_value('identity_pubkey', 'N/A')
+
+    @property
+    def alias(self):
+        return self.cached_get_info_value('alias', 'N/A')
+
+    @property
+    def num_active_channels(self):
+        return self.cached_get_info_value('num_active_channels', -1)
+
+    @property
+    def num_peers(self):
+        return self.cached_get_info_value('num_peers', -1)
+
+    @property
+    def block_height(self):
+        return self.cached_get_info_value('block_height', -1)
+
+    @property
+    def block_hash(self):
+        return self.cached_get_info_value('block_hash', 'N/A')
+
+    @property
+    def synced_to_chain(self):
+        return self.cached_get_info_value('synced_to_chain', False)
+
+    @property
+    def testnet(self):
+        return self.cached_get_info_value('testnet', False)
+
+    @property
+    def uris(self):
+        return self.cached_get_info_value('uris', [])
+
+    @property
+    def best_header_timestamp(self):
+        return self.cached_get_info_value('best_header_timestamp', -1)
+
+    @property
+    def num_pending_channels(self):
+        return self.cached_get_info_value('num_pending_channels', -1)
+
+    @property
+    def chains(self):
+        return self.cached_get_info_value('chains', [])
+
     @cached_property
     def stub_readonly(self):
         return self.Stub(self.hostname,
@@ -140,19 +223,7 @@ class LndGRpcNode(LndNode):
                          self.tls_cert.encode(),
                          self._get_macaroon_invoice().encode())
 
-    def create_invoice(self, **kwargs) -> dict:
-        try:
-            request = lnrpc.rpc_pb2.Invoice(**kwargs)
-            response = self.stub_invoice.AddInvoice(request)
-            return protobuf_to_dict(response, including_default_value_fields=True)
-        except grpc.RpcError as err:
-            return {'error': 'Unable to process AddInvoice with Exception:\n'
-                             'gRPC API Error: \n'
-                             '{}'.format(err)}
-        except Exception as err:
-            raise Exception("General Error: \n"
-                            "{}".format(err))
-
+    @cached_property
     def get_info(self) -> dict:
         try:
             request = lnrpc.rpc_pb2.GetInfoRequest()
@@ -160,6 +231,19 @@ class LndGRpcNode(LndNode):
             return protobuf_to_dict(response, including_default_value_fields=True)
         except grpc.RpcError as err:
             return {'error': 'Unable to process GetInfo with Exception:\n'
+                             'gRPC API Error: \n'
+                             '{}'.format(err)}
+        except Exception as err:
+            raise Exception("General Error: \n"
+                            "{}".format(err))
+
+    def create_invoice(self, **kwargs) -> dict:
+        try:
+            request = lnrpc.rpc_pb2.Invoice(**kwargs)
+            response = self.stub_invoice.AddInvoice(request)
+            return protobuf_to_dict(response, including_default_value_fields=True)
+        except grpc.RpcError as err:
+            return {'error': 'Unable to process AddInvoice with Exception:\n'
                              'gRPC API Error: \n'
                              '{}'.format(err)}
         except Exception as err:
@@ -302,3 +386,62 @@ class CLightningNode(BaseLnNode):
 
     def stream_invoices(self, **kwargs):
         pass
+
+#
+# class CLightningRpcBackend(AbstractBackend):
+#     type = "c-lightning RPC"
+#     streaming = True
+#
+#     def __init__(self, **kwargs):
+#         # assign init parameters
+#         self.socket = kwargs.get('socket')
+#         self.port = kwargs.get('port')
+#         self.tls_cert = kwargs.get('tls_cert')
+#         self.macaroon_invoice = kwargs.get('macaroon_invoice')
+#         self.macaroon_readonly = kwargs.get('macaroon_readonly')
+#
+#         self.ln = LightningRpc(self.socket)
+#
+#     @classmethod
+#     def from_settings(cls, settings):
+#         host = settings.get('host')
+#
+#         if not host:
+#             # ToDo(frennkie) where to check/valid this?
+#             # raise BackendConfigurationError()
+#             return cls()
+#
+#         return cls(
+#             host=host,
+#         )
+#
+#     def dump_settings(self):
+#         return dict({
+#             'socket': self.socket,
+#         })
+#
+#     def get_info(self):
+#         return self.ln.getinfo()
+#
+#     def get_invoice(self, **kwargs):
+#         label = kwargs.get('label')
+#
+#         # ToDo(frennkie) you're not serious!?!
+#         inv = self.ln.listinvoices(label)
+#         inv_ln = inv['invoices'][0]
+#         return inv_ln
+#
+#     def create_invoice(self, **kwargs):
+#         msatoshi = kwargs.get('msatoshi')
+#         label = kwargs.get('label')
+#         description = kwargs.get('description')
+#         expiry = kwargs.get('expiry')
+#
+#         return self.ln.invoice(msatoshi, label, description, expiry)
+#
+#     def stream_invoices(self, **kwargs):
+#         yield self.ln.waitanyinvoice()
+#         # return self.ln.waitinvoice(invoice.label)
+#
+#     def supports_streaming(self):
+#         return self.streaming
