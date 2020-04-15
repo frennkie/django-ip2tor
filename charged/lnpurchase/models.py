@@ -98,55 +98,55 @@ class PurchaseOrderItemDetail(models.Model):
                              self.price,
                              self.quantity)
 
-
-class Product(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    created_at = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
-
-    po_details = GenericRelation(PurchaseOrderItemDetail,
-                                 object_id_field='product_id',
-                                 content_type_field='product_type')
-
-    class Meta:
-        abstract = True
-
-
-class ProductRed(Product):
-    comment = models.CharField(max_length=42, blank=True, null=True, default="N/A",
-                               verbose_name=_('Product Red Comment (optional)'))
-
-    feld = models.CharField(max_length=42, blank=True, null=True, default="N/A",
-                            verbose_name=_('Product Red Feld'))
-
-    zahl = models.IntegerField(blank=True, null=True, default=24,
-                               verbose_name=_('Product Red Zahl'))
-
-    class Meta:
-        verbose_name = _("Product Red (demo)")
-        verbose_name_plural = _("Product Red Items (demo)")
-
-    def __str__(self):
-        return "{} ({}): {}".format(self.__class__.__name__, self.id, self.comment)
-
-
-class ProductGreen(Product):
-    comment = models.CharField(max_length=42, blank=True, null=True, default="N/A",
-                               verbose_name=_('Product Green Comment (optional)'))
-
-    feld = models.CharField(max_length=42, blank=True, null=True, default="N/A",
-                            verbose_name=_('Product Green Feld'))
-
-    feld2 = models.CharField(max_length=42, blank=True, null=True, default="N/A",
-                             verbose_name=_('Product Green Feld2'))
-
-    zahl3 = models.IntegerField(blank=True, null=True, default=24,
-                                verbose_name=_('Product Red Zahl3'))
-
-    class Meta:
-        verbose_name = _("Product Green (demo)")
-        verbose_name_plural = _("Product Green Items (demo)")
-
-    def __str__(self):
-        return "{} ({}): {}".format(self.__class__.__name__, self.id, self.comment)
+#
+# class Product(models.Model):
+#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#
+#     created_at = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
+#     modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
+#
+#     po_details = GenericRelation(PurchaseOrderItemDetail,
+#                                  object_id_field='product_id',
+#                                  content_type_field='product_type')
+#
+#     class Meta:
+#         abstract = True
+#
+#
+# class ProductRed(Product):
+#     comment = models.CharField(max_length=42, blank=True, null=True, default="N/A",
+#                                verbose_name=_('Product Red Comment (optional)'))
+#
+#     feld = models.CharField(max_length=42, blank=True, null=True, default="N/A",
+#                             verbose_name=_('Product Red Feld'))
+#
+#     zahl = models.IntegerField(blank=True, null=True, default=24,
+#                                verbose_name=_('Product Red Zahl'))
+#
+#     class Meta:
+#         verbose_name = _("Product Red (demo)")
+#         verbose_name_plural = _("Product Red Items (demo)")
+#
+#     def __str__(self):
+#         return "{} ({}): {}".format(self.__class__.__name__, self.id, self.comment)
+#
+#
+# class ProductGreen(Product):
+#     comment = models.CharField(max_length=42, blank=True, null=True, default="N/A",
+#                                verbose_name=_('Product Green Comment (optional)'))
+#
+#     feld = models.CharField(max_length=42, blank=True, null=True, default="N/A",
+#                             verbose_name=_('Product Green Feld'))
+#
+#     feld2 = models.CharField(max_length=42, blank=True, null=True, default="N/A",
+#                              verbose_name=_('Product Green Feld2'))
+#
+#     zahl3 = models.IntegerField(blank=True, null=True, default=24,
+#                                 verbose_name=_('Product Red Zahl3'))
+#
+#     class Meta:
+#         verbose_name = _("Product Green (demo)")
+#         verbose_name_plural = _("Product Green Items (demo)")
+#
+#     def __str__(self):
+#         return "{} ({}): {}".format(self.__class__.__name__, self.id, self.comment)

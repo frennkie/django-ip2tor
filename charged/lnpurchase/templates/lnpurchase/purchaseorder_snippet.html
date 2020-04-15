@@ -38,7 +38,13 @@
                 </tr>
                 {% for item in object.item_details.all %}
                     <tr>
-                        <td>Tor Bridge</td>
+                        <td>
+                            <a href="{% url 'torbridge-detail' pk=object.id %}"
+                               class="text-light">Tor Bridge</a>
+
+
+                        </td>
+
                         <td>{{ item.product.host.ip }}</td>
                         <td>{{ item.product.host.name }}</td>
                         <td>{{ item.product.port }}</td>
