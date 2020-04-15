@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand
 
-from charged.models import PurchaseOrder
+from charged.lninvoice.models import Invoice
+from charged.lnnode.models import LndGRpcNode
+from charged.lnpurchase.models import PurchaseOrder
 
 
 class Command(BaseCommand):
@@ -30,12 +31,14 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING('No total price - skipping: %s' % po))
                 continue
 
-            host_owner = ids[0].product.host.owner
-            owner_backend = host_owner.owned_backend
-            inv = po.ln_invoices.create(label="Invoice for PO {}".format(po.id),
-                                        msatoshi=po.total_price_msat,
-                                        backend=owner_backend)
-            if inv:
-                po.status = PurchaseOrder.TOBEPAID
-                po.save()
-                self.stdout.write(self.style.SUCCESS('Created LnInvoice: %s (%s)' % (inv.id, inv)))
+            invoice = Invoice(label="PO: {}".format(po.id),
+                              msatoshi=po.total_price_msat,
+                              lnnode=LndGRpcNode.objects.first())
+            invoice.save()
+
+            po.ln_invoices.add(invoice)
+
+            po.status = PurchaseOrder.TOBEPAID
+            po.save()
+
+            self.stdout.write(self.style.SUCCESS('Created LnInvoice: %s (%s)' % (invoice.id, invoice)))
