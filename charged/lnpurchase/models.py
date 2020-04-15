@@ -98,19 +98,19 @@ class PurchaseOrderItemDetail(models.Model):
                              self.price,
                              self.quantity)
 
-#
-# class Product(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#
-#     created_at = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
-#     modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
-#
-#     po_details = GenericRelation(PurchaseOrderItemDetail,
-#                                  object_id_field='product_id',
-#                                  content_type_field='product_type')
-#
-#     class Meta:
-#         abstract = True
+
+class Product(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    created_at = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
+
+    po_details = GenericRelation(PurchaseOrderItemDetail,
+                                 object_id_field='product_id',
+                                 content_type_field='product_type')
+
+    class Meta:
+        abstract = True
 #
 #
 # class ProductRed(Product):
