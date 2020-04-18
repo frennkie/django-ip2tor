@@ -43,7 +43,7 @@ class PortRangeInline(admin.TabularInline):
 class BridgeTunnelAdmin(admin.ModelAdmin):
     form = RSshTunnelForm
 
-    list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after']
+    list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after', 'created_at']
     readonly_fields = ('status',)  # nobody should mess with 'status'
 
     # inlines = (ShopInvoiceInline,)

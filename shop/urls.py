@@ -5,6 +5,8 @@ from . import views
 app_name = 'shop'
 
 urlpatterns = [
+    path('demo/', views.DemoView.as_view(), name='demo'),
+
     path('hosts/', views.HostListView.as_view(), name='host-list'),
     path('hosts/<uuid:pk>/', views.PurchaseTorBridgeOnHostView.as_view(), name='host-purchase'),
 

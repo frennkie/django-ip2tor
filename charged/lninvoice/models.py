@@ -119,38 +119,19 @@ class Invoice(models.Model):
                                  null=True, blank=True,  # optional
                                  upload_to=get_qr_image_path)
 
-    po = models.ForeignKey(PurchaseOrder,
-                           editable=False,
-                           on_delete=models.SET_NULL,
-                           related_name='ln_invoices',
-                           verbose_name=_('Purchase Order'),
-                           help_text=_('The originating Purchase Order.'),
-                           null=True, blank=False)  # may be NULL in database, but not in GUI
-
-    # ToDo(frennkie) this is more useful for admin interface.. leave as is for now
     # ToDo(frennkie) check on_delete
+    # Generic Foreign Key
     limit = (models.Q(app_label=BaseLnNode._meta.app_label))
     content_type = models.ForeignKey(ContentType,
                                      null=True, blank=False,  # may be NULL in database, but not in GUI
                                      editable=True,
                                      on_delete=models.CASCADE,
                                      limit_choices_to=limit)
-
-    # ToDo(frennkie) use a CharField here which should support both Int and UUID
-    # object_id = models.IntegerField(verbose_name=_('Backend ID (Int)'),
-    #                                 help_text=_('Foo'),
-    #                                 editable=True,
-    #                                 null=True, blank=False)  # may be NULL in database, but not in GUI
-    # object_id = models.UUIDField(verbose_name=_('Backend ID (UUID'),
-    #                               help_text=_('Foo'),
-    #                               editable=True,
-    #                               null=True, blank=False)  # may be NULL in database, but not in GUI
     object_id = models.CharField(max_length=50,
                                  verbose_name=_('LN Node ID (Char)'),
                                  help_text=_('The internal ID of the related Lightning Node.'),
                                  editable=True,
                                  null=True, blank=False)  # may be NULL in database, but not in GUI
-
     lnnode = GenericForeignKey()
 
     class Meta:
@@ -165,7 +146,7 @@ class Invoice(models.Model):
     def make_qr_image(self) -> (str, File):
         temporary_file = NamedTemporaryFile()
         temporary_file_name = 'qr_{}.png'.format(os.path.basename(temporary_file.name))
-        qrcode.make(self.payment_request).save(temporary_file)
+        qrcode.make(self.payment_request).save()
 
         return temporary_file_name, File(temporary_file)
 
@@ -205,9 +186,6 @@ class Invoice(models.Model):
                 self.paid_at = make_aware(timezone.datetime.fromtimestamp(_settle_date))
                 self.save()
 
-                self.po.status = PurchaseOrder.PAID
-                self.po.save()
-
         return True
 
     @cached_property
@@ -226,27 +204,28 @@ class Invoice(models.Model):
             return 0
         return "{:.8f}".format(self.msatoshi / 100_000_000_000)
 
-    # # ToDo(frennkie) check/remove this
-    # def amount(self):
-    #     if self.quoted_amount and self.quoted_currency:
-    #         return str(round(self.quoted_amount, 2)) + ' ' + self.quoted_currency
+    @property
+    def amount_quoted(self):
+        if self.quoted_amount and self.quoted_currency:
+            return f'{self.quoted_currency} {round(self.quoted_amount, 2)}'
+        return 'N/A 0.00'
 
-    # # ToDo(frennkie) check/remove this
-    # def current_status(self):
-    #     if self.status == "unpaid":
-    #         try:
-    #             inv = LightningRpc(settings.LIGHTNING_RPC).listinvoices(self.label)
-    #
-    #             inv_ln = inv['invoices'][0]
-    #             if inv_ln['status'] == "expired":
-    #                 self.status = inv_ln['status']
-    #             if inv_ln['status'] == "paid":
-    #                 self.status = inv_ln['status']
-    #                 self.paid_at = datetime.fromtimestamp(inv_ln['paid_at'], timezone.utc)
-    #                 self.pay_index = inv_ln['pay_index']
-    #             self.save()
-    #             return self.status
-    #         except:
-    #             return '-'
-    #     else:
-    #         return self.status
+
+class PurchaseOrderInvoice(Invoice):
+    po = models.ForeignKey('lnpurchase.PurchaseOrder',
+                           editable=False,
+                           on_delete=models.SET_NULL,
+                           related_name='ln_invoices',
+                           verbose_name=_('Purchase Order'),
+                           help_text=_('The originating Purchase Order.'),
+                           null=True, blank=False)  # may be NULL in database, but not in GUI
+
+    class Meta:
+        verbose_name = _("Purchase Order Invoice")
+        verbose_name_plural = _("Purchase Order Invoices")
+
+    def lnnode_get_invoice(self):
+        result = super().lnnode_get_invoice()
+        if result:
+            self.po.status = PurchaseOrder.PAID
+            self.po.save()

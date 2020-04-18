@@ -22,6 +22,8 @@
         const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
         const ws = new WebSocket(ws_scheme + '://' + window.location.host + '/charged/lightning/ws');
 
+        const csrf_token = '{{csrf_token}}';
+
         let inv_req;
 
         $(function () {
@@ -45,16 +47,18 @@
 
         $('#create_invoice').click(function () {
             inv_req = {
-                msatoshi: 10000000,
-                description: "description",
-                metadata: "{'sometext':'meta'}"
+                csrfmiddlewaretoken: csrf_token,
+                host_id: "8d9fedff-802e-4ebb-b98c-939efcec6ff2",
+                target: "ws.onion:12345",
+                comment: "this is a ws comment"
             };
             addData(inv_req);
         });
 
         function addData(data) {
             console.log(data);
-            $.post("/ln/invoice", inv_req)
+            {#$.post("/shop/hosts/8d9fedff-802e-4ebb-b98c-939efcec6ff2/", inv_req)#}
+            $.post("/api/public/tor-bridges/", inv_req)
                 .done(function (data) {
 
                     $('#output').text(data['bolt11']);

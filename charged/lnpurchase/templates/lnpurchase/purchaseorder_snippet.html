@@ -66,10 +66,10 @@
                     {% if object.ln_invoices.all|length_is:"0" %}
                         <td>Not ready yet</td>
                     {% elif object.ln_invoices.all|length_is:"1" %}
-                        {% include "lninvoice/invoice_snippet.html" with object=object.ln_invoices.first %}
+                        {% include "lninvoice/purchaseorderinvoice_snippet.html" with object=object.ln_invoices.first %}
                     {% else %}
                         {% for ln_invoice in object.ln_invoices.all %}
-                            {% include "lninvoice/invoice_snippet.html" with object=ln_invoice %}
+                            {% include "lninvoice/purchaseorderinvoice_snippet.html" with object=ln_invoice %}
                         {% endfor %}
                     {% endif %}
                 </tr>

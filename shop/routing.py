@@ -2,7 +2,7 @@ from channels.routing import ProtocolTypeRouter, ChannelNameRouter, URLRouter
 from channels.sessions import SessionMiddlewareStack
 from django.urls import path
 
-from .consumers import LncConsumer, WorkerConsumer
+from shop.consumers import LncConsumer, WorkerConsumer
 
 application = ProtocolTypeRouter({
     'websocket': SessionMiddlewareStack(

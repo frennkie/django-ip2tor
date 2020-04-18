@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.core.management.base import BaseCommand
 
-from charged.backends import FakeBackend
+from charged.lnnode.models import FakeNode
 
 
 class Command(BaseCommand):
@@ -11,5 +11,5 @@ class Command(BaseCommand):
     #   parser.add_argument('command' , nargs='+', type=str)
 
     def handle(self, *args, **options):
-        result = FakeBackend().get_info()
+        result = FakeNode().get_info()
         print(result)

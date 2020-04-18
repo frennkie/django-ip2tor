@@ -4,11 +4,6 @@ from charged.lnpurchase.forms import PurchaseOrderItemDetailAdminForm, PurchaseO
 from charged.lnpurchase.models import PurchaseOrder, PurchaseOrderItemDetail
 
 
-class PurchaseOrderInline(admin.TabularInline):
-    model = PurchaseOrder
-    extra = 0
-
-
 class PurchaseOrderItemDetailInline(admin.TabularInline):
     model = PurchaseOrderItemDetail
     form = PurchaseOrderItemDetailAdminForm
@@ -21,7 +16,10 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     model = PurchaseOrder
     inlines = (PurchaseOrderItemDetailInline,)
 
-    list_display = ('id', 'created_at', 'status', 'item_count', 'total_price_sat')
+    fieldset = ('status',  'created_at')
+    readonly_fields = ('created_at', 'item_count', 'total_price_sat',)
+
+    list_display = ('id', 'status', 'item_count', 'total_price_sat', 'created_at')
 
     def get_formsets_with_inlines(self, request, obj=None):
         # If parent object has not been saved yet / If there's no screen

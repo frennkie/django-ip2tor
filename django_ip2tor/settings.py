@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'charged.lnnode',
     'charged.lninvoice',
     'charged.lnpurchase',
+    'charged.lnrates',
     'shop.apps.ShopConfig'
 ]
 
@@ -79,7 +80,7 @@ TEMPLATES = [
 ]
 
 # Application definition
-ASGI_APPLICATION = 'charged.routing.application'
+ASGI_APPLICATION = 'shop.routing.application'
 
 WSGI_APPLICATION = 'django_ip2tor.wsgi.application'
 
@@ -90,6 +91,9 @@ CHANNEL_LAYERS = {
     }
 }
 
+# Caching (using redis)
+# https://docs.djangoproject.com/en/3.0/topics/cache/
+
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -99,6 +103,15 @@ CACHES = {
         }
     }
 }
+
+# Caching in Development
+# https://docs.djangoproject.com/en/3.0/topics/cache/#dummy-caching-for-development
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+#     }
+# }
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -183,5 +196,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static')
 
 SITE_ID = 1
 
-CHARGED_LND_TLS_VERIFICATION_EDITABLE = False
+CHARGED_LND_TLS_VERIFICATION_EDITABLE = True
 CHARGED_LND_REJECT_ADMIN_MACAROON = True

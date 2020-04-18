@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from charged.lninvoice.models import Invoice
+from charged.lninvoice.models import PurchaseOrderInvoice
 from charged.lnnode.models import LndGRpcNode
 from charged.lnpurchase.models import PurchaseOrder
 
@@ -31,9 +31,9 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING('No total price - skipping: %s' % po))
                 continue
 
-            invoice = Invoice(label="PO: {}".format(po.id),
-                              msatoshi=po.total_price_msat,
-                              lnnode=LndGRpcNode.objects.first())
+            invoice = PurchaseOrderInvoice(label="PO: {}".format(po.id),
+                                           msatoshi=po.total_price_msat,
+                                           lnnode=LndGRpcNode.objects.first())
             invoice.save()
 
             po.ln_invoices.add(invoice)

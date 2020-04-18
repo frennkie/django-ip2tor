@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -9,6 +10,7 @@ class BaseLnNode(models.Model):
 
     type = None
     streaming = False
+    tor = False
 
     GET_INFO_FIELDS = {}
 
@@ -40,8 +42,25 @@ class BaseLnNode(models.Model):
             return "{} (Streaming-Type: {})".format(self.name, self.type)
         return "{} (Type: {})".format(self.name, self.type)
 
+    def clean(self, **kwargs):
+        status, error = self.update_is_alive()
+        if self.is_enabled and not status:
+            raise ValidationError(f"Check Alive failed: {error}")
+
+        super().save(**kwargs)
+
+    def update_is_alive(self):
+        status, error = self.check_alive_status()
+        if status:
+            self.is_alive = True
+            self.save()
+        else:
+            self.is_alive = False
+            self.save()
+        return status, error
+
     @abstractmethod
-    def get_info_field(self):
+    def check_alive_status(self) -> (bool, str):
         raise NotImplementedError
 
     @abstractmethod
@@ -64,64 +83,6 @@ class BaseLnNode(models.Model):
     def supports_streaming(self):
         return self.streaming
 
-    # @classmethod
-    # def from_db(cls, db, field_names, values):
-    #     new = super().from_db(db, field_names, values)
-    #     try:
-    #         loaded_settings = json.loads(new.settings)
-    #         new.backend = cls.backend.from_settings(loaded_settings)
-    #     except json.decoder.JSONDecodeError:
-    #         pass
-    #     except AttributeError:
-    #         pass
-    #
-    #     return new
-    #
-    # @property
-    # def supports_streaming(self):
-    #     return self.backend.supports_streaming
-    #
-    # @property
-    # def type(self):
-    #     try:
-    #         return self.backend.type
-    #     except AttributeError:
-    #         return None
-    #
-    # # ToDo(frennkie) need to implement check with reasonable timeout here
-    # @cached_property
-    # def get_info(self):
-    #     if not (self.settings and not self.settings == '{}'):
-    #         return _("Not yet configured")
-    #     try:
-    #         info = self.backend.get_info()
-    #         return info
-    #     except Exception as err:
-    #         return "N/A ({})".format(err)
-    #
-    # @property
-    # def identity_pubkey(self):
-    #     if not (self.settings and not self.settings == '{}'):
-    #         return _("Not yet configured")
-    #     try:
-    #         return self.get_info.identity_pubkey
-    #     except Exception as err:
-    #         return "N/A ({})".format(err)
-    #
-    # @property
-    # def alias(self):
-    #     if not (self.settings and not self.settings == '{}'):
-    #         return _("Not yet configured")
-    #     try:
-    #         return self.get_info.alias
-    #     except Exception as err:
-    #         return "N/A ({})".format(err)
-    #
-    # @property
-    # def block_height(self):
-    #     if not (self.settings and not self.settings == '{}'):
-    #         return _("Not yet configured")
-    #     try:
-    #         return self.get_info.block_height
-    #     except Exception as err:
-    #         return "N/A ({})".format(err)
+    @property
+    def supports_tor(self):
+        return self.tor

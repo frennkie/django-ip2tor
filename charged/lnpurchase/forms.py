@@ -21,18 +21,18 @@ class PurchaseOrderItemDetailAdminForm(forms.ModelForm):
         self.parent_object = parent_object
         super().__init__(*args, **kwargs)
 
-    def clean_product_id(self):
-        product_id = self.cleaned_data.get('product_id')
-        product_type = self.cleaned_data.get('product_type')
+    def clean_object_id(self):
+        object_id = self.cleaned_data.get('object_id')
+        content_type = self.cleaned_data.get('content_type')
 
-        product_type_ct = ContentType.objects.get(app_label=product_type.app_label, model=product_type.model)
+        product_type_ct = ContentType.objects.get(app_label=content_type.app_label, model=content_type.model)
         product_model = product_type_ct.model_class()
 
         try:
-            ContentType.objects.get(app_label=product_type.app_label,
-                                    model=product_type.model).get_object_for_this_type(id=product_id)
+            ContentType.objects.get(app_label=content_type.app_label,
+                                    model=content_type.model).get_object_for_this_type(id=object_id)
         except product_model.DoesNotExist:
             raise forms.ValidationError('No product found '
-                                        'with ID: {} on Model: {}'.format(product_id, product_model))
+                                        'with ID: {} on Model: {}'.format(object_id, product_model))
 
-        return product_id
+        return object_id

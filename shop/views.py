@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.shortcuts import redirect
 from django.views import generic
+from django.views.generic import TemplateView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, mixins
 from rest_framework import viewsets
@@ -87,7 +88,7 @@ class PurchaseTorBridgeOnHostView(generic.UpdateView):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
 
-        print(context)
+        # print(context)
         return context
 
     def get_success_url(self):
@@ -96,13 +97,6 @@ class PurchaseTorBridgeOnHostView(generic.UpdateView):
     def form_valid(self, form):
         clean_target = form.cleaned_data.get('target')
         clean_comment = form.cleaned_data.get('comment')
-
-        print("form valid")
-        print(clean_target)
-        print(clean_comment)
-
-        print(self.request)
-        print(form.instance)
 
         tor_bridge = TorBridge.objects.create(comment=clean_comment,
                                               host=form.instance,
@@ -125,5 +119,6 @@ class PurchaseTorBridgeOnHostView(generic.UpdateView):
         print("form invalid")  # ToDo(frennkie) use messages
         return super().form_invalid(form)
 
-# class PurchaseOrderView(TemplateView, DetailView, CreateView):
-#     model = ShopBackend
+
+class DemoView(TemplateView):
+    template_name = 'charged/demo.html'

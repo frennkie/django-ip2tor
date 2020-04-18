@@ -43,10 +43,16 @@ class PublicHostSerializer(serializers.ModelSerializer):
 
 
 class PublicTorBridgeSerializer(serializers.HyperlinkedModelSerializer):
-    host = serializers.StringRelatedField(read_only=True)
+    host_id = serializers.CharField()
 
     class Meta:
         model = TorBridge
-        fields = ('id', 'status', 'host', 'port', 'suspend_after',
+        fields = ('id', 'status', 'host_id', 'port', 'suspend_after',
                   'comment', 'target')
         read_only_fields = ['id', 'status', 'port', 'suspend_after']
+
+    # def create(self, validated_data):
+    #     # ToDo(frenkie) super evil "hack"..
+    #     host = Host.objects.first()
+    #     validated_data['host'] = host
+    #     return super().create(validated_data)

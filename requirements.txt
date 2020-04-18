@@ -1,13 +1,15 @@
 base58
 channels
 channels_redis
+cryptography
 django_extensions
 django-filter
 django-redis
 django-widget-tweaks
 djangorestframework
+grpcio
 lnd-rpc
 pylightning
 qrcode[pil]
-requests
+requests[socks]
 protobuf3-to-dict

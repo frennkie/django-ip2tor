@@ -5,5 +5,5 @@ from . import views
 app_name = 'lninvoice'
 
 urlpatterns = [
-    path('lni/<uuid:pk>/', views.InvoiceDetailView.as_view(), name='invoice-detail'),
+    path('lni/<uuid:pk>/', views.PurchaseOrderInvoiceDetailView.as_view(), name='po-invoice-detail'),
 ]

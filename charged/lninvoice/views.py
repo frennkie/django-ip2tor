@@ -1,7 +1,7 @@
 from django.views import generic
 
-from charged.lninvoice.models import Invoice
+from charged.lninvoice.models import PurchaseOrderInvoice
 
 
-class InvoiceDetailView(generic.DetailView):
-    model = Invoice
+class PurchaseOrderInvoiceDetailView(generic.DetailView):
+    model = PurchaseOrderInvoice

@@ -1,15 +1,23 @@
 import os
+import ssl
 
 import grpc
 import lnrpc
+import requests
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.x509 import ExtensionNotFound
 from django.conf import settings
 from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.utils.datetime_safe import datetime
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from protobuf_to_dict import protobuf_to_dict
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from charged.lnnode.base import BaseLnNode
 
@@ -108,6 +116,11 @@ class LndNode(BaseLnNode):
     class Meta:
         abstract = True
 
+    @cached_property
+    def _get_x509_certificate(self):
+        cert = x509.load_pem_x509_certificate(self.tls_cert.encode(), default_backend())
+        return cert
+
     def _get_macaroon_invoice(self):
         if self.macaroon_admin:
             return self.macaroon_admin
@@ -122,44 +135,34 @@ class LndNode(BaseLnNode):
             return self.macaroon_readonly
         raise Exception("Missing readonly macaroon: {}".format(self))
 
-    def get_info(self):
-        raise NotImplementedError
+    @property
+    def x509_san(self):
+        try:
+            e = self._get_x509_certificate.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+            lst = [f'{x.__class__.__name__}: {x.value}' for x in e.value]
+            return '\n'.join(lst)
+        except ExtensionNotFound:
+            return ""
 
-    def create_invoice(self, **kwargs):
-        raise NotImplementedError
+    @property
+    def x509_not_valid_after(self):
+        if self.tls_cert:
+            return self._get_x509_certificate.not_valid_after
 
-    def get_invoice(self, **kwargs):
-        raise NotImplementedError
-
-    def stream_invoices(self, **kwargs):
-        raise NotImplementedError
-
-
-class LndGRpcNode(LndNode):
-    """Implements a Lightning Node for LND gRPC"""
-
-    type = "LND gRPC"
-    streaming = True
-
-    port = models.IntegerField(
-        default=10009,
-        verbose_name=_('port'),
-        help_text=_('Port gRPC interface. Must be in range 1 - 65535. Default: 10009.'),
-        validators=[MinValueValidator(1), MaxValueValidator(65535)]
-    )
-
-    class Meta:
-        verbose_name = _("LND gRPC Node")
-        verbose_name_plural = _("LND gRPC Nodes")
-        unique_together = ('hostname', 'port')
+    @property
+    def x509_not_valid_before(self):
+        if self.tls_cert:
+            return self._get_x509_certificate.not_valid_before
 
     def cached_get_info_value(self, name, default, timeout=60):
-        value = cache.get(f'{self.__class__.__qualname__}.{name}.{self.id}')
+        key = f'{self.__class__.__qualname__}.{name}.{self.id}'
+        value = cache.get(key)
         if value:
             return value
 
         value = self.get_info.get(name, default)
-        return cache.get_or_set(f'{self.__class__.__qualname__}.{name}.{self.id}', value, timeout)
+        cache.set(key, value, timeout)
+        return value
 
     @property
     def identity_pubkey(self):
@@ -195,19 +198,55 @@ class LndGRpcNode(LndNode):
 
     @property
     def uris(self):
-        return self.cached_get_info_value('uris', [])
+        return "\n".join(self.cached_get_info_value('uris', []))
 
     @property
     def best_header_timestamp(self):
-        return self.cached_get_info_value('best_header_timestamp', -1)
+        header_ts = self.cached_get_info_value('best_header_timestamp', -1)
+        header_ts_int = int(header_ts)
+        return f'{datetime.fromtimestamp(header_ts_int)} ({header_ts})'
 
     @property
     def num_pending_channels(self):
         return self.cached_get_info_value('num_pending_channels', -1)
 
-    @property
     def chains(self):
         return self.cached_get_info_value('chains', [])
+
+    def check_alive_status(self) -> (bool, str):
+        raise NotImplementedError
+
+    @cached_property
+    def get_info(self) -> dict:
+        raise NotImplementedError
+
+    def create_invoice(self, **kwargs):
+        raise NotImplementedError
+
+    def get_invoice(self, **kwargs):
+        raise NotImplementedError
+
+    def stream_invoices(self, **kwargs):
+        raise NotImplementedError
+
+
+class LndGRpcNode(LndNode):
+    """Implements a Lightning Node for LND gRPC"""
+
+    type = "LND gRPC"
+    streaming = True
+
+    port = models.IntegerField(
+        default=10009,
+        verbose_name=_('port'),
+        help_text=_('Port gRPC interface. Must be in range 1 - 65535. Default: 10009.'),
+        validators=[MinValueValidator(1), MaxValueValidator(65535)]
+    )
+
+    class Meta:
+        verbose_name = _("LND gRPC Node")
+        verbose_name_plural = _("LND gRPC Nodes")
+        unique_together = ('hostname', 'port')
 
     @cached_property
     def stub_readonly(self):
@@ -222,6 +261,19 @@ class LndGRpcNode(LndNode):
                          str(self.port),
                          self.tls_cert.encode(),
                          self._get_macaroon_invoice().encode())
+
+    def check_alive_status(self):
+        if not self.is_enabled:
+            return False, 'disabled'
+
+        # noinspection PyBroadException
+        try:
+            error = self.get_info.get('error')
+            if error:
+                return False, error
+            return True, None
+        except Exception as err:
+            return False, err
 
     @cached_property
     def get_info(self) -> dict:
@@ -317,22 +369,9 @@ class LndGRpcNode(LndNode):
             return grpc.secure_channel('{}:{}'.format(self.host, self.port), combined_creds)
 
 
-#     owner = models.OneToOneField(get_user_model(),
-#                                  editable=True,
-#                                  on_delete=models.CASCADE,
-#                                  related_name='owned_backend',
-#                                  verbose_name=_('Owner'),
-#                                  limit_choices_to={'is_staff': True})
-#
-#     ln_invoices = GenericRelation('LnInvoice',
-#                                   object_id_field='backend_id',
-#                                   content_type_field='backend_type')
-#
-
-
 class LndRestNode(LndNode):
     type = "LND REST"
-    streaming = False
+    tor = True
 
     port = models.IntegerField(
         default=8080,
@@ -348,14 +387,88 @@ class LndRestNode(LndNode):
     def create_invoice(self, **kwargs):
         pass
 
-    def get_info(self):
-        pass
+    def send_request(self, path='/v1/getinfo') -> dict:
+        url = f'https://{self.hostname}:{self.port}{path}'
+
+        session = requests.Session()
+
+        try:
+            if self.tls_cert_verification:
+                adapter = CaDataVerifyingHTTPAdapter(tls_cert=self.tls_cert)
+                session.mount(url, adapter)
+                res = session.get(url,
+                                  headers={'Grpc-Metadata-macaroon': self.macaroon_readonly},
+                                  timeout=3.0)
+
+            else:
+                requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+                res = session.get(url,
+                                  headers={'Grpc-Metadata-macaroon': self.macaroon_readonly},
+                                  verify=False,
+                                  timeout=3.0)
+
+            return {'data': res.json()}
+
+        except requests.exceptions.SSLError as err:
+            error = err.args[0]
+            print(error)
+
+            ssl_error = error.reason.args[0]
+            if isinstance(ssl_error, ssl.SSLCertVerificationError):
+                if "[SSL: CERTIFICATE_VERIFY_FAILED]" in str(error.reason):
+                    print(error.reason)
+                    return {'error': error.reason}
+                elif "doesn't match either" in str(error.reason):
+                    print(error.reason)
+                    return {'error': error.reason}
+
+            print("Other SSL error")
+            print(error.reason)
+            return {'error': error.reason}
+
+        except requests.exceptions.ConnectionError as err:
+            error = err.args[0]
+            print("Other error")
+            print(error)
+            return {'error': error.reason}
+
+    def check_alive_status(self) -> (bool, str):
+        if not self.is_enabled:
+            return False, 'disabled'
+
+        response = self.send_request()
+        error = response.get('error')
+        if error:
+            return False, error
+        return True, None
+
+    @cached_property
+    def get_info(self) -> dict:
+        return self.send_request().get('data')
 
     def get_invoice(self, **kwargs):
         pass
 
     def stream_invoices(self, **kwargs):
         raise NotImplementedError
+
+
+class CaDataVerifyingHTTPAdapter(HTTPAdapter):
+    """
+    A TransportAdapter ...
+    """
+
+    def __init__(self, tls_cert, *args, **kwargs):
+        self.cadata = tls_cert
+        super().__init__(*args, **kwargs)
+
+    def init_poolmanager(self, *args, **kwargs):
+        context = ssl.create_default_context()
+        context.load_verify_locations(cadata=self.cadata)
+        context.hostname_checks_common_name = False
+        context.check_hostname = False
+        kwargs['ssl_context'] = context
+        return super().init_poolmanager(*args, **kwargs)
 
 
 class CLightningNode(BaseLnNode):
@@ -387,42 +500,6 @@ class CLightningNode(BaseLnNode):
     def stream_invoices(self, **kwargs):
         pass
 
-#
-# class CLightningRpcBackend(AbstractBackend):
-#     type = "c-lightning RPC"
-#     streaming = True
-#
-#     def __init__(self, **kwargs):
-#         # assign init parameters
-#         self.socket = kwargs.get('socket')
-#         self.port = kwargs.get('port')
-#         self.tls_cert = kwargs.get('tls_cert')
-#         self.macaroon_invoice = kwargs.get('macaroon_invoice')
-#         self.macaroon_readonly = kwargs.get('macaroon_readonly')
-#
-#         self.ln = LightningRpc(self.socket)
-#
-#     @classmethod
-#     def from_settings(cls, settings):
-#         host = settings.get('host')
-#
-#         if not host:
-#             # ToDo(frennkie) where to check/valid this?
-#             # raise BackendConfigurationError()
-#             return cls()
-#
-#         return cls(
-#             host=host,
-#         )
-#
-#     def dump_settings(self):
-#         return dict({
-#             'socket': self.socket,
-#         })
-#
-#     def get_info(self):
-#         return self.ln.getinfo()
-#
 #     def get_invoice(self, **kwargs):
 #         label = kwargs.get('label')
 #
@@ -442,6 +519,3 @@ class CLightningNode(BaseLnNode):
 #     def stream_invoices(self, **kwargs):
 #         yield self.ln.waitanyinvoice()
 #         # return self.ln.waitinvoice(invoice.label)
-#
-#     def supports_streaming(self):
-#         return self.streaming

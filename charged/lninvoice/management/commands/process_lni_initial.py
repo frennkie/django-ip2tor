@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from charged.lninvoice.models import Invoice
+from charged.lninvoice.models import PurchaseOrderInvoice
 
 
 class Command(BaseCommand):
@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        ln_invoices_list = Invoice.objects.filter(status=Invoice.INITIAL)
+        ln_invoices_list = PurchaseOrderInvoice.objects.filter(status=PurchaseOrderInvoice.INITIAL)
         if not ln_invoices_list:
             self.stdout.write(self.style.SUCCESS('Nothing to process.'))
             return
