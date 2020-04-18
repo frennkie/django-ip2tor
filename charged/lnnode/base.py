@@ -1,3 +1,4 @@
+import uuid
 from abc import ABCMeta, abstractmethod
 
 from django.core.exceptions import ValidationError
@@ -13,6 +14,11 @@ class BaseLnNode(models.Model):
     tor = False
 
     GET_INFO_FIELDS = {}
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    created_at = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
 
     is_enabled = models.BooleanField(
         default=True,
@@ -43,21 +49,17 @@ class BaseLnNode(models.Model):
         return "{} (Type: {})".format(self.name, self.type)
 
     def clean(self, **kwargs):
-        status, error = self.update_is_alive()
+        status, error = self.check_alive_status()
         if self.is_enabled and not status:
             raise ValidationError(f"Check Alive failed: {error}")
 
-        super().save(**kwargs)
-
-    def update_is_alive(self):
-        status, error = self.check_alive_status()
+    def save(self, **kwargs):
+        status, _ = self.check_alive_status()
         if status:
             self.is_alive = True
-            self.save()
         else:
             self.is_alive = False
-            self.save()
-        return status, error
+        super().save(**kwargs)
 
     @abstractmethod
     def check_alive_status(self) -> (bool, str):

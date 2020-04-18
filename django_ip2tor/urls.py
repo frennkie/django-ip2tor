@@ -32,7 +32,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('charged/', include('charged.urls')),
     path('charged/lninvoice/', include('charged.lninvoice.urls')),
     path('charged/lnpurchase/', include('charged.lnpurchase.urls')),
     path('shop/', include('shop.urls')),

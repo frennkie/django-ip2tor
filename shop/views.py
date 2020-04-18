@@ -121,4 +121,4 @@ class PurchaseTorBridgeOnHostView(generic.UpdateView):
 
 
 class DemoView(TemplateView):
-    template_name = 'charged/demo.html'
+    template_name = 'charged/templates/shop/demo.html'

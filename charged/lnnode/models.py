@@ -51,9 +51,6 @@ class FakeNode(BaseLnNode):
 class LndNode(BaseLnNode):
     """Abstract model that defines shared files for both LND gRPC and LND REST"""
 
-    CHARGED_LND_TLS_VERIFICATION_EDITABLE = \
-        getattr(settings, 'CHARGED_LND_TLS_VERIFICATION_EDITABLE', False)
-
     GET_INFO_FIELDS = {
         'identity_pubkey': 'identity_pubkey',
         'alias': 'alias',
@@ -80,7 +77,7 @@ class LndNode(BaseLnNode):
     tls_cert_verification = models.BooleanField(
         verbose_name=_('TLS Verification'),
         default=True,
-        editable=CHARGED_LND_TLS_VERIFICATION_EDITABLE,
+        editable=True,
         help_text=_('Verify TLS connections using the provided certificate? '
                     'Should *always* be *enabled* in production.')
     )
@@ -202,7 +199,7 @@ class LndNode(BaseLnNode):
 
     @property
     def best_header_timestamp(self):
-        header_ts = self.cached_get_info_value('best_header_timestamp', -1)
+        header_ts = self.cached_get_info_value('best_header_timestamp', '-1')
         header_ts_int = int(header_ts)
         return f'{datetime.fromtimestamp(header_ts_int)} ({header_ts})'
 

@@ -107,7 +107,6 @@ class LndNodeAdmin(admin.ModelAdmin):
                 item.is_alive = False
                 item.save()
                 self.message_user(request, "%s has error: %s" % (item, error), level=messages.ERROR)
-            item.update_is_alive()
 
         self.message_user(request, "%s checked/updated." % queryset.count(), level=messages.WARNING)
 

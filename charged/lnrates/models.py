@@ -94,5 +94,5 @@ class Settings(models.Model):
     )
 
     class Meta:
-        verbose_name = _("Charged Lightning Rates Provider Setting")
-        verbose_name_plural = _("Charged Lightning Rates Provider Settings")
+        verbose_name = _("Provider Setting")
+        verbose_name_plural = _("Provider Settings")

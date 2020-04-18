@@ -5,17 +5,11 @@
         <button id="create_invoice" class="btn">create invoice</button>
     </p>
     <div id="output"></div>
-    <div id="qrcode"></div>
 
 {% endblock content %}
 {% block js %}
 
-
     <script type="text/javascript" src="{% static 'charged/js/jquery-3.4.1.min.js' %}"></script>
-
-    {# requires jquery-qrcode v0.14.0 - https://larsjung.de/jquery-qrcode/ #}
-    {#    <script type="text/javascript" src="{% static 'charged/js/jquery-qrcode.js' %}"></script>#}
-    {#    #}
 
     <script>
 
@@ -57,17 +51,11 @@
 
         function addData(data) {
             console.log(data);
-            {#$.post("/shop/hosts/8d9fedff-802e-4ebb-b98c-939efcec6ff2/", inv_req)#}
+
             $.post("/api/public/tor-bridges/", inv_req)
                 .done(function (data) {
 
                     $('#output').text(data['bolt11']);
-
-                    {#QR Code Stuff#}
-                    {#const options = [];#}
-                    {#options['text'] = data['bolt11'];#}
-                    {#options['radius'] = 0.5;#}
-                    {#$('#qrcode').qrcode(options);#}
 
                     console.log(data['payment_hash']);
 
