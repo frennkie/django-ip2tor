@@ -36,9 +36,14 @@ class PurchaseOrderInvoiceAdmin(InvoiceAdmin):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = super().get_readonly_fields(request, obj)
 
-        readonly_fields += ('po_link',)
+        readonly_fields += ('po_link', 'lnnode_link')
         return readonly_fields
 
     def po_link(self, obj):
         redirect_url = reverse('admin:lnpurchase_purchaseorder_change', args=(obj.po.id,))
         return mark_safe("<a href='{}'>{}</a>".format(redirect_url, obj.po))
+
+    def lnnode_link(self, obj):
+        # ToDo(frennkie) this can't stay like this.. only works on LND gRPC node
+        redirect_url = reverse('admin:lnnode_lndgrpcnode_change', args=(obj.lnnode.id,))
+        return mark_safe("<a href='{}'>{}</a>".format(redirect_url, obj.lnnode))

@@ -146,7 +146,7 @@ class Invoice(models.Model):
     def make_qr_image(self) -> (str, File):
         temporary_file = NamedTemporaryFile()
         temporary_file_name = 'qr_{}.png'.format(os.path.basename(temporary_file.name))
-        qrcode.make(self.payment_request).save()
+        qrcode.make(self.payment_request).save(temporary_file, format='PNG')
 
         return temporary_file_name, File(temporary_file)
 
@@ -154,11 +154,23 @@ class Invoice(models.Model):
         create_result = self.lnnode.create_invoice(memo=f'{self.id}: {self.label}',
                                                    value=int(self.amount_full_satoshi),
                                                    expiry=self.expiry)
+
+        print(f'create result {create_result}')
+        rhash = create_result.get('r_hash')
+        if not rhash:
+            print("Error: no r_hash?")
+            return False
+
         self.rhash = create_result.get('r_hash')
         self.save()
         self.refresh_from_db()
 
+        print(self)
+        print(self.__dict__)
+
         lookup_result = self.lnnode.get_invoice(r_hash=self.rhash)
+
+        print(f'lookup_result {lookup_result}')
 
         _create_date = make_aware(timezone.datetime.fromtimestamp(lookup_result.get('creation_date')))
         _expire_date = _create_date + timezone.timedelta(seconds=lookup_result.get('expiry'))
