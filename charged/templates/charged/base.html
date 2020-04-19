@@ -11,16 +11,11 @@
 
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'charged/css/style.css' %}">
-    {#    <link rel="stylesheet" type="text/css" href="{% static 'shop/css/bootstrap.min.css' %}">#}
 
     <!-- CSS block per template page -->
-    {% block css %}
-    {% endblock %}
-
+    {% block css %}{% endblock %}
 </head>
 <body>
-
-{% load i18n %}
 
 <div class="container-fluid">
     {% include "charged/messages_snippet.html" %}
@@ -28,8 +23,7 @@
 </div>
 
 <!-- JavaScript block per template page -->
-{% block js %}
-{% endblock %}
+{% block js %}{% endblock %}
 
 </body>
 </html>

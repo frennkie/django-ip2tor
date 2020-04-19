@@ -13,6 +13,7 @@ from django.utils.functional import cached_property
 from django.utils.timezone import now, make_aware
 from django.utils.translation import gettext_lazy as _
 
+from charged.lninvoice.signals import lninvoice_paid
 from charged.lnnode.base import BaseLnNode
 from charged.lnpurchase.models import PurchaseOrder
 
@@ -67,11 +68,17 @@ class Invoice(models.Model):
                                                     'E.g. "1.50".'),
                                         null=True, blank=True)  # optional
 
-    rhash = models.BinaryField(max_length=300,
-                               unique=True,  # ToDo(frennkie) really unique?
-                               verbose_name=_('Payment Hash'),  # hash of the preimage
-                               help_text=_('Hash of the pre-image (r_hash).'),
-                               null=True, blank=True)  # optional
+    preimage = models.BinaryField(max_length=32,
+                                  unique=True,
+                                  verbose_name=_('Preimage'),
+                                  help_text=_('Preimage (r_preimage).'),
+                                  null=True, blank=True)  # optional
+
+    payment_hash = models.BinaryField(max_length=300,
+                                      unique=True,
+                                      verbose_name=_('Payment Hash'),  # hash of the preimage
+                                      help_text=_('Hash of the pre-image (r_hash).'),
+                                      null=True, blank=True)  # optional
 
     payment_request = models.CharField(max_length=1000,
                                        verbose_name=_('Payment Request'),  # bolt11
@@ -104,6 +111,10 @@ class Invoice(models.Model):
                                  help_text=_(
                                      'Time in seconds after which the Lightning Invoice expires.'),
                                  default=3600)
+
+    creation_at = models.DateTimeField(verbose_name=_('Creation Date'),
+                                       help_text=_('Date when the Lightning Invoice was created.'),
+                                       null=True, blank=True)  # optional
 
     expires_at = models.DateTimeField(verbose_name=_('Expire Date'),
                                       help_text=_('Date when the Lightning Invoice expired (or will expire).'),
@@ -144,6 +155,9 @@ class Invoice(models.Model):
         super().save(*args, **kwargs)
 
     def make_qr_image(self) -> (str, File):
+        if not self.payment_request:
+            raise Exception("no payment request!")
+
         temporary_file = NamedTemporaryFile()
         temporary_file_name = 'qr_{}.png'.format(os.path.basename(temporary_file.name))
         qrcode.make(self.payment_request).save(temporary_file, format='PNG')
@@ -155,50 +169,64 @@ class Invoice(models.Model):
                                                    value=int(self.amount_full_satoshi),
                                                    expiry=self.expiry)
 
-        print(f'create result {create_result}')
-        rhash = create_result.get('r_hash')
-        if not rhash:
-            print("Error: no r_hash?")
-            return False
+        # ToDo(frennkie) error handling?
 
-        self.rhash = create_result.get('r_hash')
+        self.payment_hash = create_result.get('r_hash')
+        self.status = self.UNPAID
         self.save()
+
         self.refresh_from_db()
 
-        print(self)
-        print(self.__dict__)
-
-        lookup_result = self.lnnode.get_invoice(r_hash=self.rhash)
-
-        print(f'lookup_result {lookup_result}')
-
-        _create_date = make_aware(timezone.datetime.fromtimestamp(lookup_result.get('creation_date')))
-        _expire_date = _create_date + timezone.timedelta(seconds=lookup_result.get('expiry'))
-
-        self.payment_request = lookup_result.get('payment_request')
-        self.expires_at = _expire_date
-
-        temp_name, file_obj_qr_image = self.make_qr_image()
-        self.qr_image.save(temp_name, file_obj_qr_image, True)
-
-        self.status = Invoice.UNPAID
-        self.save()
+        self.lnnode_sync_invoice()
 
         return True
 
-    def lnnode_get_invoice(self):
-        lookup_result = self.lnnode.get_invoice(r_hash=self.rhash)
-        # ToDo(frennkie) sync data here?!
+    def lnnode_sync_invoice(self):
+        payment_detected = False
+        # ToDo(frennkie) error handling?
+        lookup_result = self.lnnode.get_invoice(r_hash=self.payment_hash)
+
+        # print(lookup_result)
+
+        # ToDo(frennkie) sync *complete* data here..
+        if not self.payment_request:
+            self.payment_request = lookup_result.get('payment_request')
+
+        if not self.creation_at:
+            self.creation_at = make_aware(timezone.datetime.utcfromtimestamp(lookup_result.get('creation_date')))
+
+        if not self.expires_at:
+            expire_date = self.creation_at + timezone.timedelta(seconds=lookup_result.get('expiry'))
+            self.expires_at = expire_date
+
+        if not self.qr_image:
+            temp_name, file_obj_qr_image = self.make_qr_image()
+            self.qr_image.save(temp_name, file_obj_qr_image, True)
+
+        if self.status == self.INITIAL:
+            self.status = self.UNPAID
 
         if self.status == self.UNPAID:
             if lookup_result.get('settled'):
-                print('Has been PAID!')
-                self.status = Invoice.PAID
+                self.status = self.PAID
                 _settle_date = lookup_result.get('settle_date')
                 self.paid_at = make_aware(timezone.datetime.fromtimestamp(_settle_date))
-                self.save()
+                payment_detected = True
+
+        if self.has_expired and self.status != self.PAID:
+            self.status = self.EXPIRED
+
+        self.save()
+
+        if payment_detected:
+            print('Has been PAID!')  # ToDo(frennkie) send signal
+            lninvoice_paid.send(sender=self.__class__, instance=self)
 
         return True
+
+    @property
+    def has_expired(self):
+        return timezone.now() > self.expires_at
 
     @cached_property
     def amount_full_satoshi(self):
@@ -236,8 +264,17 @@ class PurchaseOrderInvoice(Invoice):
         verbose_name = _("Purchase Order Invoice")
         verbose_name_plural = _("Purchase Order Invoices")
 
-    def lnnode_get_invoice(self):
-        result = super().lnnode_get_invoice()
-        if result:
-            self.po.status = PurchaseOrder.PAID
+    # ToDo(frennkie): this could also be called by signal
+    def lnnode_sync_invoice(self):
+        previous_status = self.status
+        super().lnnode_sync_invoice()
+
+        if previous_status == self.status:
+            return
+
+        if self.po.status == PurchaseOrder.PAID:
+            return
+
+        if self.status != self.PAID:
+            self.po.status = PurchaseOrder.TOBEPAID
             self.po.save()

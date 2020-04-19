@@ -20,6 +20,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from charged.lnnode.base import BaseLnNode
+from charged.lnnode.signals import lnnode_invoice_created
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
@@ -152,7 +153,7 @@ class LndNode(BaseLnNode):
             return self._get_x509_certificate.not_valid_before
 
     def cached_get_info_value(self, name, default, timeout=60):
-        key = f'{self.__class__.__qualname__}.{name}.{self.id}'
+        key = f'{self.__class__.__qualname__}.{self.id}.{name}'
         value = cache.get(key)
         if value:
             return value
@@ -199,9 +200,8 @@ class LndNode(BaseLnNode):
 
     @property
     def best_header_timestamp(self):
-        header_ts = self.cached_get_info_value('best_header_timestamp', '-1')
-        header_ts_int = int(header_ts)
-        return f'{datetime.fromtimestamp(header_ts_int)} ({header_ts})'
+        header_ts = self.cached_get_info_value('best_header_timestamp', -1)
+        return f'{datetime.fromtimestamp(header_ts)} ({header_ts})'
 
     @property
     def num_pending_channels(self):
@@ -290,6 +290,9 @@ class LndGRpcNode(LndNode):
         try:
             request = lnrpc.rpc_pb2.Invoice(**kwargs)
             response = self.stub_invoice.AddInvoice(request)
+            # send signal
+            lnnode_invoice_created.send(sender=self.__class__, instance=self, payment_hash=response.r_hash)
+
             return protobuf_to_dict(response, including_default_value_fields=True)
         except grpc.RpcError as err:
             return {'error': 'Unable to process AddInvoice with Exception:\n'

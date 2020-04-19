@@ -6,7 +6,24 @@ from django.db.models.signals import post_save, post_init
 from django.dispatch import receiver
 from django.utils import timezone
 
+from charged.lninvoice.signals import lninvoice_paid
+from charged.lnnode.signals import lnnode_invoice_created
 from shop.models import TorBridge
+
+
+@receiver(lnnode_invoice_created)
+def lnnode_invoice_created_handler(sender, instance, payment_hash, **kwargs):
+    print("received...!")
+    print(f"received Sender: {sender}")
+    print(f"received Instance: {instance}")
+    print(f"received Payment Hash: {payment_hash}")
+
+
+@receiver(lninvoice_paid)
+def lninvoice_paid_handler(sender, instance, **kwargs):
+    print("received...!")
+    print(f"received Sender: {sender}")
+    print(f"received Instance: {instance}")
 
 
 @receiver(post_save, sender=TorBridge)

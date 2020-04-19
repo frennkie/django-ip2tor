@@ -10,6 +10,8 @@ class InvoiceAdmin(admin.ModelAdmin):
     model = Invoice
     list_display = ['id', 'created_at', 'label', 'get_status_display', 'msatoshi']
     readonly_fields = ('id',
+                       'created_at',
+                       'modified_at',
                        'amount_full_satoshi',
                        'amount_full_satoshi_word',
                        'amount_btc',

@@ -78,7 +78,7 @@ class WorkerConsumer(AsyncConsumer):
 
         # result = Ln().invoice_wait(params)
         # if 'paid_at' in result.keys():
-        #     Invoice.objects.filter(rhash=params['payment_hash']).update(status=result['status'],
+        #     Invoice.objects.filter(payment_hash=params['payment_hash']).update(status=result['status'],
         #                                                                 pay_index=result['pay_index'])
         #
         #     await self.channel_layer.group_send(message['group_id'], {

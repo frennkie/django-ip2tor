@@ -20,7 +20,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING('No backend: %s  - skipping' % lni))
                 continue
 
-            lni.lnnode_get_invoice()
+            lni.lnnode_sync_invoice()
 
             if lni.status == PurchaseOrderInvoice.PAID:
                 self.stdout.write(self.style.SUCCESS('PAID!'))

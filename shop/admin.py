@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from charged.lninvoice.admin import InvoiceAdmin
+from charged.lninvoice.models import Invoice
 from shop.forms import TorBridgeAdminForm, RSshTunnelForm
 from shop.models import Host, PortRange, TorBridge, RSshTunnel
 
@@ -28,7 +30,7 @@ class PortRangeInline(admin.TabularInline):
 #
 #     show_change_link = True
 #
-#     exclude = ('label', 'rhash', 'payreq')  # exclude label as this is already part of __str__
+#     exclude = ('label', 'payment_hash', 'payreq')  # exclude label as this is already part of __str__
 #
 #     def has_change_permission(self, request, obj=None):
 #         return False
@@ -89,7 +91,7 @@ class HostAdmin(admin.ModelAdmin):
         return obj.token_user.auth_token.key
 
 #     list_display = ['label', 'amount', 'created_at', 'current_status']
-#     readonly_fields = ['amount', 'status', 'created_at', 'rhash', 'payreq',
+#     readonly_fields = ['amount', 'status', 'created_at', 'payment_hash', 'payreq',
 #                        'description', 'metadata', 'quoted_amount', 'quoted_currency', 'expires_at', 'paid_at',
 #                        'pay_index', 'qr_img']
 #
@@ -118,6 +120,8 @@ class HostAdmin(admin.ModelAdmin):
 # unregister the charged.models.Backend. Make sure to place
 # charged.apps.ChargedConfig before the App Config of this App in INSTALLED_APPS.
 # admin.site.unregister(Backend)
+
+# admin.site.register(Invoice, InvoiceAdmin)
 
 admin.site.register(RSshTunnel, RSshTunnelAdmin)
 admin.site.register(TorBridge, TorBridgeAdmin)
