@@ -1,5 +1,6 @@
 import os
 import ssl
+from itertools import chain
 
 import grpc
 import lnrpc
@@ -32,6 +33,9 @@ class FakeNode(BaseLnNode):
     class Meta:
         verbose_name = _("Fake Node")
         verbose_name_plural = _("Fake Nodes")
+
+    def check_alive_status(self) -> (bool, str):
+        return True, ""
 
     def create_invoice(self, **kwargs):
         return {'method': 'create_invoice', 'foo': 'bar'}
@@ -201,6 +205,7 @@ class LndNode(BaseLnNode):
     @property
     def best_header_timestamp(self):
         header_ts = self.cached_get_info_value('best_header_timestamp', -1)
+        header_ts = int(header_ts)
         return f'{datetime.fromtimestamp(header_ts)} ({header_ts})'
 
     @property
@@ -488,6 +493,9 @@ class CLightningNode(BaseLnNode):
         verbose_name = _("c-lightning Node")
         verbose_name_plural = _("c-lightning Nodes")
 
+    def check_alive_status(self) -> (bool, str):
+        return True, ""
+
     def create_invoice(self, **kwargs):
         pass
 
@@ -499,6 +507,7 @@ class CLightningNode(BaseLnNode):
 
     def stream_invoices(self, **kwargs):
         pass
+
 
 #     def get_invoice(self, **kwargs):
 #         label = kwargs.get('label')
@@ -519,3 +528,15 @@ class CLightningNode(BaseLnNode):
 #     def stream_invoices(self, **kwargs):
 #         yield self.ln.waitanyinvoice()
 #         # return self.ln.waitinvoice(invoice.label)
+
+
+def get_all_nodes():
+    fake = FakeNode.objects.all()
+    lnd_grpc = LndGRpcNode.objects.all()
+    lnd_rest = LndRestNode.objects.all()
+    clightning = CLightningNode.objects.all()
+    node_list = sorted(
+        chain(fake, lnd_grpc, lnd_rest, clightning),
+        key=lambda node: node.created_at, reverse=True)
+
+    return [(str(x.id), x) for x in node_list]

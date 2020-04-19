@@ -81,6 +81,7 @@ class Invoice(models.Model):
                                       null=True, blank=True)  # optional
 
     payment_request = models.CharField(max_length=1000,
+                                       editable=False,
                                        verbose_name=_('Payment Request'),  # bolt11
                                        help_text=_('The Lightning Payment Request in BOLT11 format.'),
                                        null=True, blank=True)  # optional
@@ -114,14 +115,17 @@ class Invoice(models.Model):
 
     creation_at = models.DateTimeField(verbose_name=_('Creation Date'),
                                        help_text=_('Date when the Lightning Invoice was created.'),
+                                       editable=False,
                                        null=True, blank=True)  # optional
 
     expires_at = models.DateTimeField(verbose_name=_('Expire Date'),
                                       help_text=_('Date when the Lightning Invoice expired (or will expire).'),
+                                      editable=False,
                                       null=True, blank=True)  # optional
 
     paid_at = models.DateTimeField(verbose_name=_('Paid/Settled Date'),
                                    help_text=_('When was the Lightning invoice paid/settled.'),
+                                   editable=False,
                                    null=True, blank=True)  # optional
 
     qr_image = models.ImageField(verbose_name=_('QR Code Image'),
@@ -189,14 +193,24 @@ class Invoice(models.Model):
         # print(lookup_result)
 
         # ToDo(frennkie) sync *complete* data here..
+        if not self.preimage:
+            self.preimage = lookup_result.get('r_preimage')
+
         if not self.payment_request:
             self.payment_request = lookup_result.get('payment_request')
 
+        if self.expiry:
+            if self.expiry != lookup_result.get('expiry'):
+                self.expiry = lookup_result.get('expiry')
+        else:
+            self.expiry = lookup_result.get('expiry')
+
         if not self.creation_at:
-            self.creation_at = make_aware(timezone.datetime.utcfromtimestamp(lookup_result.get('creation_date')))
+            self.creation_at = make_aware(
+                timezone.datetime.utcfromtimestamp(lookup_result.get('creation_date')))
 
         if not self.expires_at:
-            expire_date = self.creation_at + timezone.timedelta(seconds=lookup_result.get('expiry'))
+            expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
             self.expires_at = expire_date
 
         if not self.qr_image:
@@ -208,10 +222,11 @@ class Invoice(models.Model):
 
         if self.status == self.UNPAID:
             if lookup_result.get('settled'):
-                self.status = self.PAID
-                _settle_date = lookup_result.get('settle_date')
-                self.paid_at = make_aware(timezone.datetime.fromtimestamp(_settle_date))
                 payment_detected = True
+
+                self.status = self.PAID
+                self.paid_at = make_aware(
+                    timezone.datetime.utcfromtimestamp(lookup_result.get('settle_date')))
 
         if self.has_expired and self.status != self.PAID:
             self.status = self.EXPIRED
@@ -219,7 +234,7 @@ class Invoice(models.Model):
         self.save()
 
         if payment_detected:
-            print('Has been PAID!')  # ToDo(frennkie) send signal
+            print('Has been PAID!')  # ToDo(frennkie) remove this
             lninvoice_paid.send(sender=self.__class__, instance=self)
 
         return True
@@ -227,6 +242,14 @@ class Invoice(models.Model):
     @property
     def has_expired(self):
         return timezone.now() > self.expires_at
+
+    @property
+    def payment_hash_hex(self):
+        return self.payment_hash.hex()
+
+    @property
+    def preimage_hex(self):
+        return self.preimage.hex()
 
     @cached_property
     def amount_full_satoshi(self):
