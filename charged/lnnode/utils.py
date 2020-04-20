@@ -4,7 +4,7 @@ from pymacaroons.serializers import BinarySerializer
 
 
 def parse_lnd_macaroon_identifier(macaroon_hex):
-    """Parse the LND specific identifier from a hex encode macaroon
+    """Parse the LND specific identifier from a hex encoded macaroon
 
     Args:
         macaroon_hex (bytes): containing hex byte string
