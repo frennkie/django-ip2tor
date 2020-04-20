@@ -4,6 +4,17 @@ from pymacaroons.serializers import BinarySerializer
 
 
 def parse_lnd_macaroon_identifier(macaroon_hex):
+    """Parse the LND specific identifier from a hex encode macaroon
+
+    Args:
+        macaroon_hex (bytes): containing hex byte string
+
+    Examples:
+
+    >>> parse_lnd_macaroon_identifier(b'0201036...CF17CE17')
+    {'invoices': ['read', 'write']}
+
+    """
     macaroon_bytes = codecs.decode(macaroon_hex, 'hex')
     macaroon = BinarySerializer().deserialize_raw(macaroon_bytes)
 
