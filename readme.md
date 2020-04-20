@@ -76,3 +76,6 @@ ToDo
 - AGBs/ToS
 
 https://github.com/jazzband/django-taggit/commit/90c7224018c941b9a260c8e8bed166536f5870df
+
+
+pymacaroons
