@@ -1,14 +1,12 @@
 import uuid
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class BaseLnNode(models.Model):
-    __metaclass__ = ABCMeta
-
+class BaseLnNode(ABC, models.Model):
     type = None
     streaming = False
     tor = False
