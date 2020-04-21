@@ -15,7 +15,14 @@ def parse_lnd_macaroon_identifier(macaroon_hex):
     Examples:
 
     >>> parse_lnd_macaroon_identifier(b'0201036...CF17CE17')
-    {'nonce': b'dead', 'storage_id': b'0', 'ops': [{'entity': 'invoices': 'actions': ['read', 'write']}]}
+    {
+        'version': 3,
+        'identifier': {
+            'nonce': b'dead',
+            'storage_id': b'0',
+            'ops': [{'entity': 'invoices': 'actions': ['read', 'write']}]
+        }
+    }
 
     Notes:
         Use dict comprehension to extract ops dict:
@@ -25,8 +32,11 @@ def parse_lnd_macaroon_identifier(macaroon_hex):
     macaroon_bytes = codecs.decode(macaroon_hex, 'hex')
     macaroon = BinarySerializer().deserialize_raw(macaroon_bytes)
 
-    m_id = MacaroonId().FromString(macaroon.identifier_bytes[1:])
-    return protobuf_to_dict(m_id)
+    id_version = int(macaroon.identifier_bytes[0])
+    id_bytes = macaroon.identifier_bytes[1:]
+
+    m_id = MacaroonId().FromString(id_bytes)
+    return {'version': id_version, 'identifier': protobuf_to_dict(m_id)}
 
 
 def parse_lnd_macaroon_identifier_no_pb(macaroon_hex):
