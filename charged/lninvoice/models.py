@@ -298,6 +298,10 @@ class PurchaseOrderInvoice(Invoice):
         if self.po.status == PurchaseOrder.PAID:
             return
 
-        if self.status != self.PAID:
+        if self.status == self.PAID:
+            self.po.status = PurchaseOrder.PAID
+            self.po.save()
+
+        elif self.status != self.PAID:
             self.po.status = PurchaseOrder.TOBEPAID
             self.po.save()
