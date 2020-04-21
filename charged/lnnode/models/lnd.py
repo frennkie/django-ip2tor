@@ -1,16 +1,12 @@
 import os
 import ssl
-from itertools import chain
 
 import grpc
 import lnrpc
 import requests
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.x509 import ExtensionNotFound
-from django.conf import settings
 from django.core.cache import cache
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.datetime_safe import datetime
@@ -22,35 +18,6 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from charged.lnnode.base import BaseLnNode
 from charged.lnnode.signals import lnnode_invoice_created
-
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
-
-
-class FakeNode(BaseLnNode):
-    type = "Fake Node"
-    streaming = False
-
-    class Meta:
-        verbose_name = _("Fake Node")
-        verbose_name_plural = _("Fake Nodes")
-
-    def check_alive_status(self) -> (bool, str):
-        return True, ""
-
-    def create_invoice(self, **kwargs):
-        return {'method': 'create_invoice', 'foo': 'bar'}
-
-    def get_info(self):
-        return {'method': 'get_info', 'foo': 'bar'}
-
-    def get_invoice(self, **kwargs):
-        return {'method': 'get_invoice', 'foo': 'bar'}
-
-    def stream_invoices(self, **kwargs):
-        if self.supports_streaming:
-            return {'method': 'stream_invoices', 'foo': 'bar'}
-        else:
-            raise NotImplementedError("Streaming not supported.")
 
 
 class LndNode(BaseLnNode):
@@ -474,69 +441,3 @@ class CaDataVerifyingHTTPAdapter(HTTPAdapter):
         context.check_hostname = False
         kwargs['ssl_context'] = context
         return super().init_poolmanager(*args, **kwargs)
-
-
-class CLightningNode(BaseLnNode):
-    type = "c-lightning"
-    streaming = True
-
-    socket_path = models.CharField(
-        max_length=255,
-        default='{}'.format(
-            os.path.expanduser(os.path.join('~', '.lightning', 'lightning-rpc'))
-        ),
-        verbose_name=_('Socket Path'),
-        help_text=_('Enter the unix socket path here. E.g. "~/.lightning/lightning-rpc"')
-    )
-
-    class Meta:
-        verbose_name = _("c-lightning Node")
-        verbose_name_plural = _("c-lightning Nodes")
-
-    def check_alive_status(self) -> (bool, str):
-        return True, ""
-
-    def create_invoice(self, **kwargs):
-        pass
-
-    def get_info(self):
-        pass
-
-    def get_invoice(self, **kwargs):
-        pass
-
-    def stream_invoices(self, **kwargs):
-        pass
-
-
-#     def get_invoice(self, **kwargs):
-#         label = kwargs.get('label')
-#
-#         # ToDo(frennkie) you're not serious!?!
-#         inv = self.ln.listinvoices(label)
-#         inv_ln = inv['invoices'][0]
-#         return inv_ln
-#
-#     def create_invoice(self, **kwargs):
-#         msatoshi = kwargs.get('msatoshi')
-#         label = kwargs.get('label')
-#         description = kwargs.get('description')
-#         expiry = kwargs.get('expiry')
-#
-#         return self.ln.invoice(msatoshi, label, description, expiry)
-#
-#     def stream_invoices(self, **kwargs):
-#         yield self.ln.waitanyinvoice()
-#         # return self.ln.waitinvoice(invoice.label)
-
-
-def get_all_nodes():
-    fake = FakeNode.objects.all()
-    lnd_grpc = LndGRpcNode.objects.all()
-    lnd_rest = LndRestNode.objects.all()
-    clightning = CLightningNode.objects.all()
-    node_list = sorted(
-        chain(fake, lnd_grpc, lnd_rest, clightning),
-        key=lambda node: node.created_at, reverse=True)
-
-    return [(str(x.id), x) for x in node_list]
