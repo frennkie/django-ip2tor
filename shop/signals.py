@@ -25,17 +25,17 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
     print(f"received Sender: {sender}")
     print(f"received Instance: {instance}")
 
-    shop_item_content_type_id = instance.po.item_details.first().content_type_id
+    shop_item_content_type = instance.po.item_details.first().content_type
     shop_item_id = instance.po.item_details.first().object_id
 
-    if shop_item_content_type_id == ContentType.objects.get_for_model(TorBridge):
+    if shop_item_content_type == ContentType.objects.get_for_model(TorBridge):
         shop_item = TorBridge.objects.get(id=shop_item_id)
-    elif shop_item_content_type_id == ContentType.objects.get_for_model(RSshTunnel):
+    elif shop_item_content_type == ContentType.objects.get_for_model(RSshTunnel):
         shop_item = RSshTunnel.objects.get(id=shop_item_id)
     else:
         raise NotImplementedError
 
-    print(f"sent to PENDING")
+    print(f"set to PENDING")
     shop_item.status = Bridge.PENDING
     shop_item.save()
 
