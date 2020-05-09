@@ -93,7 +93,7 @@ do
 done
 ```
 
-Run on host to add briges
+Run on host to add bridges
 
 ```
 while :
