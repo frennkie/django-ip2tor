@@ -10,7 +10,7 @@ set -u
 
 SHOP_URL="https://shop.ip2t.org"
 HOST_ID="<redacted>"
-HOST_TOKEN="<redacted>"  # keep this secret!
+HOST_TOKEN="<redacted>" # keep this secret!
 
 TOR2IPC_CMD="./tor2ipc.sh"
 
@@ -39,7 +39,20 @@ if [ "$1" = "pending" ]; then
   url="${SHOP_URL}/api/tor_bridges/?host=${HOST_ID}&status=${status}"
 
   res=$(curl -s -q -H "Authorization: Token ${HOST_TOKEN}" "${url}")
-  active_list=$(echo "${res}" | jq -c '.[]|.port,.target' | paste - - | sed 's/"//g' | sed 's/\t/|/g')
+
+  if [ -z "${res///}" ] || [ "${res///}" = "[]" ]; then
+    echo "Nothing to do"
+    exit 0
+  fi
+
+  detail=$(echo "${res}" | jq -c '.detail' &>/dev/null || true)
+  if [ -n "${detail}" ]; then
+    echo "${detail}"
+    exit 1
+  fi
+
+  active_list=$(echo "${res}" | jq -c '.[]|.id,.port,.target | tostring ' | xargs -L3 | sed 's/ /|/g
+' | paste -sd "\n" -)
 
   if [ -z "${active_list}" ]; then
     echo "Nothing to do"
@@ -51,13 +64,34 @@ if [ "$1" = "pending" ]; then
   echo "---"
 
   for item in ${active_list}; do
-    port=$(echo "${item}" | cut -d'|' -f1)
-    target=$(echo "${item}" | cut -d'|' -f2)
-    res=$("${TOR2IPC_CMD}" add "${port}" "${target}")
-    echo "Status Code: $?"
-    echo "${res}"
-  done
+    #echo "Item: ${item}"
+    b_id=$(echo "${item}" | cut -d'|' -f1)
+    port=$(echo "${item}" | cut -d'|' -f2)
+    target=$(echo "${item}" | cut -d'|' -f3)
+    #echo "${b_id}"
+    #echo "${port}"
+    #echo "${target}"
 
+    res=$("${TOR2IPC_CMD}" add "${port}" "${target}")
+    #echo "Status Code: $?"
+    #echo "${res}"
+
+    if [ $? -eq 0 ]; then
+      patch_url="${SHOP_URL}/api/tor_bridges/${b_id}/"
+
+      #echo "now send PATCH to ${patch_url} that ${b_id} is done"
+
+      res=$(curl -X "PATCH" \
+        -H "Authorization: Token ${HOST_TOKEN}" \
+        -H "Content-Type: application/json" \
+        --data '{"status": "A"}' \
+        "${patch_url}")
+
+      #echo "Res: ${res}"
+      echo "set to Active: ${b_id}"
+    fi
+
+  done
 
 ########
 # LIST #
