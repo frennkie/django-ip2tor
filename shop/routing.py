@@ -1,13 +1,15 @@
 from channels.routing import ProtocolTypeRouter, ChannelNameRouter, URLRouter
-from channels.sessions import SessionMiddlewareStack
 from django.urls import path
 
-from shop.consumers import LncConsumer, WorkerConsumer
+from shop.consumers import EchoConsumer, LncConsumer, WorkerConsumer, HostConsumer
+from shop.token_auth import TokenInHeaderOrCookieAuthMiddlewareStack
 
 application = ProtocolTypeRouter({
-    'websocket': SessionMiddlewareStack(
+    'websocket': TokenInHeaderOrCookieAuthMiddlewareStack(
         URLRouter([
-            path('charged/lightning/ws', LncConsumer),
+            path('shop/ws', LncConsumer),
+            # path('shop/echo', EchoConsumer),
+            path('shop/host', HostConsumer),
         ])),
     'channel': ChannelNameRouter({
         'lnws': WorkerConsumer,

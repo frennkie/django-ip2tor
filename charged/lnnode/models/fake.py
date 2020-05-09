@@ -1,6 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
-from charged.lnnode.base import BaseLnNode
+from charged.lnnode.models.base import BaseLnNode
 
 
 class FakeNode(BaseLnNode):

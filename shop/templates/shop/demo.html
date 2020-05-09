@@ -9,12 +9,19 @@
 {% endblock content %}
 {% block js %}
 
-    <script type="text/javascript" src="{% static 'charged/js/jquery-3.4.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'shop/js/jquery.min.js' %}"></script>
 
     <script>
 
         const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
-        const ws = new WebSocket(ws_scheme + '://' + window.location.host + '/charged/lightning/ws');
+        {#const ws = new WebSocket(ws_scheme + '://' + window.location.host + '/shop/ws');#}
+        authToken = 'c21c37795313808ed092f9232ddfd777f8b896f1';
+
+        document.cookie = 'x-auth-token=' + authToken + '; path=/';
+        const ws = new WebSocket(ws_scheme + '://' + window.location.host + '/shop/ws');
+
+        {#const ws_echo = new WebSocket(ws_scheme + '://' + window.location.host + '/shop/echo');#}
+        const ws_host = new WebSocket(ws_scheme + '://' + window.location.host + '/shop/host');
 
         const csrf_token = '{{csrf_token}}';
 
@@ -32,11 +39,57 @@
                     alert('invoice paid!');
                 }
             };
-
+            
             ws.onopen = function () {
                 console.log("sending \"connected\"");
                 ws.send(JSON.stringify({type: 'channel_message', message: 'connected'}));
             };
+
+            // Host
+            ws_host.onopen = function (event) {
+                console.log("ws_host: onopen");
+                console.log(event);
+                console.log("sending \"connected2\"");
+                ws_host.send(JSON.stringify({type: 'channel.message', message: 'Foobar'}));
+                ws_host.send(JSON.stringify({type: 'channel.message', message: '/name Honk Hase'}));
+                ws_host.send(JSON.stringify({type: 'channel_message', message: 'Earth is flat!'}));
+                {#ws_host.send('Hello World!');#}
+                {#ws_host.send('/name Honk Hase');#}
+                {#ws_host.send('Earth is flat!');#}
+            };
+
+            ws_host.onmessage = function (event) {
+                console.log("ws_host: onmessage");
+                console.log(event);
+                console.log(event.data);
+            };
+
+            /*
+                // ECHO
+                ws_echo.onopen = function (event) {
+                    console.log("ws_echo: onopen");
+                    console.log(event);
+                    console.log("sending \"connected2\"");
+                    ws.send(JSON.stringify({type: 'channel_message', message: 'connected2'}));
+                };
+
+                ws_echo.onmessage = function (event) {
+                    console.log("ws_echo: onmessage");
+                    console.log(event);
+                    console.log(event.data);
+                };
+
+                ws_echo.onclose = function (close_event) {
+                    console.log("ws_echo: onclosed");
+                    console.log(close_event);
+                };
+
+                ws_echo.onerror = function (event) {
+                    console.log("ws_echo: onerror");
+                    console.log(event);
+                }
+            */
+
         });
 
         $('#create_invoice').click(function () {

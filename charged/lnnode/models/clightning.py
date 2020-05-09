@@ -3,7 +3,7 @@ import os
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from charged.lnnode.base import BaseLnNode
+from charged.lnnode.models.base import BaseLnNode
 
 
 class CLightningNode(BaseLnNode):

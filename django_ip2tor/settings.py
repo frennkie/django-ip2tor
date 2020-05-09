@@ -85,10 +85,18 @@ ASGI_APPLICATION = 'shop.routing.application'
 WSGI_APPLICATION = 'django_ip2tor.wsgi.application'
 
 # Use InMemoryChannelLayer in DEV only and NOT in production
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer"
+#     }
+# }
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }
 
 # Caching (using redis)

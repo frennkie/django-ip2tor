@@ -20,10 +20,20 @@ class PurchaseOrder(models.Model):
         (DELETED, _('deleted')),
     )
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
 
-    created_at = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
+    created_at = models.DateTimeField(
+        verbose_name=_('date created'),
+        auto_now_add=True
+    )
+    modified_at = models.DateTimeField(
+        verbose_name=_('date modified'),
+        auto_now=True
+    )
 
     status = models.CharField(
         verbose_name=_("Purchase Order Status"),
@@ -61,23 +71,40 @@ class PurchaseOrderItemDetail(models.Model):
 
     """
 
-    po = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='item_details')
+    po = models.ForeignKey(
+        PurchaseOrder,
+        on_delete=models.CASCADE,
+        related_name='item_details'
+    )
 
     # Generic M2M
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.CharField(max_length=50,
-                                 verbose_name=_('Product ID (Char)'),
-                                 help_text=_('The internal ID of the related Product.'),
-                                 editable=True,
-                                 null=True, blank=False)  # may be NULL in database, but not in GUI
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE
+    )
+    object_id = models.CharField(
+        max_length=50,
+        verbose_name=_('Product ID (Char)'),
+        help_text=_('The internal ID of the related Product.'),
+        editable=True,
+        null=True, blank=False  # may be NULL in database, but not in GUI
+    )
     product = GenericForeignKey()
 
-    position = models.PositiveSmallIntegerField(verbose_name=_('Position'),
-                                                help_text=_('Used for sorting'),
-                                                default=0)
+    position = models.PositiveSmallIntegerField(
+        verbose_name=_('Position'),
+        help_text=_('Used for sorting'),
+        default=0
+    )
 
-    price = models.BigIntegerField(verbose_name=_('Price (in milli-satoshi) at time of purchase order'), default=0)
-    quantity = models.IntegerField(verbose_name=_('Quantity'), default=0)
+    price = models.BigIntegerField(
+        verbose_name=_('Price (in milli-satoshi) at time of purchase order'),
+        default=0
+    )
+    quantity = models.IntegerField(
+        verbose_name=_('Quantity'),
+        default=0
+    )
 
     class Meta:
         verbose_name = _("Purchase Order Item Detail")
@@ -97,10 +124,20 @@ class PurchaseOrderItemDetail(models.Model):
 
 
 class Product(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
 
-    created_at = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
+    created_at = models.DateTimeField(
+        verbose_name=_('date created'),
+        auto_now_add=True
+    )
+    modified_at = models.DateTimeField(
+        verbose_name=_('date modified'),
+        auto_now=True
+    )
 
     po_details = GenericRelation(PurchaseOrderItemDetail)
 

@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+#
+# tor2ipc.sh
+#
+# License: MIT
+# Copyright (c) 2020 The RaspiBlitz developers
+
+set -e
+set -u
+
+# command info
+if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ]; then
+  echo "management script to add, check, list or remove Tor2IP bridges (using socat and systemd)"
+  echo "tor2ipc.sh add [PORT] [TARGET]"
+  echo "tor2ipc.sh check [TARGET]"
+  echo "tor2ipc.sh list"
+  echo "tor2ipc.sh remove [PORT]"
+  exit 1
+fi
+
+if ! command -v tor >/dev/null; then
+  echo "TOR is not installed - exiting."
+  echo "Please setup TOR and run again."
+fi
+
+if ! command -v socat >/dev/null; then
+  echo "socat not found - installing it now..."
+  sudo apt-get update &>/dev/null
+  sudo apt-get install -y socat &>/dev/null
+  echo "socat installed successfully."
+fi
+
+function add_bridge() {
+  # requires sudo
+  port=${1}
+  target=${2}
+  echo "adding bridge from port: ${port} to: ${target}"
+
+  file_path="/etc/systemd/system/tor2ip${port}.service"
+  if [ -f "${file_path}" ]; then
+    echo "file exists already"
+    # TODO possibly restart..?!
+    exit 0
+  fi
+
+  # TODO (debian-tor user?! or root?)
+  cat <<EOF | sudo tee "${file_path}" >/dev/null
+[Unit]
+Description=Tor2IP Tunnel Service (Port ${port})
+After=network.target
+
+[Service]
+User=debian-tor
+Group=debian-tor
+ExecStart=/usr/bin/socat TCP4-LISTEN:${port},bind=0.0.0.0,reuseaddr,fork SOCKS4A:localhost:${target},socksport=9050
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  sudo systemctl enable tor2ip"${port}"
+  sudo systemctl start tor2ip"${port}"
+
+}
+
+function check_bridge_target() {
+  target=${1}
+  echo "checking bridge target: ${target}"
+  echo "no idea yet what and how to check!"
+}
+
+
+function list_bridges() {
+  echo "# Bridges (PORT|TARGET|STATUS)"
+  echo "# ============================"
+
+  for f in /etc/systemd/system/tor2ip*.service; do
+    [ -e "$f" ] || continue
+
+    cfg=$(sed -n 's/^ExecStart.*TCP4-LISTEN:\([0-9]*\),.*SOCKS4A:localhost:\(.*\),socksport=.*$/\1|\2/p' "${f}")
+    port=$(echo "${cfg}" | cut -d"|" -f1)
+    target=$(echo "${cfg}" | cut -d"|" -f2)
+    status=$(systemctl status "tor2ip${port}.service" | grep "Active" | sed 's/^ *Active: //g')
+    echo "${port}|${target}|${status}"
+  done
+
+}
+
+function remove_bridge() {
+  # requires sudo
+  port=${1}
+  echo "removing bridge from port: ${port}"
+
+  file_path="/etc/systemd/system/tor2ip${port}.service"
+  if ! [ -f "${file_path}" ]; then
+    echo "file does not exist"
+    echo "no bridge on this port..!"
+    exit 1
+  fi
+
+  sudo systemctl stop tor2ip"${port}"
+  sudo systemctl disable tor2ip"${port}"
+
+  echo "removing service file.."
+  sudo rm -rf "${file_path}"
+
+  sudo systemctl daemon-reload
+  sudo systemctl reset-failed  # TODO(frennkie) not sure whether/why this is needed
+
+  echo "successfully stopped and removed bridge."
+
+}
+
+#######
+# ADD #
+#######
+if [ "$1" = "add" ]; then
+  if ! [ $# -eq 3 ]; then
+    echo "wrong number of arguments - run with -h for help"
+    exit 1
+  fi
+  add_bridge "${2}" "${3}"
+
+#########
+# CHECK #
+#########
+elif [ "$1" = "check" ]; then
+  if ! [ $# -eq 2 ]; then
+    echo "wrong number of arguments - run with -h for help"
+    exit 1
+  fi
+  check_bridge_target "${2}"
+
+########
+# LIST #
+########
+elif [ "$1" = "list" ]; then
+  if ! [ $# -eq 1 ]; then
+    echo "wrong number of arguments - run with -h for help"
+    exit 1
+  fi
+  list_bridges
+
+##########
+# REMOVE #
+##########
+elif [ "$1" = "remove" ]; then
+  if ! [ $# -eq 2 ]; then
+    echo "wrong number of arguments - run with -h for help"
+    exit 1
+  fi
+  remove_bridge "${2}"
+
+else
+  echo "unknown command - run with -h for help"
+  exit 1
+fi

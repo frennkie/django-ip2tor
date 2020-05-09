@@ -16,7 +16,7 @@ from protobuf_to_dict import protobuf_to_dict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-from charged.lnnode.base import BaseLnNode
+from charged.lnnode.models.base import BaseLnNode
 from charged.lnnode.signals import lnnode_invoice_created
 
 
@@ -110,7 +110,7 @@ class LndNode(BaseLnNode):
             e = self._get_x509_certificate.extensions.get_extension_for_class(x509.SubjectAlternativeName)
             lst = [f'{x.__class__.__name__}: {x.value}' for x in e.value]
             return '\n'.join(lst)
-        except ExtensionNotFound:
+        except x509.ExtensionNotFound:
             return ""
 
     @property
@@ -359,7 +359,7 @@ class LndRestNode(LndNode):
     def create_invoice(self, **kwargs):
         pass
 
-    def send_request(self, path='/v1/getinfo') -> dict:
+    def _send_request(self, path='/v1/getinfo') -> dict:
         url = f'https://{self.hostname}:{self.port}{path}'
 
         session = requests.Session()
@@ -386,7 +386,13 @@ class LndRestNode(LndNode):
             print(error)
 
             ssl_error = error.reason.args[0]
-            if isinstance(ssl_error, ssl.SSLCertVerificationError):
+
+            if hasattr(ssl, 'SSLCertVerificationError'):  # introduced in Python3.7
+                cert_err = isinstance(ssl_error, ssl.SSLCertVerificationError)
+            else:
+                cert_err = isinstance(ssl_error, ssl.CertificateError)
+
+            if cert_err:
                 if "[SSL: CERTIFICATE_VERIFY_FAILED]" in str(error.reason):
                     print(error.reason)
                     return {'error': error.reason}
@@ -408,7 +414,7 @@ class LndRestNode(LndNode):
         if not self.is_enabled:
             return False, 'disabled'
 
-        response = self.send_request()
+        response = self._send_request()
         error = response.get('error')
         if error:
             return False, error
@@ -416,7 +422,7 @@ class LndRestNode(LndNode):
 
     @cached_property
     def get_info(self) -> dict:
-        return self.send_request().get('data')
+        return self._send_request().get('data')
 
     def get_invoice(self, **kwargs):
         pass
@@ -437,7 +443,8 @@ class CaDataVerifyingHTTPAdapter(HTTPAdapter):
     def init_poolmanager(self, *args, **kwargs):
         context = ssl.create_default_context()
         context.load_verify_locations(cadata=self.cadata)
-        context.hostname_checks_common_name = False
+        if hasattr(ssl, 'HAS_NEVER_CHECK_COMMON_NAME'):  # introduced in Python3.7
+            context.hostname_checks_common_name = False
         context.check_hostname = False
         kwargs['ssl_context'] = context
         return super().init_poolmanager(*args, **kwargs)

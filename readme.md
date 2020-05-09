@@ -79,3 +79,6 @@ https://github.com/jazzband/django-taggit/commit/90c7224018c941b9a260c8e8bed1665
 
 
 pymacaroons
+
+
+https://gist.github.com/htp/fbce19069187ec1cc486b594104f01d0
