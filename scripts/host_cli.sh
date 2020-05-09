@@ -10,7 +10,7 @@ set -u
 
 SHOP_URL="https://shop.ip2t.org"
 HOST_ID="<redacted>"
-HOST_TOKEN="<redacted>>"  # keep this secret!
+HOST_TOKEN="<redacted>"  # keep this secret!
 
 TOR2IPC_CMD="./tor2ipc.sh"
 
