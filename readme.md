@@ -82,3 +82,23 @@ pymacaroons
 
 
 https://gist.github.com/htp/fbce19069187ec1cc486b594104f01d0
+
+Run on host to monitor
+
+```
+while :
+do
+  ./tor2ipc.sh list
+  sleep 10
+done
+```
+
+Run on host to add briges
+
+```
+while :
+do
+  ./host_cli.sh pending
+  sleep 10
+done
+```

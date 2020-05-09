@@ -6,7 +6,8 @@
 
 sleep_time=10
 
-while :; do
+while :
+do
   echo "Job: Process Purchase Orders (initial)"
   /var/www/sites/site_django_ip2tor/venv/bin/python /var/www/sites/site_django_ip2tor/django_ip2tor/manage.py process_pos_initial
   sleep 1
