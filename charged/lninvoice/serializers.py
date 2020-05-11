@@ -8,7 +8,11 @@ class InvoiceSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Invoice
-        exclude = ('content_type', 'object_id')
+        exclude = (
+            'content_type',
+            'object_id',
+            'preimage'  # never reveal the preimage!
+        )
 
 
 class PurchaseOrderInvoiceSerializer(InvoiceSerializer):
