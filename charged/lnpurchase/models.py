@@ -71,7 +71,11 @@ class PurchaseOrderItemDetail(models.Model):
 
     """
 
-    # ToDo(frennkie) use UUID4 !!!
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
 
     po = models.ForeignKey(
         PurchaseOrder,
