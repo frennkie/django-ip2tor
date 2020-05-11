@@ -39,7 +39,7 @@ class PublicHostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        exclude = ('token_user', )
+        exclude = ('token_user',)
 
 
 class PublicTorBridgeSerializer(serializers.HyperlinkedModelSerializer):

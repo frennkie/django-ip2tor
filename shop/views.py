@@ -41,6 +41,7 @@ class PurchaseTorBridgeOnHostView(generic.UpdateView):
         po_item.save()
         po.save()
 
+        # ToDo(frennkie) What does this do?!
         po.item_details.all()
 
         return redirect('lnpurchase:po-detail', pk=po.pk)

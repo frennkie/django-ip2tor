@@ -13,7 +13,7 @@ router.register(r'public/po_invoices', views.PublicPurchaseOrderInvoiceViewSet)
 router.register(r'public/pos', views.PublicPurchaseOrderViewSet)
 router.register(r'public/po_items', views.PublicPurchaseOrderItemDetailViewSet)
 
-router.register(r'public/lnnodes/lndgrpc/', views.PublicLndGRpcNodeViewSet)
+router.register(r'public/lnnodes/lndgrpc', views.PublicLndGRpcNodeViewSet)
 
 router.register(r'bridges/tor', views.TorBridgeViewSet)
 router.register(r'bridges/rssh', views.TorBridgeViewSet)
