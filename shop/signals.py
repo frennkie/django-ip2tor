@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -54,47 +56,15 @@ def post_save_tor_bridge(sender, instance: TorBridge, **kwargs):
         print("Tor Bridge created - setting random port...")
         instance.port = instance.host.get_random_port()
 
-        instance.suspend_after = timezone.make_aware(timezone.datetime.max,
-                                                     timezone.get_default_timezone())
+        if instance.host.tor_bridge_duration == 0:
+            instance.suspend_after = timezone.make_aware(timezone.datetime.max,
+                                                         timezone.get_default_timezone())
+        else:
+            instance.suspend_after = timezone.now() \
+                                     + timedelta(seconds=instance.host.tor_bridge_duration) \
+                                     + timedelta(seconds=getattr(settings, 'SHOP_BRIDGE_DURATION_GRACE_TIME', 600))
 
-        # time.sleep(3)
-
-        # now also create a ShopInvoice for new tor bridge
-        # inv = ShopLnInvoice.create_invoice("Invoice for Tor Bridge ID: {}".format(instance.id),
-        #                                    4711)  # ToDo.. use pricing here
-        #
-        # inv.tor_bridge = instance
-        # inv.save()
-
-        # instance.tor_invoices.add(inv)
         instance.save()
-
-
-#
-# @receiver(post_save, sender=ShopLnInvoice)
-# def post_save_shop_invoice(sender, instance: ShopLnInvoice, **kwargs):
-#     created = kwargs.get('created')
-#
-#     if created:
-#         print("A Shop Invoice was created: {}".format(instance))
-#         if not instance.tor_bridge:
-#             print("But no tor bridge associated yet.. returning")
-#             return
-#
-#     if instance.tor_bridge:
-#         if instance.tor_bridge.status == TorBridge.INITIAL:
-#             print("Tor bridge belonging to this invoice exists and is still "
-#                   "in state INITIAL: {}".format(instance.tor_bridge))
-#
-#             # ToDo(frennkie) Signals are blocking.. (in contrast to celery)
-#
-#             # set to pending
-#             instance.tor_bridge.status = TorBridge.PENDING
-#             instance.tor_bridge.save()
-#
-#             # create invoice on backend
-#             instance.create_backend_invoice()
-#             instance.save()
 
 
 @receiver(post_init, sender=TorBridge)

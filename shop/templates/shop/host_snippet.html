@@ -19,7 +19,8 @@
                                     {% csrf_token %}
                                     {% include 'shop/bs4_form.html' with form=form %}
                                     <input class="btn btn-primary" type="submit"
-                                           value="Purchase for  {{ host.tor_bridge_price }} msat">
+                                           value="Purchase at {% widthratio host.tor_bridge_price_initial 1000 1 %} SAT
+                                                  for {% widthratio host.tor_bridge_duration 3600 1 %} hour(s)">
                                 </form>
                             </div>
                         </div>

@@ -9,7 +9,7 @@ class InvoiceAdminForm(forms.ModelForm):
     lnnode = forms.ChoiceField(
         required=False,
         label="Lightning Node",
-        choices=get_all_nodes()
+        choices=get_all_nodes
     )
 
     content_type = forms.IntegerField(
@@ -31,7 +31,7 @@ class InvoiceAdminForm(forms.ModelForm):
         # help_texts for properties
         help_texts = {
             'payment_hash_hex': 'x.509 Subject Alternative Name: e-emailAddress',
-            'preimage_hex': 'Keep this secret! This can be used to "proof" payment.'
+            'preimage_hex': 'Keep this secret! This can be used as "proof of payment".'
         }
 
     def __init__(self, *args, **kwargs):

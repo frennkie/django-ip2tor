@@ -39,7 +39,7 @@ class PublicHostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('ip', 'name', 'site')
+        exclude = ('token_user', )
 
 
 class PublicTorBridgeSerializer(serializers.HyperlinkedModelSerializer):
@@ -50,9 +50,3 @@ class PublicTorBridgeSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'status', 'host_id', 'port', 'suspend_after',
                   'comment', 'target')
         read_only_fields = ['id', 'status', 'port', 'suspend_after']
-
-    # def create(self, validated_data):
-    #     # ToDo(frenkie) super evil "hack"..
-    #     host = Host.objects.first()
-    #     validated_data['host'] = host
-    #     return super().create(validated_data)

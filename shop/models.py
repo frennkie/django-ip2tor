@@ -57,15 +57,35 @@ class Host(models.Model):
 
     offers_tor_bridges = models.BooleanField(default=False,
                                              verbose_name=_('Does host offer Tor Bridges?'))
-    tor_bridge_price = models.BigIntegerField(verbose_name=_('Bridge Price (msat'),
-                                              help_text=_('Price of a Tor Bridge in milli-satoshi.'),
-                                              default=1000)
+
+    tor_bridge_duration = models.BigIntegerField(verbose_name=_('Bridge Duration (seconds)'),
+                                                 help_text=_('Lifetime of Bridge (either initial or extension).'),
+                                                 default=60 * 60 * 24)
+
+    tor_bridge_price_initial = models.BigIntegerField(verbose_name=_('Bridge Price (mSAT)'),
+                                                      help_text=_('Price of a Tor Bridge in milli-satoshi '
+                                                                  'for initial Purchase.'),
+                                                      default=25000)
+
+    tor_bridge_price_extension = models.BigIntegerField(verbose_name=_('Bridge Extension Price (mSAT)'),
+                                                        help_text=_('Price of a Tor Bridge in milli-satoshi '
+                                                                    'for extending existing bridge.'),
+                                                        default=20000)
 
     offers_rssh_tunnels = models.BooleanField(default=False,
                                               verbose_name=_('Does host offer Reverse SSH Tunnels?'))
-    rssh_tunnel_price = models.BigIntegerField(verbose_name=_('RSSH Price (msat'),
+    rssh_tunnel_price = models.BigIntegerField(verbose_name=_('RSSH Price (mSAT)'),
                                                help_text=_('Price of a Reverse SSH Tunnel in milli-satoshi.'),
                                                default=1000)
+
+    # Add ToS (Terms of Service)
+    terms_of_service = models.TextField(verbose_name=_('Terms of Service'),
+                                        help_text=_('Short description of Terms of Service.'),
+                                        null=False, blank=True)
+
+    terms_of_service_url = models.URLField(verbose_name=_('ToS Link'),
+                                           help_text=_('Link to a Terms of Service site.'),
+                                           null=False, blank=True)
 
     class Meta:
         ordering = ['ip']
@@ -78,8 +98,8 @@ class Host(models.Model):
 
     def get_random_port(self):
         port_range = self.port_ranges.all()
-        # use only ranges that have less than 80% usage
-        port_range = [x for x in port_range if x.ports_used_percent < 0.8]
+        # use only ranges that have less than 85% usage
+        port_range = [x for x in port_range if x.ports_used_percent < 0.85]
 
         if not port_range:
             return
@@ -94,6 +114,20 @@ class Host(models.Model):
                 break
 
         return rand_port
+
+    @property
+    def tor_bridge_ports_available(self):
+        total = 0
+        for range in self.port_ranges.filter(type=PortRange.TOR_BRIDGE):
+            total += range.ports_available
+        return total
+
+    @property
+    def rssh_tunnels_ports_available(self):
+        total = 0
+        for range in self.port_ranges.filter(type=PortRange.RSSH_TUNNEL):
+            total += range.ports_available
+        return total
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

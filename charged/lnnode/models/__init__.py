@@ -8,7 +8,8 @@ __all__ = [
     'CLightningNode',
     'FakeNode',
     'LndGRpcNode',
-    'LndRestNode'
+    'LndRestNode',
+    'get_all_nodes'
 ]
 
 

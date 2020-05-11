@@ -71,6 +71,8 @@ class PurchaseOrderItemDetail(models.Model):
 
     """
 
+    # ToDo(frennkie) use UUID4 !!!
+
     po = models.ForeignKey(
         PurchaseOrder,
         on_delete=models.CASCADE,

@@ -17,25 +17,20 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
-from rest_framework import routers
-
-from shop import views
-
-router = routers.DefaultRouter()
-router.register(r'tor_bridges', views.TorBridgeViewSet)
-router.register(r'public/tor-bridges', views.PublicTorBridgeViewSet, basename='public_tor_bridges')
-router.register(r'hosts', views.HostViewSet)
-router.register(r'sites', views.SiteViewSet)
-router.register(r'users', views.UserViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api/v1/', include('shop.api.v1.urls', namespace='v1')),
+
     path('charged/lninvoice/', include('charged.lninvoice.urls')),
     path('charged/lnpurchase/', include('charged.lnpurchase.urls')),
+
     path('shop/', include('shop.urls')),
+
     path('', RedirectView.as_view(pattern_name='shop:host-list', permanent=False), name='index')
+
 ]
 
 if settings.DEBUG:

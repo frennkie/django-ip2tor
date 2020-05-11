@@ -171,9 +171,12 @@ class LndNode(BaseLnNode):
 
     @property
     def best_header_timestamp(self):
-        header_ts = self.cached_get_info_value('best_header_timestamp', -1)
-        header_ts = int(header_ts)
-        return f'{datetime.fromtimestamp(header_ts)} ({header_ts})'
+        try:
+            header_ts = self.cached_get_info_value('best_header_timestamp', -1)
+            header_ts = int(header_ts)
+            return f'{datetime.fromtimestamp(header_ts)} ({header_ts})'
+        except:  # ToDo(frennkie)
+            return f'{datetime.fromtimestamp(0)} (0)'
 
     @property
     def num_pending_channels(self):

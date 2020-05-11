@@ -33,7 +33,7 @@ class Command(BaseCommand):
 
             invoice = PurchaseOrderInvoice(label="PO: {}".format(po.id),
                                            msatoshi=po.total_price_msat,
-                                           lnnode=LndGRpcNode.objects.first())
+                                           lnnode=LndGRpcNode.objects.filter(is_enabled=True).first())
             invoice.save()
 
             po.ln_invoices.add(invoice)

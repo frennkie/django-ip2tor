@@ -158,7 +158,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAdminUser',  # is_staff must be True. ViewSet may override this.
-    ]
+    ],
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning'
 }
 
 # Internationalization
@@ -206,3 +207,5 @@ SITE_ID = 1
 
 CHARGED_LND_TLS_VERIFICATION_EDITABLE = False
 CHARGED_LND_REJECT_ADMIN_MACAROON = True
+
+SHOP_BRIDGE_DURATION_GRACE_TIME = 600

@@ -318,6 +318,9 @@ class Invoice(models.Model):
 
 
 class PurchaseOrderInvoice(Invoice):
+
+    # ToDo(frennkie) use UUID4 !!!
+
     po = models.ForeignKey(
         'lnpurchase.PurchaseOrder',
         editable=False,

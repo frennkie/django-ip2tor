@@ -9,8 +9,8 @@ set -e
 set -u
 
 SHOP_URL="https://shop.ip2t.org"
-HOST_ID="<redacted>"
-HOST_TOKEN="<redacted>" # keep this secret!
+HOST_ID="876b2c86-77ea-48b7-8719-748974b61e14"
+HOST_TOKEN="b3bdffdcaeec00c9ea7fa00ee37352748394e559" # keep this secret!
 
 TOR2IPC_CMD="./tor2ipc.sh"
 
@@ -51,8 +51,8 @@ if [ "$1" = "pending" ]; then
     exit 1
   fi
 
-  active_list=$(echo "${res}" | jq -c '.[]|.id,.port,.target | tostring ' | xargs -L3 | sed 's/ /|/g
-' | paste -sd "\n" -)
+  jsn=$(echo "${res}" | jq -c '.[]|.id,.port,.target | tostring')
+  active_list=$(echo "${jsn}" | xargs -L3 | sed 's/ /|/g' | paste -sd "\n" -)
 
   if [ -z "${active_list}" ]; then
     echo "Nothing to do"
@@ -81,11 +81,13 @@ if [ "$1" = "pending" ]; then
 
       #echo "now send PATCH to ${patch_url} that ${b_id} is done"
 
-      res=$(curl -X "PATCH" \
+      res=$(
+        curl -X "PATCH" \
         -H "Authorization: Token ${HOST_TOKEN}" \
         -H "Content-Type: application/json" \
         --data '{"status": "A"}' \
-        "${patch_url}")
+        "${patch_url}"
+      )
 
       #echo "Res: ${res}"
       echo "set to Active: ${b_id}"
