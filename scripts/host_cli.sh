@@ -36,7 +36,7 @@ fi
 if [ "$1" = "pending" ]; then
 
   status="P" # P for pending
-  url="${SHOP_URL}/api/tor_bridges/?host=${HOST_ID}&status=${status}"
+  url="${SHOP_URL}/api/v1/tor_bridges/?host=${HOST_ID}&status=${status}"
 
   res=$(curl -s -q -H "Authorization: Token ${HOST_TOKEN}" "${url}")
 
@@ -77,7 +77,7 @@ if [ "$1" = "pending" ]; then
     #echo "${res}"
 
     if [ $? -eq 0 ]; then
-      patch_url="${SHOP_URL}/api/tor_bridges/${b_id}/"
+      patch_url="${SHOP_URL}/api/v1/tor_bridges/${b_id}/"
 
       #echo "now send PATCH to ${patch_url} that ${b_id} is done"
 
