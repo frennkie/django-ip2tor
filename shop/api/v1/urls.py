@@ -15,8 +15,8 @@ router.register(r'public/po_items', views.PublicPurchaseOrderItemDetailViewSet)
 
 router.register(r'public/lnnodes/lndgrpc', views.PublicLndGRpcNodeViewSet)
 
-router.register(r'bridges/tor', views.TorBridgeViewSet)
-router.register(r'bridges/rssh', views.TorBridgeViewSet)
+router.register(r'tor_bridges', views.TorBridgeViewSet)
+router.register(r'rssh_tunnels', views.TorBridgeViewSet)
 router.register(r'hosts', views.HostViewSet)
 
 urlpatterns = router.urls
