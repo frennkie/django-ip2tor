@@ -33,7 +33,7 @@
                     <th>Name</th>
                     <th>Port</th>
                     <th>Status</th>
-                    <th>Quantity</th>
+                    <th>Suspend After</th>
                     <th>Price (msat)</th>
                 </tr>
                 {% for item in object.item_details.all %}
@@ -46,7 +46,7 @@
                         <td>{{ item.product.host.name }}</td>
                         <td>{{ item.product.port }}</td>
                         <td>{{ item.product.get_status_display }}</td>
-                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.product.suspend_after }}</td>
                         <td>{{ item.price }}</td>
                     </tr>
                 {% endfor %}

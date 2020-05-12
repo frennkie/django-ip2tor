@@ -37,8 +37,23 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
     else:
         raise NotImplementedError
 
-    print(f"set to PENDING")
-    shop_item.status = Bridge.PENDING
+    if shop_item.status == Bridge.INITIAL:
+        print(f"set to PENDING")
+        shop_item.status = Bridge.PENDING
+
+    elif shop_item.status == Bridge.ACTIVE:
+        print(f"is already ACTIVE - assume extend")
+        # ToDo(frennkie): check/set suspend after time
+        shop_item.suspend_after = shop_item.suspend_after + timedelta(seconds=shop_item.host.tor_bridge_duration)
+
+    elif shop_item.status == Bridge.SUSPENDED:
+        print(f"is reactivate")
+        shop_item.status = Bridge.PENDING
+
+        # ToDo(frennkie): check/set suspend after time
+        if shop_item.suspend_after <= timezone.now():
+            shop_item.suspend_after = timezone.now() + timedelta(seconds=shop_item.host.tor_bridge_duration)
+
     shop_item.save()
 
 
