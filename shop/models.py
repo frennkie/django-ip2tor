@@ -372,7 +372,7 @@ class TorBridge(Bridge):
     target = models.CharField(max_length=300,
                               verbose_name=_('Tor Bridge Target'),
                               help_text=_('Target address. Must be an .onion address and must include '
-                                          'the port. Example: "expyuzz4wqqyqhjn.onion:443"'),
+                                          'the port. Example: "ruv6ue7d3t22el2a.onion:80"'),
                               validators=[validate_target_is_onion,
                                           validate_target_has_port])
 
