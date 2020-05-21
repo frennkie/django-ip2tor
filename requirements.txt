@@ -16,3 +16,4 @@ protobuf3-to-dict
 Django>=3.0.5
 pymacaroons>=0.13.0
 websockets
+markdown
