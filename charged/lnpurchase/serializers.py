@@ -1,28 +1,23 @@
 from rest_framework import serializers
 
-from charged.lninvoice.models import PurchaseOrderInvoice
+from charged.lninvoice.serializers import InvoiceSerializer
 from charged.lnpurchase.models import PurchaseOrder, PurchaseOrderItemDetail
 
 
-class PurchaseOrderSerializer(serializers.HyperlinkedModelSerializer):
-    item_details = serializers.HyperlinkedRelatedField(
-        many=True,
-        read_only=True,
-        view_name='v1:purchaseorderitemdetail-detail'
-    )
+class PurchaseOrderItemDetailSerializer(serializers.HyperlinkedModelSerializer):
+    product_id = serializers.StringRelatedField(read_only=True, source='object_id')
+    product = serializers.StringRelatedField(read_only=True)
 
-    ln_invoices = serializers.HyperlinkedRelatedField(
-        many=True,
-        queryset=PurchaseOrderInvoice.objects.all(),
-        view_name='v1:purchaseorderinvoice-detail'
-    )
+    class Meta:
+        model = PurchaseOrderItemDetail
+        fields = ('url', 'product_id', 'product', 'position', 'price', 'quantity', 'po')
+
+
+class PurchaseOrderSerializer(serializers.HyperlinkedModelSerializer):
+    item_details = PurchaseOrderItemDetailSerializer(many=True, read_only=True)
+
+    ln_invoices = InvoiceSerializer(many=True, read_only=True)
 
     class Meta:
         model = PurchaseOrder
-        fields = '__all__'
-
-
-class PurchaseOrderItemDetailSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = PurchaseOrderItemDetail
-        exclude = ('content_type',)
+        fields = ('url', 'status', 'item_details', 'ln_invoices')

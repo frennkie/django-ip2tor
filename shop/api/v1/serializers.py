@@ -24,10 +24,10 @@ class TorBridgeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = TorBridge
-        fields = ('id', 'comment', 'status', 'host', 'port', 'target', 'suspend_after')
+        fields = ('url', 'id', 'comment', 'status', 'host', 'port', 'target', 'suspend_after')
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups']
+        fields = ('url', 'username', 'email', 'groups')

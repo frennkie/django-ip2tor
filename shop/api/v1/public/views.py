@@ -10,7 +10,6 @@ from charged.lninvoice.serializers import InvoiceSerializer, PurchaseOrderInvoic
 from charged.lnnode.models import LndGRpcNode
 from charged.lnnode.serializers import LndGRpcNodeSerializer
 from charged.lnpurchase.models import PurchaseOrder, PurchaseOrderItemDetail
-from charged.lnpurchase.serializers import PurchaseOrderItemDetailSerializer, PurchaseOrderSerializer
 from shop.models import TorBridge, Host
 from . import serializers
 
@@ -84,7 +83,7 @@ class PublicPurchaseOrderItemDetailViewSet(mixins.RetrieveModelMixin,
     `Create`, `edit`, `list` and `delete` is **not possible**.
     """
     queryset = PurchaseOrderItemDetail.objects.all()
-    serializer_class = PurchaseOrderItemDetailSerializer
+    serializer_class = serializers.PublicShopPurchaseOrderItemDetailSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
 
@@ -96,7 +95,7 @@ class PublicPurchaseOrderViewSet(mixins.RetrieveModelMixin,
     `Create`, `edit`, `list` and `delete` is **not possible**.
     """
     queryset = PurchaseOrder.objects.all()
-    serializer_class = PurchaseOrderSerializer
+    serializer_class = serializers.PublicShopPurchaseOrderSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
 
