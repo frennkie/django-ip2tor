@@ -11,7 +11,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 
-from charged.lnpurchase.models import Product
+from charged.lnpurchase.models import Product, PurchaseOrder, PurchaseOrderItemDetail
 from shop.exceptions import PortNotInUseError, PortInUseError
 from shop.validators import validate_host_name_blacklist
 from shop.validators import validate_host_name_no_underscore
@@ -364,6 +364,8 @@ class Bridge(Product):
 
 
 class TorBridge(Bridge):
+    PRODUCT = 'tor_bridge'
+
     class Meta:
         ordering = ['created_at']
         verbose_name = _('Tor Bridge')
@@ -377,7 +379,28 @@ class TorBridge(Bridge):
                                           validate_target_has_port])
 
 
+class PurchaseOrderTorBridgeManager(models.Manager):
+    """creates a purchase order for a new tor bridge"""
+
+    def create(self, host, target, comment=None):
+        tor_bridge = TorBridge.objects.create(comment=comment,
+                                              host=host,
+                                              target=target)
+
+        po = PurchaseOrder.objects.create()
+        po_item = PurchaseOrderItemDetail(price=host.tor_bridge_price_initial,
+                                          product=tor_bridge,
+                                          quantity=1)
+        po.item_details.add(po_item, bulk=False)
+        po_item.save()
+        po.save()
+
+        return po
+
+
 class RSshTunnel(Bridge):
+    PRODUCT = 'rssh_tunnel'
+
     class Meta:
         ordering = ['created_at']
         verbose_name = _('Reverse SSH Tunnel')
@@ -386,3 +409,8 @@ class RSshTunnel(Bridge):
     public_key = models.CharField(max_length=5000,
                                   verbose_name=_('SSH Public Key'),
                                   help_text=_('The SSH public key used to allow you access to the tunnel.'))
+
+
+class ShopPurchaseOrder(PurchaseOrder):
+    objects = models.Manager()
+    tor_bridges = PurchaseOrderTorBridgeManager()

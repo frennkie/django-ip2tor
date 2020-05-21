@@ -2,9 +2,8 @@ from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import TemplateView
 
-from charged.lnpurchase.models import PurchaseOrder, PurchaseOrderItemDetail
 from .forms import PurchaseTorBridgeOnHostForm
-from .models import TorBridge, Host
+from .models import Host, ShopPurchaseOrder
 
 
 class HostListView(generic.ListView):
@@ -29,20 +28,19 @@ class PurchaseTorBridgeOnHostView(generic.UpdateView):
         clean_target = form.cleaned_data.get('target')
         clean_comment = form.cleaned_data.get('comment')
 
-        tor_bridge = TorBridge.objects.create(comment=clean_comment,
-                                              host=form.instance,
-                                              target=clean_target)
+        # tor_bridge = TorBridge.objects.create(comment=clean_comment,
+        #                                       host=form.instance,
+        #                                       target=clean_target)
+        #
+        # po = PurchaseOrder.objects.create()
+        # po_item = PurchaseOrderItemDetail(price=form.instance.tor_bridge_price_initial,
+        #                                   product=tor_bridge,
+        #                                   quantity=1)
+        # po.item_details.add(po_item, bulk=False)
+        # po_item.save()
+        # po.save()
 
-        po = PurchaseOrder.objects.create()
-        po_item = PurchaseOrderItemDetail(price=form.instance.tor_bridge_price_initial,
-                                          product=tor_bridge,
-                                          quantity=1)
-        po.item_details.add(po_item, bulk=False)
-        po_item.save()
-        po.save()
-
-        # ToDo(frennkie) What does this do?!
-        po.item_details.all()
+        po = ShopPurchaseOrder.tor_bridges.create(host=form.instance, target=clean_target, comment=clean_comment)
 
         return redirect('lnpurchase:po-detail', pk=po.pk)
         # return HttpResponseRedirect(self.get_success_url())

@@ -14,6 +14,9 @@ router.register(r'public/po_invoices', shop.api.v1.public.views.PublicPurchaseOr
 router.register(r'public/pos', shop.api.v1.public.views.PublicPurchaseOrderViewSet)
 router.register(r'public/po_items', shop.api.v1.public.views.PublicPurchaseOrderItemDetailViewSet)
 
+# ToDo(frennkie) or should this be public/host/<uuid>/order/ ?
+router.register(r'public/order', shop.api.v1.public.views.PublicOrderViewSet)
+
 router.register(r'public/lnnodes/lndgrpc', shop.api.v1.public.views.PublicLndGRpcNodeViewSet)
 
 router.register(r'tor_bridges', views.TorBridgeViewSet)
