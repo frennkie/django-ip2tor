@@ -211,7 +211,7 @@ class Invoice(models.Model):
 
     def lnnode_create_invoice(self):
         create_result = self.lnnode.create_invoice(
-            memo=f'{self.id}: {self.label}',
+            memo=f'{self.label}',
             value=int(self.amount_full_satoshi),
             expiry=self.expiry
         )

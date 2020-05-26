@@ -50,6 +50,19 @@ class PurchaseOrder(models.Model):
         return "PO ({})".format(self.id)
 
     @property
+    def owner(self):
+        return self.owner_from_items_host()
+
+    def owner_from_items_host(self):
+        owner = set()
+        for item in self.item_details.all():
+            owner.add(item.product.host.owner)
+        if len(owner) == 1:
+            return owner.pop()
+        else:
+            raise RuntimeError()  # ToDo(frennkie) How to handle this?!
+
+    @property
     def total_price_msat(self):
         total = 0
         for item in self.item_details.all():

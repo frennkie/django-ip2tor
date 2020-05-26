@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from charged.lninvoice.models import PurchaseOrderInvoice
-from charged.lnnode.models import LndGRpcNode
+from charged.lnnode.models import get_all_nodes
 from charged.lnpurchase.models import PurchaseOrder
 
 
@@ -31,15 +31,24 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING('No total price - skipping: %s' % po))
                 continue
 
-            # ToDo(frennkie) currently selecting any (the first) LND gRPC Node.. fix this!
-            invoice = PurchaseOrderInvoice(label="PO: {}".format(po.id),
-                                           msatoshi=po.total_price_msat,
-                                           lnnode=LndGRpcNode.objects.filter(is_enabled=True).first())
-            invoice.save()
+            # ToDo(frennkie) check this!
+            owned_nodes = get_all_nodes(po.owner.id)
+            for node_tuple in owned_nodes:
+                node = node_tuple[1]
+                if node.is_enabled:
+                    invoice = PurchaseOrderInvoice(label="PO: {}".format(po.id),
+                                                   msatoshi=po.total_price_msat,
+                                                   lnnode=node)
 
-            po.ln_invoices.add(invoice)
+                    invoice.save()
+                    po.ln_invoices.add(invoice)
 
-            po.status = PurchaseOrder.TOBEPAID
-            po.save()
+                    po.status = PurchaseOrder.TOBEPAID
+                    po.save()
 
-            self.stdout.write(self.style.SUCCESS('Created LnInvoice: %s (%s)' % (invoice.id, invoice)))
+                    self.stdout.write(self.style.SUCCESS('Created LnInvoice: %s (%s)' % (invoice.id, invoice)))
+
+                    break
+
+            else:
+                raise RuntimeError("no owned nodes found")
