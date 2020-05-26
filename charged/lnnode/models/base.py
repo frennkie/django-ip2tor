@@ -44,7 +44,7 @@ class BaseLnNode(models.Model):
     owner = models.ForeignKey(get_user_model(),
                               editable=True,
                               on_delete=models.CASCADE,
-                              # related_name='owned_lnnodes',
+                              # related_name='owned_lnnodes',  # stick with default (classname_set)
                               verbose_name=_("Owner"),
                               limit_choices_to={'is_staff': True})
 
