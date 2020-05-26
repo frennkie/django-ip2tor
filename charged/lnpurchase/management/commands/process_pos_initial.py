@@ -31,6 +31,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING('No total price - skipping: %s' % po))
                 continue
 
+            # ToDo(frennkie) currently selecting any (the first) LND gRPC Node.. fix this!
             invoice = PurchaseOrderInvoice(label="PO: {}".format(po.id),
                                            msatoshi=po.total_price_msat,
                                            lnnode=LndGRpcNode.objects.filter(is_enabled=True).first())

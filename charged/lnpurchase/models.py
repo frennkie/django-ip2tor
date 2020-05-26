@@ -117,16 +117,19 @@ class PurchaseOrderItemDetail(models.Model):
         verbose_name_plural = _("Purchase Order Item Details")
 
     def __str__(self):
-        return "GenericM2M (PO Items) " \
-               "PO:{} " \
-               "D:{} (Type: {}; Desc: {}) " \
-               "P:{} " \
-               "Q:{}".format(self.po,
-                             self.object_id,
-                             self.content_type,
-                             self.product,
-                             self.price,
-                             self.quantity)
+        # return """GenericM2M (PO Items) """ \
+        #        "ID:{0.id} " \
+        #        "PO_ID:{0.po.id} " \
+        #        "Product:(ID:{0.object_id} Type:{0.content_type}; Desc:{0.product}) " \
+        #        "P:{0.price} " \
+        #        "Q:{0.quantity}".format(self)
+
+        # shorter
+        return """GenericM2M (PO Items) """ \
+               "ID:{0.id} " \
+               "Product:({0.product}) " \
+               "P:{0.price} " \
+               "Q:{0.quantity}".format(self)
 
 
 class Product(models.Model):

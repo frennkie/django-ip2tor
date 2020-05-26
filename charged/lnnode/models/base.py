@@ -1,6 +1,7 @@
 import uuid
 from abc import ABCMeta, abstractmethod
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -40,13 +41,20 @@ class BaseLnNode(models.Model):
         help_text=_('A friendly name (e.g. LND on MyNode @ Home).')
     )
 
+    owner = models.ForeignKey(get_user_model(),
+                              editable=True,
+                              on_delete=models.CASCADE,
+                              # related_name='owned_lnnodes',
+                              verbose_name=_("Owner"),
+                              limit_choices_to={'is_staff': True})
+
     class Meta:
         abstract = True
 
     def __str__(self):
         if self.streaming:
-            return "{} (Streaming-Type: {})".format(self.name, self.type)
-        return "{} (Type: {})".format(self.name, self.type)
+            return "{} (Owner:{} Streaming-Type:{})".format(self.name, self.owner, self.type)
+        return "{} (Owner:{} Type:{})".format(self.name, self.owner, self.type)
 
     def clean(self, **kwargs):
         status, error = self.check_alive_status()
