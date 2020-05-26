@@ -13,11 +13,17 @@ __all__ = [
 ]
 
 
-def get_all_nodes():
-    fake = FakeNode.objects.all()
-    lnd_grpc = LndGRpcNode.objects.all()
-    lnd_rest = LndRestNode.objects.all()
-    clightning = CLightningNode.objects.all()
+def get_all_nodes(owner_id=None):
+    if owner_id:
+        fake = FakeNode.objects.filter(owner_id=owner_id)
+        lnd_grpc = LndGRpcNode.objects.filter(owner_id=owner_id)
+        lnd_rest = LndRestNode.objects.filter(owner_id=owner_id)
+        clightning = CLightningNode.objects.filter(owner_id=owner_id)
+    else:
+        fake = FakeNode.objects.all()
+        lnd_grpc = LndGRpcNode.objects.all()
+        lnd_rest = LndRestNode.objects.all()
+        clightning = CLightningNode.objects.all()
 
     node_list = sorted(
         chain(fake, lnd_grpc, lnd_rest, clightning),
