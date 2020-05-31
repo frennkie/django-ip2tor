@@ -19,6 +19,9 @@ do
   echo "Job: Process Lightning Invoices (unpaid)"
   /var/www/sites/site_django_ip2tor/venv/bin/python /var/www/sites/site_django_ip2tor/django_ip2tor/manage.py process_lni_unpaid
 
+  echo "Job: Process Tor Bridges"
+  /var/www/sites/site_django_ip2tor/venv/bin/python /var/www/sites/site_django_ip2tor/django_ip2tor/manage.py process_tor_bridges
+
   echo "Sleeping for ${sleep_time} seconds.."
   sleep ${sleep_time}
 
