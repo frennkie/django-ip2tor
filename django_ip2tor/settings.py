@@ -159,7 +159,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAdminUser',  # is_staff must be True. ViewSet may override this.
     ],
-    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning'
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
+    'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%SZ',
 }
 
 # Internationalization
