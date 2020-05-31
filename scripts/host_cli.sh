@@ -61,16 +61,7 @@ function get_tor_bridges() {
 # PENDING #
 ###########
 if [ "$1" = "pending" ]; then
-
-  status="P" # P for pending
-  url="${SHOP_URL}/api/v1/tor_bridges/?host=${HOST_ID}&status=${status}"
-
-  res=$(curl -s -q -H "Authorization: Token ${HOST_TOKEN}" "${url}")
-
-  if [ -z "${res///}" ] || [ "${res///}" = "[]" ]; then
-    echo "Nothing to do"
-    exit 0
-  fi
+  get_tor_bridges "P"  # P for pending - sets ${res}
 
   detail=$(echo "${res}" | jq -c '.detail' &>/dev/null || true)
   if [ -n "${detail}" ]; then
