@@ -12,7 +12,7 @@ SHOP_URL="https://shop.ip2t.org"
 HOST_ID="<insert_here>"
 HOST_TOKEN="<insert_here>" # keep this secret!
 
-TOR2IPC_CMD="./ip2torc.sh"
+IP2TORC_CMD="./ip2torc.sh"
 
 # command info
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ]; then
@@ -90,7 +90,7 @@ if [ "$1" = "pending" ]; then
     #echo "${port}"
     #echo "${target}"
 
-    res=$("${TOR2IPC_CMD}" add "${port}" "${target}")
+    res=$("${IP2TORC_CMD}" add "${port}" "${target}")
     #echo "Status Code: $?"
     #echo "${res}"
 
@@ -164,7 +164,7 @@ elif [ "$1" = "suspended" ]; then
     #echo "${target}"
 
     set -x
-    res=$("${TOR2IPC_CMD}" remove "${port}")
+    res=$("${IP2TORC_CMD}" remove "${port}")
     echo "Status Code: $?"
     echo "${res}"
 
