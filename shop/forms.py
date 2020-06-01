@@ -27,7 +27,7 @@ class PurchaseTorBridgeOnHostForm(forms.ModelForm):
     #     return cleaned_data
 
 
-class RSshTunnelForm(forms.ModelForm):
+class RSshTunnelAdminForm(forms.ModelForm):
     class Meta:
         model = RSshTunnel
         fields = '__all__'

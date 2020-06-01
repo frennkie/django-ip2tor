@@ -1,9 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from charged.lninvoice.admin import InvoiceAdmin
-from charged.lninvoice.models import Invoice
-from shop.forms import TorBridgeAdminForm, RSshTunnelForm
+from shop.forms import TorBridgeAdminForm, RSshTunnelAdminForm
 from shop.models import Host, PortRange, TorBridge, RSshTunnel
 
 
@@ -26,30 +24,11 @@ class PortRangeInline(admin.TabularInline):
     extra = 0
 
 
-# class ShopInvoiceInline(admin.TabularInline):
-#     model = ShopLnInvoice
-#
-#     show_change_link = True
-#
-#     exclude = ('label', 'payment_hash', 'payreq')  # exclude label as this is already part of __str__
-#
-#     def has_change_permission(self, request, obj=None):
-#         return False
-#
-#     def has_add_permission(self, request, obj=None):
-#         return False
-#
-#     def has_delete_permission(self, request, obj=None):
-#         return False
-
-
 class BridgeTunnelAdmin(admin.ModelAdmin):
-    form = RSshTunnelForm
+    form = TorBridgeAdminForm
 
     list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after', 'created_at']
     readonly_fields = ('status',)  # nobody should mess with 'status'
-
-    # inlines = (ShopInvoiceInline,)
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         form = super().get_form(request, obj, change, **kwargs)
@@ -67,7 +46,7 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
 
 
 class RSshTunnelAdmin(BridgeTunnelAdmin):
-    form = RSshTunnelForm
+    form = RSshTunnelAdminForm
 
 
 class TorBridgeAdmin(BridgeTunnelAdmin):
@@ -79,7 +58,8 @@ class HostAdmin(admin.ModelAdmin):
     list_display = ['id', 'owner', 'ip', 'site', 'name']
     readonly_fields = ('id', 'auth_token')
     # inlines = (PortRangeInline)  # Bridges and RSS might too many to be useful
-    inlines = (PortRangeInline, TorBridgeInline, RSshTunnelInline)
+    # inlines = (PortRangeInline, TorBridgeInline, RSshTunnelInline)
+    inlines = (PortRangeInline, TorBridgeInline)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -101,39 +81,12 @@ class HostAdmin(admin.ModelAdmin):
 
         return form
 
-#     list_display = ['label', 'amount', 'created_at', 'current_status']
-#     readonly_fields = ['amount', 'status', 'created_at', 'payment_hash', 'payreq',
-#                        'description', 'metadata', 'quoted_amount', 'quoted_currency', 'expires_at', 'paid_at',
-#                        'pay_index', 'qr_img']
-#
-#     def get_form(self, request, obj=None, change=False, **kwargs):
-#         form = super().get_form(request, obj, change, **kwargs)
-#         if request.user.is_superuser:
-#             return form
-#         form.base_fields['tor_bridge'].queryset = TorBridge.objects.filter(host__owner=request.user)
-#         form.base_fields['rssh'].queryset = RSshTunnel.objects.filter(host__owner=request.user)
-#         return form
-#
-#     def qr_img(self, obj):
-#         return mark_safe('<img src="{url}" width="{width}" height={height} />'.format(
-#             url=obj.qr_image.url,
-#             width=obj.qr_image.width,
-#             height=obj.qr_image.height)
-#         )
-#
-#     def has_add_permission(self, request, obj=None):
-#         return False
-#
-#     def has_change_permission(self, request, obj=None):
-#         return False
-
 
 # unregister the charged.models.Backend. Make sure to place
 # charged.apps.ChargedConfig before the App Config of this App in INSTALLED_APPS.
 # admin.site.unregister(Backend)
 
-# admin.site.register(Invoice, InvoiceAdmin)
 
-admin.site.register(RSshTunnel, RSshTunnelAdmin)
+# admin.site.register(RSshTunnel, RSshTunnelAdmin)
 admin.site.register(TorBridge, TorBridgeAdmin)
 admin.site.register(Host, HostAdmin)
