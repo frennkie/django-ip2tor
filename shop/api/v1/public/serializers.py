@@ -106,9 +106,11 @@ class ProductRelatedField(serializers.RelatedField):
         """
         if isinstance(value, TorBridge):
             serializer = TorBridgeSerializer(value, context={'request': self.context.get('request')})
-        elif isinstance(value, RSshTunnel):
-            # ToDo(frennkie) replace with RSshTunnel
-            serializer = TorBridgeSerializer(value, context={'request': self.context.get('request')})
+            # ToDo(frennkie) public should link to public..
+            # serializer = PublicTorBridgeSerializer(value, context={'request': self.context.get('request')})
+        # elif isinstance(value, RSshTunnel):
+        #     # ToDo(frennkie) replace with RSshTunnel
+        #     serializer = TorBridgeSerializer(value, context={'request': self.context.get('request')})
         else:
             raise Exception('Unexpected type of product')
 
