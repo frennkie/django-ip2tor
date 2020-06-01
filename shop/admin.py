@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
 from charged.lninvoice.admin import InvoiceAdmin
 from charged.lninvoice.models import Invoice
@@ -89,6 +90,16 @@ class HostAdmin(admin.ModelAdmin):
 
     def auth_token(self, obj):
         return obj.token_user.auth_token.key
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if request.user.is_superuser:
+            pass  # super admins see all possible host owners
+        else:
+            form.base_fields['owner'].queryset = get_user_model().objects.filter(id=request.user.id)
+            form.base_fields['owner'].initial = get_user_model().objects.filter(id=request.user.id).first()
+
+        return form
 
 #     list_display = ['label', 'amount', 'created_at', 'current_status']
 #     readonly_fields = ['amount', 'status', 'created_at', 'payment_hash', 'payreq',
