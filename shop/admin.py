@@ -77,7 +77,7 @@ class TorBridgeAdmin(BridgeTunnelAdmin):
 class HostAdmin(admin.ModelAdmin):
     model = Host
     list_display = ['id', 'owner', 'ip', 'site', 'name']
-    readonly_fields = ('auth_token',)
+    readonly_fields = ('id', 'auth_token')
     # inlines = (PortRangeInline)  # Bridges and RSS might too many to be useful
     inlines = (PortRangeInline, TorBridgeInline, RSshTunnelInline)
 
