@@ -263,8 +263,11 @@ class Invoice(models.Model):
                 pass
 
         if not self.qr_image:
-            temp_name, file_obj_qr_image = self.make_qr_image()
-            self.qr_image.save(temp_name, file_obj_qr_image, True)
+            try:
+                temp_name, file_obj_qr_image = self.make_qr_image()
+                self.qr_image.save(temp_name, file_obj_qr_image, True)
+            except Exception:
+                pass
 
         if self.status == self.INITIAL:
             self.status = self.UNPAID
