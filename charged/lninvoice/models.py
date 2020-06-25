@@ -256,8 +256,11 @@ class Invoice(models.Model):
                 pass
 
         if not self.expires_at:
-            expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
-            self.expires_at = expire_date
+            try:
+                expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
+                self.expires_at = expire_date
+            except TypeError:
+                pass
 
         if not self.qr_image:
             temp_name, file_obj_qr_image = self.make_qr_image()
