@@ -253,21 +253,15 @@ class Invoice(models.Model):
                 self.creation_at = make_aware(
                     timezone.datetime.utcfromtimestamp(lookup_result.get('creation_date')))
             except TypeError:
-                pass
-
-        if not self.expires_at:
-            try:
-                expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
-                self.expires_at = expire_date
-            except TypeError:
                 return
 
+        if not self.expires_at:
+            expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
+            self.expires_at = expire_date
+
         if not self.qr_image:
-            try:
-                temp_name, file_obj_qr_image = self.make_qr_image()
-                self.qr_image.save(temp_name, file_obj_qr_image, True)
-            except Exception:
-                pass
+            temp_name, file_obj_qr_image = self.make_qr_image()
+            self.qr_image.save(temp_name, file_obj_qr_image, True)
 
         if self.status == self.INITIAL:
             self.status = self.UNPAID
