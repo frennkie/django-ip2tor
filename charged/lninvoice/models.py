@@ -249,8 +249,11 @@ class Invoice(models.Model):
             self.expiry = lookup_result.get('expiry')
 
         if not self.creation_at:
-            self.creation_at = make_aware(
-                timezone.datetime.utcfromtimestamp(lookup_result.get('creation_date')))
+            try:
+                self.creation_at = make_aware(
+                    timezone.datetime.utcfromtimestamp(lookup_result.get('creation_date')))
+            except TypeError:
+                pass
 
         if not self.expires_at:
             expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
