@@ -260,7 +260,7 @@ class Invoice(models.Model):
                 expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
                 self.expires_at = expire_date
             except TypeError:
-                pass
+                return
 
         if not self.qr_image:
             try:
