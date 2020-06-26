@@ -29,16 +29,27 @@ source /var/www/sites/site_django_ip2tor/venv/bin/activate
 python -m pip install --upgrade pip
 
 git clone https://github.com/frennkie/ip2tor_shop
+python -m pip install --upgrade pip 
+python -m pip install --upgrade setuptools
 python -m pip install --upgrade -r requirements.txt
 python manage.py collectstatic
 python manage.py migrate
 
-createsuperuser --username admin --email admin@example.com
+python manage.py createsuperuser --username admin --email admin@example.com
 
 
 daphne django_ip2tor.asgi:application --port 8001 --proxy-headers
 
 ```
+
+CentOS Stuff
+
+```
+setsebool -P httpd_can_network_connect 1
+chcon -Rt httpd_sys_content_t /var/www/
+```
+ 
+
 
 ### Run "worker" - open another terminal (tmux):
 

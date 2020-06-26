@@ -1,0 +1,13 @@
+[Unit]
+Description=Django Jobs
+After=network.target
+
+[Service]
+User=nginx
+Group=nginx
+WorkingDirectory=/var/www/sites/site_django_ip2tor/django_ip2tor/scripts
+ExecStart=/bin/bash -c './jobs.sh'
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
