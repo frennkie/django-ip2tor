@@ -100,3 +100,5 @@ def create_default_operator_group(sender, **kwargs):
         all_permissions = Permission.objects.filter(content_type=content_type)
         for p in all_permissions:
             obj.permissions.add(p)
+
+    # ToDo(frennkie) additional permissions (e.g. PO Invoices, POs)

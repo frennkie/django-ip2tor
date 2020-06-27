@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
+from charged.lnnode.models import LndRestNode, CLightningNode, FakeNode
 from shop.forms import TorBridgeAdminForm, RSshTunnelAdminForm
 from shop.models import Host, PortRange, TorBridge, RSshTunnel
 
@@ -85,6 +86,11 @@ class HostAdmin(admin.ModelAdmin):
 # unregister the charged.models.Backend. Make sure to place
 # charged.apps.ChargedConfig before the App Config of this App in INSTALLED_APPS.
 # admin.site.unregister(Backend)
+
+# ToDo(frennkie) for now hide unimplemented models
+admin.site.unregister(LndRestNode)
+admin.site.unregister(CLightningNode)
+admin.site.unregister(FakeNode)
 
 
 # admin.site.register(RSshTunnel, RSshTunnelAdmin)
