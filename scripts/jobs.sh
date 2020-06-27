@@ -3,8 +3,11 @@
 #  - processing of new (=initial) purchase orders (by creating an invoice)
 #  - processing of new (=initial) invoice (by actually creating the invoice on a Lightning Node
 #  - processing of unpaid lightning invoices (check for payment)
+#  - processing of deleted tor bridges (delete from db if old than N days)
+#  - processing of initial tor bridges (change state to delete if never paid)
+#  - processing of active tor bridges (change state to suspended if expired)
 
-sleep_time=10
+sleep_time=2
 
 while :
 do
