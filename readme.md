@@ -5,7 +5,7 @@
 ### System packages
 
 ```
-sudo apt install nginx redis git tmux
+sudo apt install nginx redis gcc git tmux
 ```
 
 Setup nginx (see contrib/shop.ip2t.org.conf)
