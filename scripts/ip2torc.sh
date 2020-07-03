@@ -59,8 +59,8 @@ StandardOutput=journal
 WantedBy=multi-user.target
 EOF
 
-  sudo systemctl enable ip2tor"${port}"
-  sudo systemctl start ip2tor"${port}"
+  sudo systemctl enable ip2tor_"${port}"
+  sudo systemctl start ip2tor_"${port}"
 
 }
 
@@ -99,11 +99,11 @@ function remove_bridge() {
   fi
 
   echo "will now stop, disable and remove service and then refresh systemd"
-  sudo systemctl stop ip2tor"${port}"
-  sudo systemctl disable ip2tor"${port}"
+  sudo systemctl stop ip2tor_"${port}"
+  sudo systemctl disable ip2tor_"${port}"
   sudo rm -rf "${file_path}"
   sudo systemctl daemon-reload
-  sudo systemctl reset-failed ip2tor"${port}"
+  sudo systemctl reset-failed ip2tor_"${port}"
   echo "successfully stopped and removed bridge."
 
 }
