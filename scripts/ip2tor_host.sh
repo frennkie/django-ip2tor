@@ -56,6 +56,8 @@ if [ ! -f "/usr/local/bin/ip2torc.sh" ]; then
   exit 1
 fi
 
+IP2TORC_CMD=/usr/local/bin/ip2torc.sh
+
 ###################
 # FUNCTIONS
 ###################
