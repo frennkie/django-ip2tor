@@ -36,7 +36,7 @@ function add_bridge() {
   target=${2}
   echo "adding bridge from port: ${port} to: ${target}"
 
-  file_path="/etc/systemd/system/ip2tor${port}.service"
+  file_path="/etc/systemd/system/ip2tor_${port}.service"
   if [ -f "${file_path}" ]; then
     echo "file exists already"
     # TODO possibly restart..?!
@@ -74,13 +74,13 @@ function list_bridges() {
   echo "# Bridges (PORT|TARGET|STATUS)"
   echo "# ============================"
 
-  for f in /etc/systemd/system/ip2tor*.service; do
+  for f in /etc/systemd/system/ip2tor_*.service; do
     [ -e "$f" ] || continue
 
     cfg=$(sed -n 's/^ExecStart.*TCP4-LISTEN:\([0-9]*\),.*SOCKS4A:localhost:\(.*\),socksport=.*$/\1|\2/p' "${f}")
     port=$(echo "${cfg}" | cut -d"|" -f1)
     target=$(echo "${cfg}" | cut -d"|" -f2)
-    status=$(systemctl status "ip2tor${port}.service" | grep "Active" | sed 's/^ *Active: //g')
+    status=$(systemctl status "ip2tor_${port}.service" | grep "Active" | sed 's/^ *Active: //g')
     echo "${port}|${target}|${status}"
   done
 
@@ -91,7 +91,7 @@ function remove_bridge() {
   port=${1}
   echo "removing bridge from port: ${port}"
 
-  file_path="/etc/systemd/system/ip2tor${port}.service"
+  file_path="/etc/systemd/system/ip2tor_${port}.service"
   if ! [ -f "${file_path}" ]; then
     echo "file does not exist"
     echo "no bridge on this port..!"
