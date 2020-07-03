@@ -164,7 +164,6 @@ elif [ "$1" = "loop" ]; then
     "${0}" suspended
     sleep 2
   done
-fi
 
 #############
 # SUSPENDED #
