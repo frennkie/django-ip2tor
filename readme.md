@@ -166,10 +166,10 @@ git clone https://github.com/frennkie/django-ip2tor/
 cd django-ip2tor
 sudo install -m 0755 -o root -g root -t /usr/local/bin scripts/ip2tor_host.sh
 sudo install -m 0755 -o root -g root -t /usr/local/bin scripts/ip2torc.sh
-sudo install -m 0755 -o root -g root -t /usr/local/bin contrib/ip2tor-host.service
+sudo install -m 0755 -o root -g root -t /etc/systemd/system contrib/ip2tor-host.service
 ```
 
-Now create the configuration file ("/etc/ip2tor.conf") and enter the credentials - e.g. like this:
+Now create the configuration file (`sudo vi /etc/ip2tor.conf`) and enter the credentials - e.g. like this:
 
 ```
 IP2TOR_SHOP_URL=https://ip2tor.fulmo.org
