@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 #
-# host_cli.sh
+# ip2tor_host.sh
 #
 # License: MIT
 # Copyright (c) 2020 The RaspiBlitz developers
 
 set -e
-set -u
 
-SHOP_URL="https://shop.ip2t.org"
-HOST_ID="<insert_here>"
-HOST_TOKEN="<insert_here>" # keep this secret!
-
-IP2TORC_CMD="./ip2torc.sh"
+# CONFIGURATION: use either environment or file
+# ENV:
+# export IP2TOR_SHOP_URL=https://ip2tor.fulmo.org
+# export IP2TOR_HOST_ID=1234abcd
+# export IP2TOR_HOST_TOKEN=abcd4321
+# FILE: /etc/ip2tor.conf with content
+# IP2TOR_SHOP_URL=https://ip2tor.fulmo.org
+# IP2TOR_HOST_ID=1234abcd
+# IP2TOR_HOST_TOKEN=abcd4321
 
 # command info
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ]; then
@@ -30,6 +33,27 @@ if ! command -v jq >/dev/null; then
   echo "jq installed successfully."
 fi
 
+###################
+# GET CONFIG
+###################
+
+if [ -f "/etc/ip2tor.conf" ]; then
+  unset IP2TOR_SHOP_URL
+  unset IP2TOR_HOST_ID
+  unset IP2TOR_HOST_TOKEN
+
+  source "/etc/ip2tor.conf"
+fi
+
+if [ -z "${IP2TOR_SHOP_URL}" ] || [ -z "${IP2TOR_HOST_ID}" ] || [ -z "${IP2TOR_HOST_TOKEN}" ]; then
+  echo "Error: IP2TOR_SHOP_URL, IP2TOR_HOST_ID and IP2TOR_HOST_TOKEN must be set via environment or config file!"
+  exit 1
+fi
+
+if [ ! -f "/usr/local/bin/ip2torc.sh" ]; then
+  echo "Error: /usr/local/bin/ip2torc.sh is missing"
+  exit 1
+fi
 
 ###################
 # FUNCTIONS
@@ -40,14 +64,14 @@ function get_tor_bridges() {
 
   if [ "${status}" = "all" ]; then
     #echo "filter: None"
-    local url="${SHOP_URL}/api/v1/tor_bridges/?host=${HOST_ID}"
+    local url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/?host=${IP2TOR_HOST_ID}"
 
   else
     #echo "filter: ${status}"
-    local url="${SHOP_URL}/api/v1/tor_bridges/?host=${HOST_ID}&status=${status}"
+    local url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/?host=${IP2TOR_HOST_ID}&status=${status}"
   fi
 
-  res=$(curl -s -q -H "Authorization: Token ${HOST_TOKEN}" "${url}")
+  res=$(curl -s -q -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" "${url}")
 
   if [ -z "${res///}" ] || [ "${res///}" = "[]" ]; then
     #echo "Nothing to do"
@@ -95,13 +119,13 @@ if [ "$1" = "pending" ]; then
     #echo "${res}"
 
     if [ $? -eq 0 ]; then
-      patch_url="${SHOP_URL}/api/v1/tor_bridges/${b_id}/"
+      patch_url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/${b_id}/"
 
       #echo "now send PATCH to ${patch_url} that ${b_id} is done"
 
       res=$(
         curl -X "PATCH" \
-        -H "Authorization: Token ${HOST_TOKEN}" \
+        -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" \
         -H "Content-Type: application/json" \
         --data '{"status": "A"}' \
         "${patch_url}"
@@ -169,13 +193,13 @@ elif [ "$1" = "suspended" ]; then
     echo "${res}"
 
     if [ $? -eq 0 ]; then
-      patch_url="${SHOP_URL}/api/v1/tor_bridges/${b_id}/"
+      patch_url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/${b_id}/"
 
       echo "now send PATCH to ${patch_url} that ${b_id} is done"
 
       res=$(
         curl -X "PATCH" \
-        -H "Authorization: Token ${HOST_TOKEN}" \
+        -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" \
         -H "Content-Type: application/json" \
         --data '{"status": "D"}' \
         "${patch_url}"
