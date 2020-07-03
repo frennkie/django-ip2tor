@@ -1,0 +1,12 @@
+[Unit]
+Description=IP2TOR Host
+After=network.target
+
+[Service]
+User=root
+Group=root
+ExecStart=/usr/local/bin/ip2tor_host.sh
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
