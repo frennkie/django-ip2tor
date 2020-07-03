@@ -12,7 +12,7 @@ from django.db import models
 from django.utils.datetime_safe import datetime
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from protobuf_to_dict import protobuf_to_dict
+from google.protobuf.json_format import MessageToDict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -252,7 +252,7 @@ class LndGRpcNode(LndNode):
         try:
             request = lnrpc.rpc_pb2.GetInfoRequest()
             response = self.stub_readonly.GetInfo(request)
-            return protobuf_to_dict(response, including_default_value_fields=True)
+            return MessageToDict(response, including_default_value_fields=True, preserving_proto_field_name=True)
         except grpc.RpcError as err:
             return {'error': 'Unable to process GetInfo with Exception:\n'
                              'gRPC API Error: \n'
@@ -268,7 +268,7 @@ class LndGRpcNode(LndNode):
             # send signal
             lnnode_invoice_created.send(sender=self.__class__, instance=self, payment_hash=response.r_hash)
 
-            return protobuf_to_dict(response, including_default_value_fields=True)
+            return MessageToDict(response, including_default_value_fields=True, preserving_proto_field_name=True)
         except grpc.RpcError as err:
             return {'error': 'Unable to process AddInvoice with Exception:\n'
                              'gRPC API Error: \n'
@@ -278,10 +278,17 @@ class LndGRpcNode(LndNode):
                             "{}".format(err))
 
     def get_invoice(self, **kwargs) -> dict:
+        # ToDo(frennkie) for some reason MessageToDict returns payment_hash as
+        #  "memory"/"memoryview" type
         try:
-            request = lnrpc.rpc_pb2.PaymentHash(**kwargs)
+            r_hash = kwargs['r_hash'].tobytes()
+        except AttributeError:
+            r_hash = kwargs['r_hash']
+
+        try:
+            request = lnrpc.rpc_pb2.PaymentHash(r_hash=r_hash)
             response = self.stub_invoice.LookupInvoice(request)
-            return protobuf_to_dict(response, including_default_value_fields=True)
+            return MessageToDict(response, including_default_value_fields=True, preserving_proto_field_name=True)
         except grpc.RpcError as err:
             return {'error': 'Unable to process LookupInvoice with Exception:\n'
                              'gRPC API Error: \n'
@@ -295,7 +302,7 @@ class LndGRpcNode(LndNode):
             request = lnrpc.rpc_pb2.InvoiceSubscription()
 
             for response in self.stub_invoice.SubscribeInvoices(request):
-                yield protobuf_to_dict(response, including_default_value_fields=True)
+                yield MessageToDict(response, including_default_value_fields=True, preserving_proto_field_name=True)
         except grpc.RpcError as err:
             return {'error': 'Unable to process LookupInvoice with Exception:\n'
                              'gRPC API Error: \n'

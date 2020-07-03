@@ -12,7 +12,6 @@ lnd-rpc
 pylightning
 qrcode[pil]>=6.1
 requests[socks]>=2.23.0
-protobuf3-to-dict
 Django>=3.0.5
 pymacaroons>=0.13.0
 websockets

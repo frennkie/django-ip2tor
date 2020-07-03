@@ -1,3 +1,4 @@
+import base64
 import os
 import uuid
 
@@ -216,16 +217,11 @@ class Invoice(models.Model):
             expiry=self.expiry
         )
 
+        print("foo1")
+        print(create_result)
+
         # ToDo(frennkie) error handling?
-
-        # ToDo(frennkie) for some reason protobuf_to_dict returns payment_hash as
-        #  "memory"/"memoryview" type
-        _r_hash = create_result.get('r_hash')
-        try:
-            self.payment_hash = _r_hash.tobytes()
-        except AttributeError:
-            self.payment_hash = _r_hash
-
+        self.payment_hash = base64.b64decode(create_result.get('r_hash'))
         self.status = self.UNPAID
         self.save()
 
@@ -240,25 +236,23 @@ class Invoice(models.Model):
         # ToDo(frennkie) error handling?
         lookup_result = self.lnnode.get_invoice(r_hash=self.payment_hash)
 
-        # print(lookup_result)
-
         # ToDo(frennkie) sync *complete* data here..
         if not self.preimage:
-            self.preimage = lookup_result.get('r_preimage')
+            self.preimage = base64.b64decode(lookup_result.get('r_preimage'))
 
         if not self.payment_request:
             self.payment_request = lookup_result.get('payment_request')
 
         if self.expiry:
-            if self.expiry != lookup_result.get('expiry'):
-                self.expiry = lookup_result.get('expiry')
+            if self.expiry != int(lookup_result.get('expiry')):
+                self.expiry = int(lookup_result.get('expiry'))
         else:
-            self.expiry = lookup_result.get('expiry')
+            self.expiry = int(lookup_result.get('expiry'))
 
         if not self.creation_at:
             try:
                 self.creation_at = make_aware(
-                    timezone.datetime.utcfromtimestamp(lookup_result.get('creation_date')))
+                    timezone.datetime.utcfromtimestamp(int(lookup_result.get('creation_date'))))
             except TypeError:
                 return
 
@@ -279,7 +273,7 @@ class Invoice(models.Model):
 
                 self.status = self.PAID
                 self.paid_at = make_aware(
-                    timezone.datetime.utcfromtimestamp(lookup_result.get('settle_date')))
+                    timezone.datetime.utcfromtimestamp(int(lookup_result.get('settle_date'))))
 
         if self.has_expired and self.status != self.PAID:
             self.status = self.EXPIRED
