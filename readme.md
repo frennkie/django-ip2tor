@@ -51,6 +51,20 @@ chcon -Rt httpd_sys_content_t /var/www/
  
 
 
+yum install -y libpq-devel
+
+
+python -m pip install --upgrade psycopg2
+or
+python -m pip uninstall psycopg2-binary
+
+
+python manage.py migrate --settings django_ip2tor.settings_prod
+
+loaddata doesn't work
+
+
+
 ### Run "worker" - open another terminal (tmux):
 
 ```
@@ -113,3 +127,60 @@ do
   sleep 10
 done
 ```
+
+sudo install -m 0755 -o root -g root -t /usr/local/bin scripts/ip2tor_host.sh
+sudo install -m 0755 -o root -g root -t /usr/local/bin scripts/ip2torc.sh
+sudo vi /etc/ip2tor.conf
+
+sudo cp contrib/ip2tor-host.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable ip2tor-host
+sudo systemctl start ip2tor-host
+
+
+
+## Installing
+
+Please be aware that the IP2TOR consist of two separate server roles. 
+
+There is the `Shop` and there are `Hosts` (or `Bridge Hosts`). The `Shop` is an application 
+based on the Python Django Web Framework that provides a management interface to register 
+multiple operator accounts and also Bitcoin Lightning wallets/nodes. Within the `Shop` it 
+is also possible to register multiple `Hosts` that will take over the role of actually 
+hosting the IP to TOR (or more precisely TCP-Port to TOR Hidden Service).
+
+### Installation on a Host
+
+First make sure that TOR is installed and configured/enabled. 
+
+Secondly you need to register the `Hosts` in at least one `Shop` first to get the credentials
+that are needed to retrieve the specific information for this `Host` from the `Shop` database
+and to make updates (e.g. mark a `Bridge` as active).
+ 
+
+```
+cd /tmp
+git clone https://github.com/frennkie/django-ip2tor/
+cd django-ip2tor
+sudo install -m 0755 -o root -g root -t /usr/local/bin scripts/ip2tor_host.sh
+sudo install -m 0755 -o root -g root -t /usr/local/bin scripts/ip2torc.sh
+sudo install -m 0755 -o root -g root -t /usr/local/bin contrib/ip2tor-host.service
+```
+
+Now create the configuration file ("/etc/ip2tor.conf") and enter the credentials - e.g. like this:
+
+```
+IP2TOR_SHOP_URL=https://ip2tor.fulmo.org
+IP2TOR_HOST_ID=58b61c0b-0a00-0b00-0c00-0d0000000000
+IP2TOR_HOST_TOKEN=5eceb05d00000000000000000000000000000000
+```
+
+Finally reload systemd, enable and start the service.
+
+```
+sudo systemctl daemon-reload
+sudo systemctl enable ip2tor-host
+sudo systemctl start ip2tor-host
+```
+
+Check the logs using `sudo journalctl --follow -u ip2tor-host`
