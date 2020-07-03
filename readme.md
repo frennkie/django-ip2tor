@@ -153,7 +153,10 @@ hosting the IP to TOR (or more precisely TCP-Port to TOR Hidden Service).
 
 First make sure that TOR is installed and configured/enabled. 
 
-Secondly install any other dependencies. Currently the only one is: `jq`.
+Secondly install any other dependencies. Currently these are
+ 
+* `jq`
+* `socat`
 
 Thirdly you need to register the `Hosts` in at least one `Shop` first to get the credentials
 that are needed to retrieve the specific information for this `Host` from the `Shop` database
