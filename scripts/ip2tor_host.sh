@@ -20,9 +20,10 @@ set -e
 # command info
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ]; then
   echo "management script to fetch and process config from shop"
-  echo "host_cli.sh pending"
-  echo "host_cli.sh list [I|P|A|S|D]"
-  echo "host_cli.sh suspended"
+  echo "ip2tor_host.sh pending"
+  echo "ip2tor_host.sh list [I|P|A|S|D]"
+  echo "ip2tor_host.sh loop"
+  echo "ip2tor_host.sh suspended"
   exit 1
 fi
 
@@ -153,6 +154,17 @@ elif [ "$1" = "list" ]; then
     echo "${active_list}" | sort -n
   fi
 
+########
+# LOOP #
+########
+elif [ "$1" = "loop" ]; then
+  while :
+  do
+    "${0}" pending
+    "${0}" suspended
+    sleep 2
+  done
+fi
 
 #############
 # SUSPENDED #
