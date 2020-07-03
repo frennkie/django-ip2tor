@@ -218,7 +218,14 @@ class Invoice(models.Model):
 
         # ToDo(frennkie) error handling?
 
-        self.payment_hash = create_result.get('r_hash')
+        # ToDo(frennkie) for some reason protobuf_to_dict returns payment_hash as
+        #  "memory"/"memoryview" type
+        _r_hash = create_result.get('r_hash')
+        try:
+            self.payment_hash = _r_hash.tobytes()
+        except AttributeError:
+            self.payment_hash = _r_hash
+
         self.status = self.UNPAID
         self.save()
 
