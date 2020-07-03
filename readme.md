@@ -161,7 +161,8 @@ Secondly install any other dependencies. Currently these are
 Thirdly you need to register the `Hosts` in at least one `Shop` first to get the credentials
 that are needed to retrieve the specific information for this `Host` from the `Shop` database
 and to make updates (e.g. mark a `Bridge` as active).
- 
+
+Don't forget to allow the TCP port ranges on your firewall (both local and network/cloud based).
 
 ```
 cd /tmp

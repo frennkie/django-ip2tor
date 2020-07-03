@@ -44,14 +44,22 @@ function add_bridge() {
   fi
 
   # TODO (debian-tor user?! or root?)
+  if getent passwd debian-tor > /dev/null 2&>1 ; then
+    service_user=debian-tor
+  elif getent passwd toranon > /dev/null 2&>1 ; then
+    service_user=toranon
+  else
+    service_user=root
+  fi
+
   cat <<EOF | sudo tee "${file_path}" >/dev/null
 [Unit]
 Description=IP2Tor Tunnel Service (Port ${port})
 After=network.target
 
 [Service]
-User=debian-tor
-Group=debian-tor
+User=${service_user}
+Group=${service_user}
 ExecStart=/usr/bin/socat TCP4-LISTEN:${port},bind=0.0.0.0,reuseaddr,fork SOCKS4A:localhost:${target},socksport=9050
 StandardOutput=journal
 
