@@ -120,6 +120,17 @@ daphne django_ip2tor.asgi:application --port 8001 --proxy-headers
 
 ```
 
+Celery
+
+```
+celery -A django_ip2tor worker -c 2 -l info --pool=solo  # dev on Windows
+celery -A django_ip2tor worker -l info
+celery -A django_ip2tor beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+```
+
+Systemd files: https://docs.celeryproject.org/en/stable/userguide/daemonizing.html#usage-systemd
+
+
 CentOS Stuff
 
 ```
