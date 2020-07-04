@@ -66,7 +66,7 @@ Two useful commands to see what's going on are these:
 20159|answerszuvs3gg2l64e6hmnryudl5zgrmwm3vh65hzszdghblddvfiqd.onion:80|active (running) since Fri 2020-07-03 20:43:43 GMT; 12h ago
 ```
 
-`ip2tor_host.sh list` retrieves a current list from the `Shop` with details with Bridge should 
+`ip2tor_host.sh list` retrieves a current list from the `Shop` with details which Bridges should 
 be hosted on this `Host` and in which status they are. 
 
 ```
