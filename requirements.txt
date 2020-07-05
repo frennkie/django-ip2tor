@@ -1,8 +1,11 @@
 base58
+celery[django,redis]
 channels>=2.4.0
 channels_redis
 cryptography>=2.9
+django_celery_results
 django_extensions
+django-celery-beat
 django-filter>=2.2.0
 django-redis
 django-widget-tweaks
