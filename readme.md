@@ -106,7 +106,7 @@ cd /var/www/sites/site_django_ip2tor
 source /var/www/sites/site_django_ip2tor/venv/bin/activate
 python -m pip install --upgrade pip
 
-git clone https://github.com/frennkie/ip2tor_shop
+git clone https://github.com/frennkie/django-ip2tor
 python -m pip install --upgrade pip 
 python -m pip install --upgrade setuptools
 python -m pip install --upgrade -r requirements.txt
@@ -115,9 +115,12 @@ python manage.py migrate
 
 python manage.py createsuperuser --username admin --email admin@example.com
 
+```
 
-daphne django_ip2tor.asgi:application --port 8001 --proxy-headers
+Limit access rights to base directory
 
+```
+sudo chmod 770 /var/www/sites/site_django_ip2tor/django_ip2tor
 ```
 
 
@@ -145,13 +148,29 @@ sudo systemd-tmpfiles --create --remove
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-beat.service
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-worker.service
 sudo install -m 0644 -o root -g root -t /etc/ contrib/celery.conf
+```
 
+Make sure that the `celery` user has write access to the database. If you use SQlite then run 
+the following (when using Postgres you only need to ensure that the settings.py with the 
+credentials is readable the `celery`):
+
+```
+if [ -f "/var/www/sites/site_django_ip2tor/django_ip2tor/db.sqlite3" ]; then
+  sudo usermod -a -G www-data celery
+  sudo chmod 664 /var/www/sites/site_django_ip2tor/django_ip2tor/db.sqlite3
+fi
+``` 
+
+Enable and start celery
+
+```
 sudo systemctl daemon-reload
 sudo systemctl enable ip2tor-beat.service
 sudo systemctl enable ip2tor-worker.service
 sudo systemctl start ip2tor-beat.service
 sudo systemctl start ip2tor-worker.service
 ```
+
 
 Run celery manually (for debug/dev/testing)
 
