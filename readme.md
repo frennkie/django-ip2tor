@@ -140,6 +140,10 @@ Celery
 ```
 sudo useradd celery --system -d /var/lib/celery -b /bin/sh
 
+sudo usermod -a -G www-data celery
+# or
+sudo usermod -a -G nginx celery
+
 cat <<EOF | sudo tee "/etc/tmpfiles.d/celery.conf" >/dev/null
 d /run/celery 0755 celery celery -
 d /var/log/celery 0755 celery celery -
@@ -157,7 +161,6 @@ credentials is readable the `celery`):
 
 ```
 if [ -f "/var/www/sites/site_django_ip2tor/django_ip2tor/db.sqlite3" ]; then
-  sudo usermod -a -G www-data celery
   sudo chmod 664 /var/www/sites/site_django_ip2tor/django_ip2tor/db.sqlite3
 fi
 ``` 
