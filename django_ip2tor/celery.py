@@ -3,7 +3,7 @@ import os
 from celery import Celery
 
 # set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_ip2tor.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_ip2tor.settings_prod')
 
 app = Celery('django_ip2tor')
 

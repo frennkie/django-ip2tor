@@ -9,6 +9,7 @@ EnvironmentFile=/etc/celery.conf
 WorkingDirectory=/var/www/sites/site_django_ip2tor/django_ip2tor
 ExecStart=/bin/sh -c '${CELERY_BIN} beat  \
   -A ${CELERY_APP} --pidfile=${CELERYBEAT_PID_FILE} \
+  -s ${CELERYBEAT_SCHEDULE_FILE} \
   --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL}'
 
 StandardOutput=journal
