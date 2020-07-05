@@ -30,7 +30,7 @@ class PortRangeInline(admin.TabularInline):
 class BridgeTunnelAdmin(admin.ModelAdmin):
     form = TorBridgeAdminForm
 
-    search_fields = ('id', 'comment')
+    search_fields = ('id', 'comment', 'port')
     list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after', 'created_at']
     list_filter = ('status', 'created_at', 'host')
 
