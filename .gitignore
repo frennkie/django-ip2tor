@@ -75,3 +75,5 @@ ENV/
 celerybeat.pid
 celerybeat-schedule
 celerybeat-schedule.db
+
+django_ip2tor/settings_prod.py

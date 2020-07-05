@@ -8,17 +8,30 @@ from django.db.models.signals import post_save, post_init
 from django.dispatch import receiver
 from django.utils import timezone
 
-from charged.lninvoice.signals import lninvoice_paid
+from charged.lninvoice.models import PurchaseOrderInvoice
+from charged.lninvoice.signals import lninvoice_paid, lninvoice_invoice_created_on_node
+from charged.lninvoice.tasks import process_initial_lni, process_unpaid_lni
 from charged.lnnode.signals import lnnode_invoice_created
+from charged.lnpurchase.models import PurchaseOrder
+from charged.lnpurchase.tasks import process_initial_purchase_order
 from shop.models import TorBridge, RSshTunnel, Bridge
 
 
 @receiver(lnnode_invoice_created)
 def lnnode_invoice_created_handler(sender, instance, payment_hash, **kwargs):
-    print("received...!")
+    # ToDo(frennkie) this doesn't do anything (except for logging the event)
+    print("received by: lnnode_invoice_created_handler")
     print(f"received Sender: {sender}")
     print(f"received Instance: {instance}")
     print(f"received Payment Hash: {payment_hash}")
+
+
+@receiver(lninvoice_invoice_created_on_node)
+def lninvoice_invoice_created_on_node_handler(sender, instance, **kwargs):
+    print("received by: lninvoice_invoice_created_on_node_handler")
+    print(f"received Sender: {sender}")
+    print(f"received Instance: {instance}")
+    process_unpaid_lni.apply_async((instance.id,), countdown=1)
 
 
 @receiver(lninvoice_paid)
@@ -55,6 +68,20 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
             shop_item.suspend_after = timezone.now() + timedelta(seconds=shop_item.host.tor_bridge_duration)
 
     shop_item.save()
+
+
+@receiver(post_save, sender=PurchaseOrder)
+def post_save_purchase_order(sender, instance: PurchaseOrder, created, **kwargs):
+    if created:
+        print(f'New PO with pk: {instance.pk} was created.')
+        process_initial_purchase_order.delay(instance.pk)
+
+
+@receiver(post_save, sender=PurchaseOrderInvoice)
+def post_save_lninvoice(sender, instance: PurchaseOrderInvoice, created, **kwargs):
+    if created:
+        print(f'New LNI with pk: {instance.pk} was created.')
+        process_initial_lni.delay(instance.pk)
 
 
 @receiver(post_save, sender=TorBridge)

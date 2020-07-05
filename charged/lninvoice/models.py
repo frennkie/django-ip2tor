@@ -14,7 +14,7 @@ from django.utils.functional import cached_property
 from django.utils.timezone import now, make_aware
 from django.utils.translation import gettext_lazy as _
 
-from charged.lninvoice.signals import lninvoice_paid
+from charged.lninvoice.signals import lninvoice_paid, lninvoice_invoice_created_on_node
 from charged.lnnode.models.base import BaseLnNode
 from charged.lnpurchase.models import PurchaseOrder
 
@@ -217,9 +217,6 @@ class Invoice(models.Model):
             expiry=self.expiry
         )
 
-        print("foo1")
-        print(create_result)
-
         # ToDo(frennkie) error handling?
         _r_hash = create_result.get('r_hash')
         if _r_hash:
@@ -231,6 +228,8 @@ class Invoice(models.Model):
         self.refresh_from_db()
 
         self.lnnode_sync_invoice()
+
+        lninvoice_invoice_created_on_node.send(sender=self.__class__, instance=self)
 
         return True
 
