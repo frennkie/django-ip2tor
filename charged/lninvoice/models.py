@@ -221,7 +221,10 @@ class Invoice(models.Model):
         print(create_result)
 
         # ToDo(frennkie) error handling?
-        self.payment_hash = base64.b64decode(create_result.get('r_hash'))
+        _r_hash = create_result.get('r_hash')
+        if _r_hash:
+            self.payment_hash = base64.b64decode(_r_hash)
+
         self.status = self.UNPAID
         self.save()
 
@@ -238,7 +241,9 @@ class Invoice(models.Model):
 
         # ToDo(frennkie) sync *complete* data here..
         if not self.preimage:
-            self.preimage = base64.b64decode(lookup_result.get('r_preimage'))
+            _r_preimage = lookup_result.get('r_preimage')
+            if _r_preimage:
+                self.preimage = base64.b64decode(_r_preimage)
 
         if not self.payment_request:
             self.payment_request = lookup_result.get('payment_request')
