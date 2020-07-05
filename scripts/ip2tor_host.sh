@@ -160,6 +160,7 @@ elif [ "$1" = "list" ]; then
 # LOOP #
 ########
 elif [ "$1" = "loop" ]; then
+  echo "Running on Shop: ${IP2TOR_SHOP_URL} (Host ID: ${IP2TOR_HOST_ID})"
   while :
   do
     "${0}" pending
