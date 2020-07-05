@@ -246,18 +246,25 @@ class Invoice(models.Model):
                 self.preimage = base64.b64decode(_r_preimage)
 
         if not self.payment_request:
-            self.payment_request = lookup_result.get('payment_request')
+            _payment_request = lookup_result.get('payment_request')
+            if _payment_request:
+                self.payment_request = _payment_request
 
+        _expiry = lookup_result.get('expiry')
         if self.expiry:
-            if self.expiry != int(lookup_result.get('expiry')):
-                self.expiry = int(lookup_result.get('expiry'))
+            if _expiry:
+                if self.expiry != int(_expiry):
+                    self.expiry = int(_expiry)
         else:
-            self.expiry = int(lookup_result.get('expiry'))
+            if _expiry:
+                self.expiry = int(_expiry)
 
         if not self.creation_at:
             try:
-                self.creation_at = make_aware(
-                    timezone.datetime.utcfromtimestamp(int(lookup_result.get('creation_date'))))
+                _creation_date = lookup_result.get('creation_date')
+                if _creation_date:
+                    self.creation_at = make_aware(
+                        timezone.datetime.utcfromtimestamp(int(_creation_date)))
             except TypeError:
                 return
 
