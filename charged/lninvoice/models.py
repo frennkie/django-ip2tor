@@ -269,7 +269,7 @@ class Invoice(models.Model):
                 return
 
         if not self.expires_at:
-            if self.self.creation_at:
+            if self.creation_at:
                 expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
                 self.expires_at = expire_date
 
