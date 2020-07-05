@@ -346,6 +346,7 @@ class PurchaseOrderInvoice(Invoice):
     )
 
     class Meta:
+        ordering = ['-created_at']
         verbose_name = _("Purchase Order Invoice")
         verbose_name_plural = _("Purchase Order Invoices")
 
