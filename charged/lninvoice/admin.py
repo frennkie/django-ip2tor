@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -10,7 +12,11 @@ from charged.lninvoice.models import Invoice, PurchaseOrderInvoice
 class InvoiceAdmin(admin.ModelAdmin):
     form = InvoiceAdminForm
     model = Invoice
+
+    search_fields = ('id', 'label')
     list_display = ['id', 'created_at', 'label', 'get_status_display', 'msatoshi']
+    list_filter = ('status', 'created_at')
+
     fields = ('label', 'msatoshi', 'expiry', 'lnnode')
     readonly_fields = ('id',
                        'payment_hash_hex',
@@ -115,6 +121,14 @@ class InvoiceAdmin(admin.ModelAdmin):
             )
 
         return readonly_fields
+
+    def get_search_results(self, request, queryset, search_term):
+        try:
+            # allow search for full uuid (including the dashes)
+            UUID(search_term)
+            return super().get_search_results(request, queryset, search_term.replace('-', ''))
+        except ValueError:
+            return super().get_search_results(request, queryset, search_term)
 
     def qr_img(self, obj):
         return mark_safe('<img src="{url}" width="{width}" height={height} />'.format(

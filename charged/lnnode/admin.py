@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.conf import settings
 from django.contrib import admin, messages
 from django.utils.translation import gettext_lazy as _
@@ -29,8 +31,10 @@ class LndNodeAdmin(admin.ModelAdmin):
             'all': ('lnnode/css/admin-extra.css',)
         }
 
-    list_display = ('name', 'type', 'owner', 'hostname', 'port', 'is_enabled', 'is_alive')
-    search_fields = ('name',)
+    search_fields = ('id', 'name', 'hostname')
+    list_display = ('id', 'name', 'type', 'owner', 'hostname', 'port', 'is_enabled', 'is_alive')
+    list_filter = ('is_enabled', 'is_alive', 'created_at', 'owner')
+
     readonly_fields = ('type', 'is_alive')
 
     def get_fieldsets(self, request, obj=None):
@@ -72,6 +76,14 @@ class LndNodeAdmin(admin.ModelAdmin):
                 readonly_fields = readonly_fields + tuple(self.model.GET_INFO_FIELDS.keys())
 
         return readonly_fields
+
+    def get_search_results(self, request, queryset, search_term):
+        try:
+            # allow search for full uuid (including the dashes)
+            UUID(search_term)
+            return super().get_search_results(request, queryset, search_term.replace('-', ''))
+        except ValueError:
+            return super().get_search_results(request, queryset, search_term)
 
     actions = ["set_disabled", "set_enabled", "check_alive"]
 
