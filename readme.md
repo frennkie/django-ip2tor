@@ -49,8 +49,8 @@ Finally reload systemd, enable and start the service.
 
 ```
 sudo systemctl daemon-reload
-sudo systemctl enable ip2tor-host
-sudo systemctl start ip2tor-host
+sudo systemctl enable ip2tor-host.service
+sudo systemctl start ip2tor-host.service
 ```
 
 Check the logs using `sudo journalctl --follow -u ip2tor-host`
@@ -120,15 +120,45 @@ daphne django_ip2tor.asgi:application --port 8001 --proxy-headers
 
 ```
 
+
+Setup systemd service for Django web application
+
+```
+sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-web.service
+sudo systemctl daemon-reload
+sudo systemctl enable ip2tor-web.service
+sudo systemctl start ip2tor-web.service
+```
+
+
 Celery
 
 ```
-celery -A django_ip2tor worker -c 2 -l info --pool=solo  # dev on Windows
+sudo useradd celery --systems -d /var/lib/celery -b /bin/bash
+
+cat <<EOF | sudo tee "/etc/tmpfiles.d/celery.conf" >/dev/null
+d /var/run/celery 0755 celery celery -
+d /var/log/celery 0755 celery celery -
+EOF
+
+sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-beat.service
+sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-worker.service
+sudo install -m 0644 -o root -g root -t /etc/ contrib/celery.conf
+sudo systemctl daemon-reload
+sudo systemctl enable ip2tor-beat.service
+sudo systemctl enable ip2tor-worker.service
+sudo systemctl start ip2tor-beat.service
+sudo systemctl start ip2tor-worker.service
+```
+
+Run celery manually (for debug/dev/testing)
+
+```
+celery.exe -A django_ip2tor worker -c 2 -l info --pool=solo  # dev on Windows
 celery -A django_ip2tor worker -l info
 celery -A django_ip2tor beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 ```
 
-Systemd files: https://docs.celeryproject.org/en/stable/userguide/daemonizing.html#usage-systemd
 
 
 CentOS Stuff
