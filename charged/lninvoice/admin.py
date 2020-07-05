@@ -14,7 +14,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     model = Invoice
 
     search_fields = ('id', 'label')
-    list_display = ['id', 'created_at', 'label', 'get_status_display', 'msatoshi']
+    list_display = ['id', 'created_at', 'label', 'get_status_display', 'msatoshi', 'pay_req']
     list_filter = ('status', 'created_at')
 
     fields = ('label', 'msatoshi', 'expiry', 'lnnode')
@@ -129,6 +129,11 @@ class InvoiceAdmin(admin.ModelAdmin):
             return super().get_search_results(request, queryset, search_term.replace('-', ''))
         except ValueError:
             return super().get_search_results(request, queryset, search_term)
+
+    def pay_req(self, obj: Invoice):
+        if obj.payment_request:
+            return f'{obj.payment_request[0:14]}...'
+        return ""
 
     def qr_img(self, obj):
         return mark_safe('<img src="{url}" width="{width}" height={height} />'.format(
