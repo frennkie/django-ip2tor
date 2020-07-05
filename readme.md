@@ -117,10 +117,11 @@ python manage.py createsuperuser --username admin --email admin@example.com
 
 ```
 
-Limit access rights to base directory
+Limit access rights to base and media directory
 
 ```
 sudo chmod 770 /var/www/sites/site_django_ip2tor/django_ip2tor
+sudo chmod 770 /var/www/sites/site_django_ip2tor/media
 ```
 
 
