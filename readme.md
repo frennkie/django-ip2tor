@@ -141,7 +141,7 @@ Celery
 sudo useradd celery --system -d /var/lib/celery -b /bin/sh
 
 cat <<EOF | sudo tee "/etc/tmpfiles.d/celery.conf" >/dev/null
-d /var/run/celery 0755 celery celery -
+d /run/celery 0755 celery celery -
 d /var/log/celery 0755 celery celery -
 EOF
 sudo systemd-tmpfiles --create --remove
