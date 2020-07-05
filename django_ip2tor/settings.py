@@ -18,6 +18,12 @@ CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_TASK_SERIALIZER = 'json'
 
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    # https://docs.celeryproject.org/en/stable/userguide/routing.html#redis-message-priorities
+    # ['celery0', 'celery3', 'celery6', 'celery9']
+    'queue_order_strategy': 'priority',
+}
+
 # CELERY_CACHE_BACKEND = 'django-cache'
 # CELERY_TASK_ALWAYS_EAGER = True
 

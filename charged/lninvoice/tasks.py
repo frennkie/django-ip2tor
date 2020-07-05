@@ -55,6 +55,6 @@ def process_unpaid_lni(obj_id):
     else:
         if not obj.has_expired:
             # enqueue for another check later on
-            process_unpaid_lni.apply_async((obj_id, ), countdown=5)
+            process_unpaid_lni.apply_async(priority=6, args=(obj_id,), countdown=5)
 
     return True
