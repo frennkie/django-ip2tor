@@ -134,16 +134,18 @@ sudo systemctl start ip2tor-web.service
 Celery
 
 ```
-sudo useradd celery --systems -d /var/lib/celery -b /bin/bash
+sudo useradd celery --system -d /var/lib/celery -b /bin/sh
 
 cat <<EOF | sudo tee "/etc/tmpfiles.d/celery.conf" >/dev/null
 d /var/run/celery 0755 celery celery -
 d /var/log/celery 0755 celery celery -
 EOF
+sudo systemd-tmpfiles --create --remove
 
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-beat.service
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-worker.service
 sudo install -m 0644 -o root -g root -t /etc/ contrib/celery.conf
+
 sudo systemctl daemon-reload
 sudo systemctl enable ip2tor-beat.service
 sudo systemctl enable ip2tor-worker.service
