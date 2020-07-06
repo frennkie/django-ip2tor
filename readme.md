@@ -83,7 +83,7 @@ be hosted on this `Host` and in which status they are.
 #### System packages
 
 ```
-sudo apt install nginx redis
+sudo apt install nginx redis git
 ```
 
 Setup nginx (see contrib/shop.ip2t.org.conf)
@@ -107,6 +107,7 @@ source /var/www/sites/site_django_ip2tor/venv/bin/activate
 python -m pip install --upgrade pip
 
 git clone https://github.com/frennkie/django-ip2tor
+cd django-ip2tor
 python -m pip install --upgrade pip 
 python -m pip install --upgrade setuptools
 python -m pip install --upgrade -r requirements.txt
