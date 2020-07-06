@@ -83,7 +83,7 @@ be hosted on this `Host` and in which status they are.
 #### System packages
 
 ```
-sudo apt install nginx redis gcc git tmux
+sudo apt install nginx redis git
 ```
 
 Setup nginx (see contrib/shop.ip2t.org.conf)
