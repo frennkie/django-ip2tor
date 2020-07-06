@@ -10,6 +10,7 @@ django-filter>=2.2.0
 django-redis
 django-widget-tweaks
 djangorestframework>=3.11.0
+environs[django]
 grpcio
 lnd-rpc
 pylightning

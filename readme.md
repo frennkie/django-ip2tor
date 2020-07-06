@@ -264,7 +264,7 @@ pymacaroons
 https://gist.github.com/htp/fbce19069187ec1cc486b594104f01d0
 
 
-python manage.py migrate --settings django_ip2tor.settings_prod
+python manage.py migrate
 
 Run on host to monitor
 
