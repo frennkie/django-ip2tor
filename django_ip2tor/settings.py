@@ -227,3 +227,10 @@ CHARGED_LND_TLS_VERIFICATION_EDITABLE = False
 CHARGED_LND_REJECT_ADMIN_MACAROON = True
 
 SHOP_BRIDGE_DURATION_GRACE_TIME = 600
+
+# allow for a local file ("django_ip2tor/local_settings.py") to be used to add or override settings
+if os.path.isfile(os.path.join(BASE_DIR, 'django_ip2tor', 'local_settings.py')):
+    try:
+        from .local_settings import *
+    except ImportError:
+        pass
