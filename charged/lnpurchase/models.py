@@ -43,6 +43,7 @@ class PurchaseOrder(models.Model):
     )
 
     class Meta:
+        ordering = ['-created_at']
         verbose_name = _("Purchase Order")
         verbose_name_plural = _("Purchase Orders")
 

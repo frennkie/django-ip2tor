@@ -1,3 +1,4 @@
+import base64
 import os
 import uuid
 
@@ -13,7 +14,7 @@ from django.utils.functional import cached_property
 from django.utils.timezone import now, make_aware
 from django.utils.translation import gettext_lazy as _
 
-from charged.lninvoice.signals import lninvoice_paid
+from charged.lninvoice.signals import lninvoice_paid, lninvoice_invoice_created_on_node
 from charged.lnnode.models.base import BaseLnNode
 from charged.lnpurchase.models import PurchaseOrder
 
@@ -217,14 +218,18 @@ class Invoice(models.Model):
         )
 
         # ToDo(frennkie) error handling?
+        _r_hash = create_result.get('r_hash')
+        if _r_hash:
+            self.payment_hash = base64.b64decode(_r_hash)
 
-        self.payment_hash = create_result.get('r_hash')
         self.status = self.UNPAID
         self.save()
 
         self.refresh_from_db()
 
         self.lnnode_sync_invoice()
+
+        lninvoice_invoice_created_on_node.send(sender=self.__class__, instance=self)
 
         return True
 
@@ -233,31 +238,39 @@ class Invoice(models.Model):
         # ToDo(frennkie) error handling?
         lookup_result = self.lnnode.get_invoice(r_hash=self.payment_hash)
 
-        # print(lookup_result)
-
         # ToDo(frennkie) sync *complete* data here..
         if not self.preimage:
-            self.preimage = lookup_result.get('r_preimage')
+            _r_preimage = lookup_result.get('r_preimage')
+            if _r_preimage:
+                self.preimage = base64.b64decode(_r_preimage)
 
         if not self.payment_request:
-            self.payment_request = lookup_result.get('payment_request')
+            _payment_request = lookup_result.get('payment_request')
+            if _payment_request:
+                self.payment_request = _payment_request
 
+        _expiry = lookup_result.get('expiry')
         if self.expiry:
-            if self.expiry != lookup_result.get('expiry'):
-                self.expiry = lookup_result.get('expiry')
+            if _expiry:
+                if self.expiry != int(_expiry):
+                    self.expiry = int(_expiry)
         else:
-            self.expiry = lookup_result.get('expiry')
+            if _expiry:
+                self.expiry = int(_expiry)
 
         if not self.creation_at:
             try:
-                self.creation_at = make_aware(
-                    timezone.datetime.utcfromtimestamp(lookup_result.get('creation_date')))
+                _creation_date = lookup_result.get('creation_date')
+                if _creation_date:
+                    self.creation_at = make_aware(
+                        timezone.datetime.utcfromtimestamp(int(_creation_date)))
             except TypeError:
                 return
 
         if not self.expires_at:
-            expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
-            self.expires_at = expire_date
+            if self.creation_at:
+                expire_date = self.creation_at + timezone.timedelta(seconds=self.expiry)
+                self.expires_at = expire_date
 
         if not self.qr_image:
             temp_name, file_obj_qr_image = self.make_qr_image()
@@ -272,7 +285,7 @@ class Invoice(models.Model):
 
                 self.status = self.PAID
                 self.paid_at = make_aware(
-                    timezone.datetime.utcfromtimestamp(lookup_result.get('settle_date')))
+                    timezone.datetime.utcfromtimestamp(int(lookup_result.get('settle_date'))))
 
         if self.has_expired and self.status != self.PAID:
             self.status = self.EXPIRED
@@ -333,6 +346,7 @@ class PurchaseOrderInvoice(Invoice):
     )
 
     class Meta:
+        ordering = ['-created_at']
         verbose_name = _("Purchase Order Invoice")
         verbose_name_plural = _("Purchase Order Invoices")
 

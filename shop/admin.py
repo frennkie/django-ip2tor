@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
@@ -28,7 +30,10 @@ class PortRangeInline(admin.TabularInline):
 class BridgeTunnelAdmin(admin.ModelAdmin):
     form = TorBridgeAdminForm
 
+    search_fields = ('id', 'comment', 'port')
     list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after', 'created_at']
+    list_filter = ('status', 'created_at', 'host')
+
     readonly_fields = ('status',)  # nobody should mess with 'status'
 
     def get_form(self, request, obj=None, change=False, **kwargs):
@@ -45,6 +50,14 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
             return qs  # super admins are unrestricted
         return qs.filter(host__owner=request.user)
 
+    def get_search_results(self, request, queryset, search_term):
+        try:
+            # allow search for full uuid (including the dashes)
+            UUID(search_term)
+            return super().get_search_results(request, queryset, search_term.replace('-', ''))
+        except ValueError:
+            return super().get_search_results(request, queryset, search_term)
+
 
 class RSshTunnelAdmin(BridgeTunnelAdmin):
     form = RSshTunnelAdminForm
@@ -56,7 +69,11 @@ class TorBridgeAdmin(BridgeTunnelAdmin):
 
 class HostAdmin(admin.ModelAdmin):
     model = Host
+
+    search_fields = ('id', 'name')
     list_display = ['id', 'owner', 'ip', 'site', 'name']
+    list_filter = ('created_at', 'offers_tor_bridges', 'offers_rssh_tunnels', 'owner', 'ip')
+
     readonly_fields = ('id', 'auth_token')
     # inlines = (PortRangeInline)  # Bridges and RSS might too many to be useful
     # inlines = (PortRangeInline, TorBridgeInline, RSshTunnelInline)
@@ -81,6 +98,14 @@ class HostAdmin(admin.ModelAdmin):
             form.base_fields['owner'].initial = get_user_model().objects.filter(id=request.user.id).first()
 
         return form
+
+    def get_search_results(self, request, queryset, search_term):
+        try:
+            # allow search for full uuid (including the dashes)
+            UUID(search_term)
+            return super().get_search_results(request, queryset, search_term.replace('-', ''))
+        except ValueError:
+            return super().get_search_results(request, queryset, search_term)
 
 
 # unregister the charged.models.Backend. Make sure to place

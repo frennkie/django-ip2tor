@@ -367,7 +367,7 @@ class TorBridge(Bridge):
     PRODUCT = 'tor_bridge'
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
         verbose_name = _('Tor Bridge')
         verbose_name_plural = _('Tor Bridges')
 
@@ -402,7 +402,7 @@ class RSshTunnel(Bridge):
     PRODUCT = 'rssh_tunnel'
 
     class Meta:
-        ordering = ['created_at']
+        ordering = ['-created_at']
         verbose_name = _('Reverse SSH Tunnel')
         verbose_name_plural = _('Reverse SSH Tunnels')
 

@@ -1,0 +1,18 @@
+[Unit]
+Description=IP2TOR Host Service
+After=network.target
+
+[Service]
+User=root
+Group=root
+
+# the credentials can be set here (or via /etc/ip2tor.conf)
+#Environment="IP2TOR_SHOP_URL=https://ip2tor.fulmo.org"
+#Environment="IP2TOR_HOST_ID=58b61c0b-0a00-0b00-0c00-000000000000"
+#Environment="IP2TOR_HOST_TOKEN=0000000000000000000000000000000000000000"
+
+ExecStart=/usr/local/bin/ip2tor_host.sh loop
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

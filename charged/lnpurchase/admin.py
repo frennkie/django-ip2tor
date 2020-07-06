@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.contrib import admin
 
 from charged.lnpurchase.forms import PurchaseOrderItemDetailAdminForm, PurchaseOrderItemDetailFormSet
@@ -16,10 +18,12 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     model = PurchaseOrder
     inlines = (PurchaseOrderItemDetailInline,)
 
-    fieldset = ('status',  'created_at')
-    readonly_fields = ('created_at', 'item_count', 'total_price_sat',)
-
+    search_fields = ('id',)
     list_display = ('id', 'status', 'item_count', 'total_price_sat', 'created_at')
+    list_filter = ('status', 'created_at')
+
+    fieldset = ('status', 'created_at')
+    readonly_fields = ('created_at', 'item_count', 'total_price_sat',)
 
     def get_formsets_with_inlines(self, request, obj=None):
         # If parent object has not been saved yet / If there's no screen
@@ -43,6 +47,14 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
                  ),
             )
         return fieldsets
+
+    def get_search_results(self, request, queryset, search_term):
+        try:
+            # allow search for full uuid (including the dashes)
+            UUID(search_term)
+            return super().get_search_results(request, queryset, search_term.replace('-', ''))
+        except ValueError:
+            return super().get_search_results(request, queryset, search_term)
 
     def has_add_permission(self, request, obj=None):
         return False

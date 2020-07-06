@@ -36,7 +36,7 @@ function add_bridge() {
   target=${2}
   echo "adding bridge from port: ${port} to: ${target}"
 
-  file_path="/etc/systemd/system/ip2tor${port}.service"
+  file_path="/etc/systemd/system/ip2tor_${port}.service"
   if [ -f "${file_path}" ]; then
     echo "file exists already"
     # TODO possibly restart..?!
@@ -44,14 +44,22 @@ function add_bridge() {
   fi
 
   # TODO (debian-tor user?! or root?)
+  if getent passwd debian-tor > /dev/null 2&>1 ; then
+    service_user=debian-tor
+  elif getent passwd toranon > /dev/null 2&>1 ; then
+    service_user=toranon
+  else
+    service_user=root
+  fi
+
   cat <<EOF | sudo tee "${file_path}" >/dev/null
 [Unit]
 Description=IP2Tor Tunnel Service (Port ${port})
 After=network.target
 
 [Service]
-User=debian-tor
-Group=debian-tor
+User=${service_user}
+Group=${service_user}
 ExecStart=/usr/bin/socat TCP4-LISTEN:${port},bind=0.0.0.0,reuseaddr,fork SOCKS4A:localhost:${target},socksport=9050
 StandardOutput=journal
 
@@ -59,8 +67,8 @@ StandardOutput=journal
 WantedBy=multi-user.target
 EOF
 
-  sudo systemctl enable ip2tor"${port}"
-  sudo systemctl start ip2tor"${port}"
+  sudo systemctl enable ip2tor_"${port}"
+  sudo systemctl start ip2tor_"${port}"
 
 }
 
@@ -74,13 +82,13 @@ function list_bridges() {
   echo "# Bridges (PORT|TARGET|STATUS)"
   echo "# ============================"
 
-  for f in /etc/systemd/system/ip2tor*.service; do
+  for f in /etc/systemd/system/ip2tor_*.service; do
     [ -e "$f" ] || continue
 
     cfg=$(sed -n 's/^ExecStart.*TCP4-LISTEN:\([0-9]*\),.*SOCKS4A:localhost:\(.*\),socksport=.*$/\1|\2/p' "${f}")
     port=$(echo "${cfg}" | cut -d"|" -f1)
     target=$(echo "${cfg}" | cut -d"|" -f2)
-    status=$(systemctl status "ip2tor${port}.service" | grep "Active" | sed 's/^ *Active: //g')
+    status=$(systemctl status "ip2tor_${port}.service" | grep "Active" | sed 's/^ *Active: //g')
     echo "${port}|${target}|${status}"
   done
 
@@ -91,7 +99,7 @@ function remove_bridge() {
   port=${1}
   echo "removing bridge from port: ${port}"
 
-  file_path="/etc/systemd/system/ip2tor${port}.service"
+  file_path="/etc/systemd/system/ip2tor_${port}.service"
   if ! [ -f "${file_path}" ]; then
     echo "file does not exist"
     echo "no bridge on this port..!"
@@ -99,11 +107,11 @@ function remove_bridge() {
   fi
 
   echo "will now stop, disable and remove service and then refresh systemd"
-  sudo systemctl stop ip2tor"${port}"
-  sudo systemctl disable ip2tor"${port}"
+  sudo systemctl stop ip2tor_"${port}"
+  sudo systemctl disable ip2tor_"${port}"
   sudo rm -rf "${file_path}"
   sudo systemctl daemon-reload
-  sudo systemctl reset-failed ip2tor"${port}"
+  sudo systemctl reset-failed ip2tor_"${port}"
   echo "successfully stopped and removed bridge."
 
 }
