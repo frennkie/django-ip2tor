@@ -76,9 +76,32 @@ be hosted on this `Host` and in which status they are.
 ```
 
 
-### Installing the Shop
+## Shop
+
+About...
+
+### Requirements
+
+The intention is to support (and actively test for) common target platforms:
+
+- CentOS 8+ (amd64)
+- Debian 10+ (amd64 and arm)
+- Ubuntu LTS (amd64) releases starting with 18.04
+
+The `Shop` setup requires the following services:
+
+- nginx, which acts as a reverse proxy and serves static files (assets like .css, .js..)
+- redis, which is used as a cache and a message broker
+- postgres, as the database (for development, tests and in really small environments sqlite3 
+can be used)   
 
 
+The actual application is written in the Python web framework `Django` and all code must currently
+be be compatible with Python 3.6+. The `Celery` toolset is used for asynchronous/background 
+processing of jobs and to schedule the executing of periodic events (a substitute for cron).
+
+
+### Installing the Shop 
 
 #### System packages
 
@@ -185,7 +208,6 @@ celery -A django_ip2tor beat -l info --scheduler django_celery_beat.schedulers:D
 ```
 
 
-
 CentOS Stuff
 
 ```
@@ -193,7 +215,6 @@ setsebool -P httpd_can_network_connect 1
 chcon -Rt httpd_sys_content_t /var/www/
 ```
  
-
 yum install -y libpq-devel
 
 
@@ -202,17 +223,6 @@ or
 python -m pip uninstall psycopg2-binary
 
 
-python manage.py migrate --settings django_ip2tor.settings_prod
-
-loaddata doesn't work
-
-
-#### Run "worker" - open another terminal (tmux):
-
-```
-/var/www/sites/site_django_ip2tor/django_ip2tor/scripts/jobs.sh
-```
-
 #### Initial setup
 
 -> go to Sites and change the initial domain name (and display name)
@@ -220,6 +230,8 @@ loaddata doesn't work
 -> go to user and create operator (and add to "operators" group)
 
 -> go to Hosts and create your first host
+
+
 
 
 
@@ -240,6 +252,8 @@ ToDo
 - Heartbeat / Check
 - Maybe: validate/clean/save that models are only set to things the user owns
 - AGBs/ToS
+- loaddata did't work (caused by signal activity) - check again now that celery tasks are used.
+
 
 https://github.com/jazzband/django-taggit/commit/90c7224018c941b9a260c8e8bed166536f5870df
 
@@ -247,6 +261,9 @@ https://github.com/jazzband/django-taggit/commit/90c7224018c941b9a260c8e8bed1665
 pymacaroons
 
 https://gist.github.com/htp/fbce19069187ec1cc486b594104f01d0
+
+
+python manage.py migrate --settings django_ip2tor.settings_prod
 
 Run on host to monitor
 

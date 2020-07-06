@@ -39,11 +39,9 @@ function add_bridge() {
   file_path="/etc/systemd/system/ip2tor_${port}.service"
   if [ -f "${file_path}" ]; then
     echo "file exists already"
-    # TODO possibly restart..?!
     exit 0
   fi
 
-  # TODO (debian-tor user?! or root?)
   if getent passwd debian-tor > /dev/null 2&>1 ; then
     service_user=debian-tor
   elif getent passwd toranon > /dev/null 2&>1 ; then
