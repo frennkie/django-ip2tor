@@ -3,16 +3,12 @@ Description=IP2TOR Django Web Server
 After=network.target
 
 [Service]
-# on systems based on Debian use www-data
-User=www-data
-Group=www-data
-# on systems based on Red Hat/CentOS use nginx
-#User=nginx
-#Group=nginx
+User=ip2tor
+Group=ip2tor
 
-WorkingDirectory=/var/www/sites/site_django_ip2tor/django_ip2tor
-#ExecStart='/var/www/sites/site_django_ip2tor/venv/bin/daphne -p 8001 --proxy-headers django_ip2tor.asgi:application
-ExecStart=/bin/sh -c '/var/www/sites/site_django_ip2tor/venv/bin/daphne -p 8001 --proxy-headers django_ip2tor.asgi:application'
+WorkingDirectory=/home/ip2tor/django-ip2tor
+#ExecStart='/home/ip2tor/venv/bin/daphne -p 8001 --proxy-headers django_ip2tor.asgi:application
+ExecStart=/bin/sh -c '/home/ip2tor/venv/bin/daphne -p 8001 --proxy-headers django_ip2tor.asgi:application'
 
 StandardOutput=journal
 

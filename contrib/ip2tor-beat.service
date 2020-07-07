@@ -3,10 +3,10 @@ Description=IP2TOR Celery Beat Service
 After=network.target
 
 [Service]
-User=celery
-Group=celery
+User=ip2tor
+Group=ip2tor
 EnvironmentFile=/etc/celery.conf
-WorkingDirectory=/var/www/sites/site_django_ip2tor/django_ip2tor
+WorkingDirectory=/home/ip2tor/django-ip2tor
 ExecStart=/bin/sh -c '${CELERY_BIN} beat  \
   -A ${CELERY_APP} --pidfile=${CELERYBEAT_PID_FILE} \
   -s ${CELERYBEAT_SCHEDULE_FILE} \

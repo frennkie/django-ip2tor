@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 Type=forking
-User=celery
-Group=celery
+User=ip2tor
+Group=ip2tor
 EnvironmentFile=/etc/celery.conf
-WorkingDirectory=/var/www/sites/site_django_ip2tor/django_ip2tor
+WorkingDirectory=/home/ip2tor/django-ip2tor
 ExecStart=/bin/sh -c '${CELERY_BIN} multi start ${CELERYD_NODES} \
   -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
   --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} ${CELERYD_OPTS}'
