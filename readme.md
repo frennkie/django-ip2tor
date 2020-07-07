@@ -106,48 +106,100 @@ processing of jobs and to schedule the executing of periodic events (a substitut
 #### System packages
 
 ```
-sudo apt install nginx redis git
+sudo apt install -y nginx redis git
+# OR
+sudo yum install -y nginx redis git
 ```
 
 Setup nginx (see contrib/shop.ip2t.org.conf)
 
 
-#### Python etc.
+#### User account for service
+
+Create a dedicated user account which is used to run the needed services. Celery needs this 
+account to have a shell (therefore /usr/sbin/nologin does not work).
 
 ```
-apt-get install python3-venv
+sudo useradd ip2tor --comment "IP2Tor Services" --home /home/ip2tor --shell /bin/bash
+sudo chmod 750 /home/ip2tor
+```
 
-sudo mkdir -p /var/www/sites/site_django_ip2tor
+Add the new `ip2tor` group to the web user
 
-sudo chown -R www-data:www-data /var/www/sites/site_django_ip2tor
+```
+if getent passwd www-data > /dev/null 2&>1 ; then
+  sudo usermod -a -G ip2tor www-data
+elif getent passwd nginx > /dev/null 2&>1 ; then
+  sudo usermod -a -G ip2tor nginx
+else
+  echo "ERR: Found neither www-data nor nginx user"
+fi
+```
 
-sudo -H -u www-data bash
 
-cd /var/www/sites/site_django_ip2tor
 
-/usr/bin/python3 -m venv /var/www/sites/site_django_ip2tor/venv
-source /var/www/sites/site_django_ip2tor/venv/bin/activate
-python -m pip install --upgrade pip
+#### Python etc.
 
+Install venv
+
+```
+sudo apt install -y python3-venv
+# OR 
+sudo yum install -y python3-virtualenv
+```
+
+Change to service user and install + update virtual python environment
+
+```
+sudo su - ip2tor
+/usr/bin/python3 -m venv /home/ip2tor/venv
+source /home/ip2tor/venv/bin/activate
+python -m pip install --upgrade pip setuptools
+```
+
+Get the code (either last release as zip or latest master) from Github
+
+```
+curl -o django-ip2tor.zip https://codeload.github.com/frennkie/django-ip2tor/zip/master
+unzip django-ip2tor.zip
+mv django-ip2tor-master django-ip2tor
+rm -f django-ip2tor.zip
+# OR
 git clone https://github.com/frennkie/django-ip2tor
+```
+
+Install python dependencies
+
+```
 cd django-ip2tor
-python -m pip install --upgrade pip 
-python -m pip install --upgrade setuptools
 python -m pip install --upgrade -r requirements.txt
+````
+
+Setup Environment (e.g. SECRET_KEY!)
+
+```
+/home/ip2tor/venv/bin/python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+cp example.env .env
+vi .env  # update stuff
+```
+
+Run django setup jobs
+
+```
 python manage.py collectstatic
+mkdir /home/ip2tor/media
+python manage.py makemigrations  # should normally not create new migrations!
 python manage.py migrate
-
 python manage.py createsuperuser --username admin --email admin@example.com
-
 ```
 
 Limit access rights to base and media directory
 
 ```
-sudo chmod 770 /var/www/sites/site_django_ip2tor/django_ip2tor
-sudo chmod 770 /var/www/sites/site_django_ip2tor/media
+sudo chmod 700 /home/ip2tor/django-ip2tor
+sudo chmod 750 /home/ip2tor/media
+sudo chmod 750 /home/ip2tor/static
 ```
-
 
 Setup systemd service for Django web application
 
@@ -158,19 +210,12 @@ sudo systemctl enable ip2tor-web.service
 sudo systemctl start ip2tor-web.service
 ```
 
-
 Celery
 
 ```
-sudo useradd celery --system -d /var/lib/celery -b /bin/sh
-
-sudo usermod -a -G www-data celery
-# or
-sudo usermod -a -G nginx celery
-
 cat <<EOF | sudo tee "/etc/tmpfiles.d/celery.conf" >/dev/null
-d /run/celery 0755 celery celery -
-d /var/log/celery 0755 celery celery -
+d /run/celery 0755 ip2tor ip2tor -
+d /var/log/celery 0755 ip2tor ip2tor -
 EOF
 sudo systemd-tmpfiles --create --remove
 
@@ -178,16 +223,6 @@ sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-beat.
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-worker.service
 sudo install -m 0644 -o root -g root -t /etc/ contrib/celery.conf
 ```
-
-Make sure that the `celery` user has write access to the database. If you use SQlite then run 
-the following (when using Postgres you only need to ensure that the settings.py with the 
-credentials is readable the `celery`):
-
-```
-if [ -f "/var/www/sites/site_django_ip2tor/django_ip2tor/db.sqlite3" ]; then
-  sudo chmod 664 /var/www/sites/site_django_ip2tor/django_ip2tor/db.sqlite3
-fi
-``` 
 
 Enable and start celery
 
@@ -199,29 +234,23 @@ sudo systemctl start ip2tor-beat.service
 sudo systemctl start ip2tor-worker.service
 ```
 
-
-Run celery manually (for debug/dev/testing)
-
-```
-celery.exe -A django_ip2tor worker -c 2 -l info --pool=solo  # dev on Windows
-celery -A django_ip2tor worker -l info
-celery -A django_ip2tor beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-```
-
-
 CentOS Stuff
 
 ```
 setsebool -P httpd_can_network_connect 1
-chcon -Rt httpd_sys_content_t /var/www/
+chcon -Rt httpd_sys_content_t /home/ip2tor/static
+chcon -Rt httpd_sys_content_t /home/ip2tor/media
 ```
  
+Postgres on CentOS
+
+```
 yum install -y libpq-devel
 
-
 python -m pip install --upgrade psycopg2
-or
+# OR or
 python -m pip uninstall psycopg2-binary
+```
 
 
 #### Initial setup
@@ -234,7 +263,15 @@ python -m pip uninstall psycopg2-binary
 
 
 
+### Troubleshooting
 
+Run celery manually (for debug/dev/testing)
+
+```
+celery.exe -A django_ip2tor worker -c 2 -l info --pool=solo  # dev on Windows
+celery -A django_ip2tor worker -l info
+celery -A django_ip2tor beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+```
 
 
 ## Loose Notes
