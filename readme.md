@@ -82,6 +82,11 @@ About...
 
 ### Requirements
 
+Current assumption for (virtual) hardware requires is
+
+- 4 (virtual) CPUs (2 should work - give it a try)
+- 2 GB RAM 
+
 The intention is to support (and actively test for) common target platforms:
 
 - CentOS 8+ (amd64)
