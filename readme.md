@@ -85,7 +85,7 @@ About...
 The intention is to support (and actively test for) common target platforms:
 
 - CentOS 8+ (amd64)
-- Debian 10+ (amd64 and arm)
+- Debian 10+ (amd64 and arm32v7)
 - Ubuntu LTS (amd64) releases starting with 18.04
 
 The `Shop` setup requires the following services:
@@ -114,13 +114,13 @@ sudo yum install -y nginx redis git
 Setup nginx (see contrib/shop.ip2t.org.conf)
 
 
-#### User account for service
+#### User account for services
 
 Create a dedicated user account which is used to run the needed services. Celery needs this 
 account to have a shell (therefore /usr/sbin/nologin does not work).
 
 ```
-sudo useradd ip2tor --comment "IP2Tor Services" --home /home/ip2tor --shell /bin/bash
+sudo useradd ip2tor --comment "IP2Tor Service Account" --home /home/ip2tor --shell /bin/bash
 sudo chmod 750 /home/ip2tor
 ```
 
@@ -213,15 +213,15 @@ sudo systemctl start ip2tor-web.service
 Celery
 
 ```
-cat <<EOF | sudo tee "/etc/tmpfiles.d/celery.conf" >/dev/null
-d /run/celery 0755 ip2tor ip2tor -
-d /var/log/celery 0755 ip2tor ip2tor -
+cat <<EOF | sudo tee "/etc/tmpfiles.d/ip2tor.conf" >/dev/null
+d /run/ip2tor 0755 ip2tor ip2tor -
+d /var/log/ip2tor 0755 ip2tor ip2tor -
 EOF
 sudo systemd-tmpfiles --create --remove
 
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-beat.service
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-worker.service
-sudo install -m 0644 -o root -g root -t /etc/ contrib/celery.conf
+sudo install -m 0644 -o root -g root -t /etc/ contrib/ip2tor-celery.conf
 ```
 
 Enable and start celery

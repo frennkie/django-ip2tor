@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=ip2tor
 Group=ip2tor
-EnvironmentFile=/etc/celery.conf
+EnvironmentFile=/etc/ip2tor-celery.conf
 WorkingDirectory=/home/ip2tor/django-ip2tor
 ExecStart=/bin/sh -c '${CELERY_BIN} beat  \
   -A ${CELERY_APP} --pidfile=${CELERYBEAT_PID_FILE} \
