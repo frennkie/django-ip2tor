@@ -150,7 +150,7 @@ Install venv
 ```
 sudo apt install -y python3-venv
 # OR 
-sudo yum install -y python3-virtualenv
+sudo yum install -y python3-virtualenv python3-wheel
 ```
 
 Change to service user and install + update virtual python environment
@@ -201,14 +201,15 @@ python manage.py createsuperuser --username admin --email admin@example.com
 Limit access rights to base and media directory
 
 ```
-sudo chmod 700 /home/ip2tor/django-ip2tor
-sudo chmod 750 /home/ip2tor/media
-sudo chmod 750 /home/ip2tor/static
+chmod 700 /home/ip2tor/django-ip2tor
+chmod 750 /home/ip2tor/media
+chmod 750 /home/ip2tor/static
 ```
 
 Setup systemd service for Django web application
 
 ```
+cd /home/ip2tor/django-ip2tor
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-web.service
 sudo systemctl daemon-reload
 sudo systemctl enable ip2tor-web.service
@@ -249,12 +250,25 @@ chcon -Rt httpd_sys_content_t /home/ip2tor/media
  
 Postgres on CentOS
 
-```
-yum install -y libpq-devel
+Option 1)
 
+```
+python -m pip install psycopg2-binary
+```
+
+Option 2) (untested)
+
+As root/sudo
+
+```
+sudo yum install -y libpq-devel
+ln -s /usr/pgsql-12/bin/pg_config /usr/sbin/pg_config
+```
+
+In virtualenv
+
+```
 python -m pip install --upgrade psycopg2
-# OR or
-python -m pip uninstall psycopg2-binary
 ```
 
 
@@ -278,6 +292,11 @@ celery -A django_ip2tor worker -l info
 celery -A django_ip2tor beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 ```
 
+Check worker stats
+
+```
+celery -A django_ip2tor worker -l inspect stats
+```
 
 ## Loose Notes
 
