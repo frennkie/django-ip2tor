@@ -56,7 +56,12 @@ class PurchaseOrder(models.Model):
 
     def owner_from_items_host(self):
         owner = set()
-        for item in self.item_details.all():
+
+        i_details = self.item_details.all()
+        if not i_details:
+            raise RuntimeError("No item details in PO!")  # ToDo(frennkie) How to handle this?!
+
+        for item in i_details:
             owner.add(item.product.host.owner)
         if len(owner) == 1:
             return owner.pop()

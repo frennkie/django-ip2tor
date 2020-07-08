@@ -74,14 +74,14 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
 def post_save_purchase_order(sender, instance: PurchaseOrder, created, **kwargs):
     if created:
         print(f'New PO with pk: {instance.pk} was created.')
-        process_initial_purchase_order.apply_async(priority=0, args=(instance.pk, ))
+        process_initial_purchase_order.apply_async(priority=0, args=(instance.pk,), countdown=1)
 
 
 @receiver(post_save, sender=PurchaseOrderInvoice)
 def post_save_lninvoice(sender, instance: PurchaseOrderInvoice, created, **kwargs):
     if created:
         print(f'New LNI with pk: {instance.pk} was created.')
-        process_initial_lni.apply_async(priority=0, args=(instance.pk, ))
+        process_initial_lni.apply_async(priority=0, args=(instance.pk,), countdown=1)
 
 
 @receiver(post_save, sender=TorBridge)
