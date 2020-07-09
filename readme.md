@@ -82,7 +82,7 @@ About...
 
 ### Requirements
 
-Current assumption for (virtual) hardware requires is
+Current assumption for sizing is:
 
 - 4 (virtual) CPUs (2 should work - give it a try)
 - 2 GB RAM 
