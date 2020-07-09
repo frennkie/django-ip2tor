@@ -125,7 +125,7 @@ Create a dedicated user account which is used to run the needed services. Celery
 account to have a shell (therefore /usr/sbin/nologin does not work).
 
 ```
-sudo useradd ip2tor --comment "IP2Tor Service Account" --home /home/ip2tor --shell /bin/bash
+sudo useradd ip2tor --comment "IP2Tor Service Account" --create-home --home /home/ip2tor --shell /bin/bash
 sudo chmod 750 /home/ip2tor
 ```
 
