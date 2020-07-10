@@ -57,11 +57,20 @@ def aggregate_rates_for_source_coin_gecko_v1(coin='bitcoin', timedelta_min=60, d
         coin = (FiatRate.COIN_UNKNOWN, coin)
 
     with transaction.atomic():
-        qs = FiatRate.objects \
-            .filter(is_aggregate=include_aggr) \
-            .filter(fiat_symbol=FiatRate.EUR) \
-            .filter(created_at__range=(timezone.now() - timedelta(minutes=delay_min) - timedelta(minutes=timedelta_min),
-                                       timezone.now() - timedelta(minutes=delay_min)))
+
+        now_with_delay = timezone.now() - timedelta(minutes=delay_min)
+
+        if include_aggr:
+            qs = FiatRate.objects \
+                .filter(fiat_symbol=FiatRate.EUR) \
+                .filter(created_at__range=(now_with_delay - timedelta(minutes=timedelta_min),
+                                           now_with_delay))
+        else:
+            qs = FiatRate.objects \
+                .filter(is_aggregate=False) \
+                .filter(fiat_symbol=FiatRate.EUR) \
+                .filter(created_at__range=(now_with_delay - timedelta(minutes=timedelta_min),
+                                           now_with_delay))
 
         qs_count = qs.count()
         rate_avg = qs.aggregate(Avg('rate'))
@@ -69,6 +78,7 @@ def aggregate_rates_for_source_coin_gecko_v1(coin='bitcoin', timedelta_min=60, d
 
         logger.info(f'adding aggregated rate for {qs_count} entries: {rate}')
 
+        # ToDo(frennkie) doesn't seem to _always_ work on SQLite3
         FiatRate.objects.create(coin_symbol=coin[0], fiat_symbol=FiatRate.EUR,
                                 rate=rate, source=2, is_aggregate=True)
 
