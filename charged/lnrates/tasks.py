@@ -50,7 +50,7 @@ def fetch_rates_for_source_coin_gecko_v1(coin='bitcoin', fiat=None):
 
 
 @shared_task()
-def aggregate_rates_for_source_coin_gecko_v1(coin='bitcoin', timedelta_min=60, delay_min=10):
+def aggregate_rates_for_source_coin_gecko_v1(coin='bitcoin', timedelta_min=60, delay_min=10, include_aggr=False):
     if coin == 'bitcoin':
         coin = (FiatRate.BTC, coin)
     else:
@@ -58,7 +58,7 @@ def aggregate_rates_for_source_coin_gecko_v1(coin='bitcoin', timedelta_min=60, d
 
     with transaction.atomic():
         qs = FiatRate.objects \
-            .filter(is_aggregate=False) \
+            .filter(is_aggregate=include_aggr) \
             .filter(fiat_symbol=FiatRate.EUR) \
             .filter(created_at__range=(timezone.now() - timedelta(minutes=delay_min) - timedelta(minutes=timedelta_min),
                                        timezone.now() - timedelta(minutes=delay_min)))
