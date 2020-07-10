@@ -1,6 +1,7 @@
 import requests
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from djmoney.models.fields import MoneyField
 
 from charged.lnrates.base import BaseLnRatesProvider
 
@@ -33,6 +34,91 @@ class BlockchainInfo(BaseLnRatesProvider):
 
 
 # Django DB Model
+class FiatRate(models.Model):
+    COIN_UNKNOWN = 0
+    BTC = 1
+    LTC = 2
+    COIN_CHOICES = (
+        (COIN_UNKNOWN, _('Unknown')),
+        (BTC, _('Bitcoin')),
+        (LTC, _('Litecoin')),
+    )
+
+    FIAT_UNKNOWN = 0
+    EUR = 1
+    USD = 2
+    FIAT_CHOICES = (
+        (FIAT_UNKNOWN, _('Unknown')),
+        (EUR, _('EUR')),
+        (USD, _('USD')),
+    )
+
+    SOURCE_UNKNOWN = 0
+    BLOCKCHAIN_INFO = 1
+    COIN_GECKO = 2
+    SOURCE_CHOICES = (
+        (SOURCE_UNKNOWN, _('Unknown')),
+        (BLOCKCHAIN_INFO, _('Blockchain Info')),
+        (COIN_GECKO, _('Coin Gecko')),
+    )
+
+    created_at = models.DateTimeField(
+        verbose_name=_('date created'),
+        auto_now_add=True,
+    )
+
+    coin_symbol = models.IntegerField(
+        choices=COIN_CHOICES,
+        default=COIN_UNKNOWN,
+        editable=False,
+        help_text=_('Ticker Symbol (Coin)'),
+        verbose_name=_('Coin')
+    )
+
+    fiat_symbol = models.IntegerField(
+        choices=FIAT_CHOICES,
+        default=FIAT_UNKNOWN,
+        editable=False,
+        help_text=_('Ticker Symbol (FIAT)'),
+        verbose_name=_('Fiat')
+    )
+
+    rate = MoneyField(
+        decimal_places=2,
+        default_currency='EUR',
+        editable=False,
+        help_text=_('Exchange Rate'),
+        max_digits=14,
+        verbose_name=_("rate")
+    )
+
+    source = models.IntegerField(
+        editable=False,
+        help_text=_('Rate Source'),
+        verbose_name=_('Source'),
+        choices=SOURCE_CHOICES,
+        default=SOURCE_UNKNOWN
+
+    )
+
+    is_aggregate = models.BooleanField(
+        default=False,
+        editable=False,
+        help_text=_('Does this represent the aggregate of several rates over time?'),
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = _('fiat rate')
+        verbose_name_plural = _('fiat rates')
+
+    def __str__(self):
+        return f'{self.__class__.__name__} {self.get_fiat_symbol_display()}/{self.get_coin_symbol_display()}'
+
+    @property
+    def fiat_per_coin(self):
+        return f'{self.rate} / {self.get_coin_symbol_display()}'
+
 
 class Settings(models.Model):
     class Provider(models.TextChoices):
