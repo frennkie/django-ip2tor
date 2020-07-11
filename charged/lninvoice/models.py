@@ -3,6 +3,7 @@ import os
 import uuid
 
 import qrcode
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.humanize.templatetags.humanize import intword
@@ -140,7 +141,7 @@ class Invoice(models.Model):
     expiry = models.IntegerField(
         verbose_name=_('Expiry Delta (Seconds)'),
         help_text=_('Time in seconds after which the Lightning Invoice expires.'),
-        default=3600
+        default=getattr(settings, 'CHARGED_LNINVOICE_TIMEOUT')
     )
 
     creation_at = models.DateTimeField(

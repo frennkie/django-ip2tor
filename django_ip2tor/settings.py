@@ -150,7 +150,6 @@ CACHES = {
 # Parse database URLs, e.g.  "postgres://localhost:5432/mydb"
 DATABASES = {"default": env.dj_db_url("DATABASE_URL")}
 
-
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
@@ -226,10 +225,18 @@ STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static')
 
 SITE_ID = 1
 
-CHARGED_LND_TLS_VERIFICATION_EDITABLE = False
-CHARGED_LND_REJECT_ADMIN_MACAROON = True
+# further settings that can be customized (either in local_settings.py or .env)
 
-SHOP_BRIDGE_DURATION_GRACE_TIME = 600
+CHARGED_LND_TLS_VERIFICATION_EDITABLE = env.bool('CHARGED_LND_TLS_VERIFICATION_EDITABLE', default=False)
+CHARGED_LND_REJECT_ADMIN_MACAROON = env.bool('CHARGED_LND_REJECT_ADMIN_MACAROON', default=True)
+
+CHARGED_COIN = env.str('CHARGED_COIN', default='BTC')
+CHARGED_TAX_CURRENCY_FIAT = env.str('CHARGED_TAX_CURRENCY_FIAT', default='EUR')
+CHARGED_INFO_CURRENCIES_FIAT = env.list('CHARGED_INFO_CURRENCIES_FIAT', default=['EUR', 'USD'])
+
+CHARGED_LNINVOICE_TIMEOUT = env.int('CHARGED_LNINVOICE_TIMEOUT', default=900)
+
+SHOP_BRIDGE_DURATION_GRACE_TIME = env.int('SHOP_BRIDGE_DURATION_GRACE_TIME', default=600)
 
 # allow for a local file ("django_ip2tor/local_settings.py") to be used to add or override settings
 if os.path.isfile(os.path.join(BASE_DIR, 'django_ip2tor', 'local_settings.py')):

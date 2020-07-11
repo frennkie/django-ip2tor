@@ -30,8 +30,26 @@ def process_initial_lni(obj_id):
     return True
 
 
-@shared_task()
-def process_unpaid_lni(obj_id):
+class LnInvoiceNoPaymentError(Exception):
+    pass
+
+
+class LnInvoiceNotFoundError(Exception):
+    pass
+
+
+class LnInvoiceNoBackendError(Exception):
+    pass
+
+
+@shared_task(bind=True,
+             autoretry_for=(LnInvoiceNoPaymentError,),
+             default_retry_delay=5,
+             retry_kwargs={'max_retries': 180},
+             retry_backoff=False,
+             retry_backoff_max=60,
+             retry_jitter=True)
+def check_lni_for_successful_payment(self, obj_id):
     logger.info('Running on ID: %s' % obj_id)
 
     # checks
@@ -42,11 +60,11 @@ def process_unpaid_lni(obj_id):
 
     if not obj:
         logger.info('Not found')
-        return False
+        raise LnInvoiceNotFoundError()
 
     if not obj.lnnode:
         logger.info('No backend: %s  - skipping' % obj)
-        return False
+        raise LnInvoiceNoBackendError
 
     obj.lnnode_sync_invoice()
 
@@ -55,6 +73,4 @@ def process_unpaid_lni(obj_id):
     else:
         if not obj.has_expired:
             # enqueue for another check later on
-            process_unpaid_lni.apply_async(priority=6, args=(obj_id,), countdown=5)
-
-    return True
+            raise LnInvoiceNoPaymentError()

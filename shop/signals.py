@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from charged.lninvoice.models import PurchaseOrderInvoice
 from charged.lninvoice.signals import lninvoice_paid, lninvoice_invoice_created_on_node
-from charged.lninvoice.tasks import process_initial_lni, process_unpaid_lni
+from charged.lninvoice.tasks import process_initial_lni, check_lni_for_successful_payment
 from charged.lnnode.signals import lnnode_invoice_created
 from charged.lnpurchase.models import PurchaseOrder
 from charged.lnpurchase.tasks import process_initial_purchase_order
@@ -31,7 +31,7 @@ def lninvoice_invoice_created_on_node_handler(sender, instance, **kwargs):
     print("received by: lninvoice_invoice_created_on_node_handler")
     print(f"received Sender: {sender}")
     print(f"received Instance: {instance}")
-    process_unpaid_lni.apply_async(priority=6, args=(instance.id,), countdown=1)
+    check_lni_for_successful_payment.apply_async(priority=6, args=(instance.id,), countdown=1)
 
 
 @receiver(lninvoice_paid)
