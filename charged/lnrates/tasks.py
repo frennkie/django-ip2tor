@@ -33,6 +33,8 @@ def fetch_rates_from_provider(obj_id=None):
 
 @shared_task()
 def aggregate_rates(source=1, coin='bitcoin', timedelta_min=60, delay_min=0, include_aggr=False):
+    # ToDo(frennkie) only doing source 1
+
     if coin == 'bitcoin':
         coin = (FiatRate.BTC, coin)
     else:
