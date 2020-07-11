@@ -22,10 +22,7 @@ class LnInvoiceHasExpiredError(Exception):
     pass
 
 
-@shared_task(bind=True,
-             autoretry_for=(LnInvoiceNoPaymentError,),
-             default_retry_delay=10,
-             retry_kwargs={'max_retries': 2})
+@shared_task(bind=True)
 def process_initial_lni(self, obj_id):
     logger.info('Running on ID: %s' % obj_id)
 
