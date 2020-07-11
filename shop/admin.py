@@ -62,13 +62,10 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
 
     def po_count(self, obj):
         return obj.po_details.count()
-        # return len([x.po for x in obj.po_details.all()])
 
     actions = ["export_pos"]
 
     def export_pos(self, request, queryset):
-        # response = TemplateResponse(request, 'downloadcode/admin_code_export.html', {'entries': queryset})
-
         if queryset.count() != 1:
             self.message_user(request, "Currently only works on a single entry!", level=messages.WARNING)
             return
@@ -77,8 +74,7 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
         data = [{'id': x.po.id, 'created_at': x.po.created_at, 'status': x.po.status}
                 for x in obj.po_details.all()]
 
-        response = JsonResponse({'data': data})
-        return response
+        return JsonResponse({'data': data})
 
     export_pos.short_description = _("Export POs for selected Bridges")
 
