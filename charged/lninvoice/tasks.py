@@ -42,6 +42,10 @@ class LnInvoiceNoBackendError(Exception):
     pass
 
 
+class LnInvoiceHasExpiredError(Exception):
+    pass
+
+
 @shared_task(bind=True,
              autoretry_for=(LnInvoiceNoPaymentError,),
              default_retry_delay=5,
@@ -70,7 +74,10 @@ def check_lni_for_successful_payment(self, obj_id):
 
     if obj.status == PurchaseOrderInvoice.PAID:
         logger.info('PAID!')
+        return True
+
+    if obj.has_expired:
+        raise LnInvoiceHasExpiredError()
     else:
-        if not obj.has_expired:
-            # enqueue for another check later on
-            raise LnInvoiceNoPaymentError()
+        # raise exception that will be (auto-)retried
+        raise LnInvoiceNoPaymentError()
