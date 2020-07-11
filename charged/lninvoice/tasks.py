@@ -26,7 +26,7 @@ class LnInvoiceHasExpiredError(Exception):
              autoretry_for=(LnInvoiceNoPaymentError,),
              default_retry_delay=10,
              retry_kwargs={'max_retries': 2})
-def process_initial_lni(obj_id):
+def process_initial_lni(self, obj_id):
     logger.info('Running on ID: %s' % obj_id)
 
     # checks
