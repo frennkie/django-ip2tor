@@ -1,7 +1,9 @@
 from uuid import UUID
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.utils.translation import gettext_lazy as _
 
 from charged.lnnode.models import LndRestNode, CLightningNode, FakeNode
 from shop.forms import TorBridgeAdminForm, RSshTunnelAdminForm
@@ -31,10 +33,10 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
     form = TorBridgeAdminForm
 
     search_fields = ('id', 'comment', 'port')
-    list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after', 'created_at']
+    list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after', 'created_at', 'po_count']
     list_filter = ('status', 'created_at', 'host')
 
-    readonly_fields = ('status', 'created_at')  # nobody should mess with 'status'
+    readonly_fields = ('status', 'created_at', 'po_count')
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         form = super().get_form(request, obj, change, **kwargs)
@@ -57,6 +59,28 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
             return super().get_search_results(request, queryset, search_term.replace('-', ''))
         except ValueError:
             return super().get_search_results(request, queryset, search_term)
+
+    def po_count(self, obj):
+        return obj.po_details.count()
+        # return len([x.po for x in obj.po_details.all()])
+
+    actions = ["export_pos"]
+
+    def export_pos(self, request, queryset):
+        # response = TemplateResponse(request, 'downloadcode/admin_code_export.html', {'entries': queryset})
+
+        if queryset.count() != 1:
+            self.message_user(request, "Currently only works on a single entry!", level=messages.WARNING)
+            return
+
+        obj = queryset.first()
+        data = [{'id': x.po.id, 'created_at': x.po.created_at, 'status': x.po.status}
+                for x in obj.po_details.all()]
+
+        response = JsonResponse({'data': data})
+        return response
+
+    export_pos.short_description = _("Export POs for selected Bridges")
 
 
 class RSshTunnelAdmin(BridgeTunnelAdmin):
@@ -116,7 +140,6 @@ class HostAdmin(admin.ModelAdmin):
 admin.site.unregister(LndRestNode)
 admin.site.unregister(CLightningNode)
 admin.site.unregister(FakeNode)
-
 
 # admin.site.register(RSshTunnel, RSshTunnelAdmin)
 admin.site.register(TorBridge, TorBridgeAdmin)
