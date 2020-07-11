@@ -36,7 +36,7 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
     list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after', 'created_at', 'po_count']
     list_filter = ('status', 'created_at', 'host')
 
-    readonly_fields = ('status', 'created_at', 'po_count')
+    readonly_fields = ('port', 'status', 'created_at', 'po_count')
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         form = super().get_form(request, obj, change, **kwargs)
