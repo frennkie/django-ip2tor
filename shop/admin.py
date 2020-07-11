@@ -86,6 +86,12 @@ class RSshTunnelAdmin(BridgeTunnelAdmin):
 class TorBridgeAdmin(BridgeTunnelAdmin):
     form = TorBridgeAdminForm
 
+    def get_search_fields(self, request):
+
+        search_fields = super().get_search_fields(request)
+        search_fields += ('target', )
+        return search_fields
+
 
 class HostAdmin(admin.ModelAdmin):
     model = Host
