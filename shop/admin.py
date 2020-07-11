@@ -36,7 +36,7 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
     list_display = ['id', 'comment', 'status', 'host', 'port', 'suspend_after', 'created_at', 'po_count']
     list_filter = ('status', 'created_at', 'host')
 
-    readonly_fields = ('port', 'status', 'created_at', 'po_count')
+    readonly_fields = ('host', 'port', 'status', 'created_at', 'suspend_after', 'po_count')
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         form = super().get_form(request, obj, change, **kwargs)
@@ -78,6 +78,8 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
 
     export_pos.short_description = _("Export POs for selected Bridges")
 
+    def has_add_permission(self, request, obj=None):
+        return False
 
 class RSshTunnelAdmin(BridgeTunnelAdmin):
     form = RSshTunnelAdminForm
@@ -86,8 +88,12 @@ class RSshTunnelAdmin(BridgeTunnelAdmin):
 class TorBridgeAdmin(BridgeTunnelAdmin):
     form = TorBridgeAdminForm
 
-    def get_search_fields(self, request):
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        readonly_fields += ('target', )
+        return readonly_fields
 
+    def get_search_fields(self, request):
         search_fields = super().get_search_fields(request)
         search_fields += ('target', )
         return search_fields
