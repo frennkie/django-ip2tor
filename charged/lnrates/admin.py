@@ -19,4 +19,12 @@ class ExchangeRateAdmin(admin.ModelAdmin):
 class SettingsAdmin(admin.ModelAdmin):
     list_display = ('name', 'is_enabled')
     # search_fields = ('name',)
-    # readonly_fields = ('type',)
+    list_filter = ('is_enabled',)
+
+    readonly_fields = ('id', 'provider',)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

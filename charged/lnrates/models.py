@@ -1,36 +1,40 @@
-import requests
+import json
+
+import certifi
+import urllib3
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 
 from charged.lnrates.base import BaseLnRatesProvider
 
 
-class BlockchainInfo(BaseLnRatesProvider):
-    provider = 'BI', _('Blockchain Info')
+class CoinGecko(BaseLnRatesProvider):
+    provider = 'CG', _('CoinGecko')
 
-    def __init__(self):
-        self.obj = Settings.objects.filter(provider=self.provider).first()
+    def fetch_rates(self):
+        # ToDo(frennkie) currently this has BTC/EUR + BTC/USD hardcoded - make configurable
+        coin = (FiatRate.BTC, 'bitcoin')
 
-    def get_pairs(self):
-        return {
-            'BTC': ['EUR', 'USD'],
-        }
+        fiat = [
+            (FiatRate.EUR, FiatRate.FIAT_CHOICES[FiatRate.EUR][1].lower()),
+            (FiatRate.USD, FiatRate.FIAT_CHOICES[FiatRate.USD][1].lower())
+        ]
 
-    def get_credentials(self):
-        pass
+        http = urllib3.PoolManager(ca_certs=certifi.where())
+        payload = {'ids': coin[1], 'vs_currencies': ','.join([x[1] for x in fiat])}
+        url = self.settings.url
 
-    def get_rate(self, currency='EUR', value=1000, **kwargs) -> str:
-        if currency not in self.get_pairs().get('BTC'):
-            raise NotImplementedError
+        req = http.request('GET', url, fields=payload)
+        result = json.loads(req.data.decode('utf-8'))
 
-        try:
-            resp = requests.get(url=f'{self.obj.url}',
-                                params={'currency': currency, 'value': value})
-            return resp.content.decode('utf-8')
-        except Exception as err:
-            print(f"an error occurred: {err}")
-            raise err
+        for cur in fiat:
+            print(f'{cur[1]}: {result[coin[1]][cur[1]]}')
+            FiatRate.objects.create(coin_symbol=coin[0],
+                                    fiat_symbol=cur[0],
+                                    rate=Money(result[coin[1]][cur[1]], currency=cur[1]),
+                                    source=self.settings.id)
 
 
 # Django DB Model
@@ -54,12 +58,10 @@ class FiatRate(models.Model):
     )
 
     SOURCE_UNKNOWN = 0
-    BLOCKCHAIN_INFO = 1
-    COIN_GECKO = 2
+    COIN_GECKO = 1
     SOURCE_CHOICES = (
         (SOURCE_UNKNOWN, _('Unknown')),
-        (BLOCKCHAIN_INFO, _('Blockchain Info')),
-        (COIN_GECKO, _('Coin Gecko')),
+        (COIN_GECKO, _('Coin Gecko'))
     )
 
     created_at = models.DateTimeField(
@@ -75,6 +77,7 @@ class FiatRate(models.Model):
         verbose_name=_('Coin')
     )
 
+    # ToDo(frennkie) fiat symbol is redundant as MoneyField already includes the (FIAT) currency
     fiat_symbol = models.IntegerField(
         choices=FIAT_CHOICES,
         default=FIAT_UNKNOWN,
@@ -108,7 +111,7 @@ class FiatRate(models.Model):
     )
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ('-created_at',)
         verbose_name = _('fiat rate')
         verbose_name_plural = _('fiat rates')
 
@@ -123,7 +126,7 @@ class FiatRate(models.Model):
 class Settings(models.Model):
     class Provider(models.TextChoices):
         DUMMY = 'SE', _('- Please Select Provider...')
-        BLOCKCHAININFO = BlockchainInfo.provider
+        COINGECKO = CoinGecko.provider
 
     provider = models.CharField(
         max_length=2,
@@ -180,5 +183,19 @@ class Settings(models.Model):
     )
 
     class Meta:
+        ordering = ('id',)
         verbose_name = _("Provider Setting")
         verbose_name_plural = _("Provider Settings")
+
+    def __str__(self):
+        if self.is_enabled:
+            return f'{self.name} (enabled)'
+        return f'{self.name} (disabled)'
+
+    def get_provider_obj(self):
+        provider_list = [x for x in BaseLnRatesProvider.__subclasses__() if x.provider[0] == self.provider]
+        if provider_list:
+            provider_obj: BaseLnRatesProvider = provider_list[0]()
+            provider_obj.settings = self
+            return provider_obj
+        return None

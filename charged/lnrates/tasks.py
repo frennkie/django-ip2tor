@@ -1,88 +1,82 @@
-import json
 from datetime import timedelta
 
-import certifi
-import urllib3
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.db import transaction
 from django.db.models import Avg
 from django.utils import timezone
+from djmoney.money import Money
 
-from charged.lnrates.models import FiatRate
+from charged.lnrates.models import FiatRate, Settings
 
 logger = get_task_logger(__name__)
 
 
 @shared_task()
-def fetch_rates_for_source(obj_id):
-    logger.info('Running on ID: %s' % obj_id)
+def fetch_rates_from_provider(obj_id=None):
+    if not obj_id:
+        objs: [Settings] = Settings.objects.filter(is_enabled=True).all()
 
-    # ToDo(frennkie) do this
+    else:
+        objs: [Settings] = Settings.objects.filter(id=obj_id).first()
+
+        if not objs[0].is_enabled:
+            logger.info('Error: Disabled')
+            raise Exception('Error: Disabled')
+
+    for obj in objs:
+        logger.info('Running on ID: %s' % obj_id)
+        provider_obj = obj.get_provider_obj()
+        if provider_obj:
+            provider_obj.fetch_rates()
 
 
 @shared_task()
-def fetch_rates_for_source_coin_gecko_v1(coin='bitcoin', fiat=None):
+def aggregate_rates(source=1, coin='bitcoin', timedelta_min=60, delay_min=0, include_aggr=False):
     if coin == 'bitcoin':
         coin = (FiatRate.BTC, coin)
     else:
         coin = (FiatRate.COIN_UNKNOWN, coin)
 
-    if fiat is None:
-        fiat = [
-            (FiatRate.EUR, FiatRate.FIAT_CHOICES[FiatRate.EUR][1].lower()),
-            (FiatRate.USD, FiatRate.FIAT_CHOICES[FiatRate.USD][1].lower())
-        ]
+    fiat_list = [FiatRate.EUR, FiatRate.USD]
 
-    http = urllib3.PoolManager(ca_certs=certifi.where())
-    payload = {'ids': coin[1], 'vs_currencies': ','.join([x[1] for x in fiat])}
+    for fiat in fiat_list:
 
-    url = 'https://api.coingecko.com/api/v3/simple/price'
-    req = http.request('GET', url, fields=payload)
+        with transaction.atomic():
 
-    result = json.loads(req.data.decode('utf-8'))
+            now_with_delay = timezone.now() - timedelta(minutes=delay_min)
 
-    for cur in fiat:
-        logger.info(f'{cur[1]}: {result[coin[1]][cur[1]]}')
-        FiatRate.objects.create(coin_symbol=coin[0], fiat_symbol=cur[0], rate=result[coin[1]][cur[1]], source=2)
+            if include_aggr:
+                qs = FiatRate.objects \
+                    .filter(source=source) \
+                    .filter(fiat_symbol=fiat) \
+                    .filter(created_at__range=(now_with_delay - timedelta(minutes=timedelta_min),
+                                               now_with_delay))
+            else:
+                qs = FiatRate.objects \
+                    .filter(is_aggregate=False) \
+                    .filter(source=source) \
+                    .filter(fiat_symbol=fiat) \
+                    .filter(created_at__range=(now_with_delay - timedelta(minutes=timedelta_min),
+                                               now_with_delay))
 
-    return True
+            qs_count = qs.count()
 
+            if not qs_count:
+                logger.info(f'[{FiatRate.FIAT_CHOICES[fiat][1]}]: nothing to aggregated')
+                continue
 
-@shared_task()
-def aggregate_rates_for_source_coin_gecko_v1(coin='bitcoin', timedelta_min=60, delay_min=10, include_aggr=False):
-    if coin == 'bitcoin':
-        coin = (FiatRate.BTC, coin)
-    else:
-        coin = (FiatRate.COIN_UNKNOWN, coin)
+            rate_avg = qs.aggregate(Avg('rate'))
+            rate = rate_avg['rate__avg']
 
-    with transaction.atomic():
+            logger.info(f'[{FiatRate.FIAT_CHOICES[fiat][1]}]: adding aggregated rate for {qs_count} entries: {rate}')
 
-        now_with_delay = timezone.now() - timedelta(minutes=delay_min)
+            # ToDo(frennkie) doesn't seem to _always_ work on SQLite3
+            FiatRate.objects.create(coin_symbol=coin[0],
+                                    fiat_symbol=fiat,
+                                    rate=Money(rate, currency=FiatRate.FIAT_CHOICES[fiat][1]),
+                                    source=source,
+                                    is_aggregate=True)
 
-        if include_aggr:
-            qs = FiatRate.objects \
-                .filter(fiat_symbol=FiatRate.EUR) \
-                .filter(created_at__range=(now_with_delay - timedelta(minutes=timedelta_min),
-                                           now_with_delay))
-        else:
-            qs = FiatRate.objects \
-                .filter(is_aggregate=False) \
-                .filter(fiat_symbol=FiatRate.EUR) \
-                .filter(created_at__range=(now_with_delay - timedelta(minutes=timedelta_min),
-                                           now_with_delay))
-
-        qs_count = qs.count()
-        rate_avg = qs.aggregate(Avg('rate'))
-        rate = rate_avg['rate__avg']
-
-        logger.info(f'adding aggregated rate for {qs_count} entries: {rate}')
-
-        # ToDo(frennkie) doesn't seem to _always_ work on SQLite3
-        FiatRate.objects.create(coin_symbol=coin[0], fiat_symbol=FiatRate.EUR,
-                                rate=rate, source=2, is_aggregate=True)
-
-        # remove entries that have now been added as one aggregated value
-        qs.delete()
-
-    return True
+            # remove entries that have now been added as one aggregated value
+            qs.delete()
