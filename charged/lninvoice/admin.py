@@ -144,9 +144,6 @@ class InvoiceAdmin(admin.ModelAdmin):
 
     qr_img.short_description = 'Payment Request QR Code'
 
-    def lnnode_ro(self, obj):
-        return obj.lnnode
-
     # def has_add_permission(self, request, obj=None):
     #     return False
 
@@ -157,10 +154,20 @@ class InvoiceAdmin(admin.ModelAdmin):
 @admin.register(PurchaseOrderInvoice)
 class PurchaseOrderInvoiceAdmin(InvoiceAdmin):
 
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        for idx, item in enumerate(fieldsets):
+            if item[0] == 'Related':
+                _ = fieldsets.pop(idx)
+                new = ('Related', {'fields': ('lnnode_link', 'po_link')})
+                fieldsets.append(new)
+
+        return fieldsets
+
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = super().get_readonly_fields(request, obj)
 
-        readonly_fields += ('po_link', 'lnnode_link')
+        readonly_fields += ('lnnode_link', 'po_link')
         return readonly_fields
 
     def po_link(self, obj):
