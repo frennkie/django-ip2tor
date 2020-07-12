@@ -20,4 +20,4 @@ class PurchaseOrderSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = PurchaseOrder
-        fields = ('url', 'status', 'item_details', 'ln_invoices')
+        fields = ('url', 'status', 'message', 'item_details', 'ln_invoices')
