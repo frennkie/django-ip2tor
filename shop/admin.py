@@ -81,6 +81,7 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
     def has_add_permission(self, request, obj=None):
         return False
 
+
 class RSshTunnelAdmin(BridgeTunnelAdmin):
     form = RSshTunnelAdminForm
 
@@ -90,12 +91,12 @@ class TorBridgeAdmin(BridgeTunnelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = super().get_readonly_fields(request, obj)
-        readonly_fields += ('target', )
+        readonly_fields += ('target',)
         return readonly_fields
 
     def get_search_fields(self, request):
         search_fields = super().get_search_fields(request)
-        search_fields += ('target', )
+        search_fields += ('target',)
         return search_fields
 
 
