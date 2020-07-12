@@ -33,6 +33,7 @@ def process_initial_purchase_order(obj_id):
     if TorDenyList.objects.filter(is_denied=True).filter(target=target):
         logger.info('Target is on Deny List: %s' % target)
         obj.status = PurchaseOrder.REJECTED
+        obj.message = "Target is on Deny List"
         obj.save()
         return None
 
