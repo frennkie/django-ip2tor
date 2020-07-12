@@ -4,6 +4,7 @@ from celery.utils.log import get_task_logger
 from charged.lninvoice.models import PurchaseOrderInvoice
 from charged.lnnode.models import get_all_nodes
 from charged.lnpurchase.models import PurchaseOrder
+from shop.models import TorDenyList
 
 logger = get_task_logger(__name__)
 
@@ -24,6 +25,15 @@ def process_initial_purchase_order(obj_id):
 
     if not obj.total_price_msat:
         logger.info('No total price - skipping: %s' % obj)
+        return None
+
+    # ToDo(frennkie) this should not live in Django Charged
+    target = obj.item_details.first().product.target
+
+    if TorDenyList.objects.filter(is_denied=True).filter(target=target):
+        logger.info('Target is on Deny List: %s' % target)
+        obj.status = PurchaseOrder.REJECTED
+        obj.save()
         return None
 
     # ToDo(frennkie) check this!
