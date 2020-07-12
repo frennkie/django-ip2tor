@@ -14,7 +14,7 @@ def process_initial_purchase_order(obj_id):
     logger.info('Running on ID: %s' % obj_id)
 
     # checks
-    obj = PurchaseOrder.objects \
+    obj: PurchaseOrder = PurchaseOrder.objects \
         .filter(id=obj_id) \
         .filter(status=PurchaseOrder.INITIAL) \
         .first()
