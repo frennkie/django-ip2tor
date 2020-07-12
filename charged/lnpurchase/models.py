@@ -12,12 +12,14 @@ class PurchaseOrder(models.Model):
     PAID = 'P'
     COMPLETED = 'C'
     DELETED = 'D'
+    REJECTED = 'R'
     PURCHASE_ORDER_STATUS_CHOICES = (
         (INITIAL, _('initial')),
         (TOBEPAID, _('to_be_paid')),
         (PAID, _('paid')),
         (COMPLETED, _('completed')),
         (DELETED, _('deleted')),
+        (REJECTED, _('rejected')),
     )
 
     id = models.UUIDField(
@@ -40,6 +42,13 @@ class PurchaseOrder(models.Model):
         max_length=1,
         choices=PURCHASE_ORDER_STATUS_CHOICES,
         default=INITIAL
+    )
+
+    message = models.CharField(
+        max_length=140,
+        blank=True,
+        null=True,
+        verbose_name=_('Message to Customer')
     )
 
     class Meta:
