@@ -21,6 +21,7 @@ fi
 if ! command -v tor >/dev/null; then
   echo "TOR is not installed - exiting."
   echo "Please setup TOR and run again."
+  exit 1
 fi
 
 if ! command -v socat >/dev/null; then
