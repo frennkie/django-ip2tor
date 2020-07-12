@@ -55,6 +55,10 @@ class Host(models.Model):
 
     site = models.ForeignKey(Site, on_delete=models.CASCADE, default=1, related_name='hosts')
 
+    is_testnet = models.BooleanField(default=False,
+                                     verbose_name=_('Is Testnet?'),
+                                     help_text=_('Is Host backed by node running on Testnet?'))
+
     offers_tor_bridges = models.BooleanField(default=False,
                                              verbose_name=_('Does host offer Tor Bridges?'))
 

@@ -25,7 +25,7 @@ class PublicHostViewSet(mixins.RetrieveModelMixin,
     serializer_class = serializers.PublicHostSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['id', 'offers_tor_bridges', 'offers_rssh_tunnels']
+    filterset_fields = ['id', 'is_testnet', 'offers_tor_bridges', 'offers_rssh_tunnels']
 
 
 class PublicInvoiceViewSet(mixins.RetrieveModelMixin,

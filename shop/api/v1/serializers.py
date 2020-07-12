@@ -16,7 +16,7 @@ class HostSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('ip', 'name', 'site')
+        fields = ('ip', 'name', 'site', 'is_testnet')
 
 
 class TorBridgeSerializer(serializers.HyperlinkedModelSerializer):

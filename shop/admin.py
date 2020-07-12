@@ -114,8 +114,8 @@ class HostAdmin(admin.ModelAdmin):
     model = Host
 
     search_fields = ('id', 'name')
-    list_display = ['id', 'owner', 'ip', 'site', 'name']
-    list_filter = ('created_at', 'offers_tor_bridges', 'offers_rssh_tunnels', 'owner', 'ip')
+    list_display = ['id', 'owner', 'is_testnet', 'ip', 'site', 'name']
+    list_filter = ('is_testnet', 'created_at', 'offers_tor_bridges', 'offers_rssh_tunnels', 'owner', 'ip')
 
     readonly_fields = ('id', 'auth_token')
     # inlines = (PortRangeInline)  # Bridges and RSS might too many to be useful
