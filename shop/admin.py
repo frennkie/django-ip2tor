@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from charged.lnnode.models import LndRestNode, CLightningNode, FakeNode
 from shop.forms import TorBridgeAdminForm, RSshTunnelAdminForm
-from shop.models import Host, PortRange, TorBridge, RSshTunnel
+from shop.models import Host, PortRange, TorBridge, RSshTunnel, Bridge
 
 
 class TorBridgeInline(admin.TabularInline):
@@ -63,7 +63,7 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
     def po_count(self, obj):
         return obj.po_details.count()
 
-    actions = ["export_pos"]
+    actions = ["export_pos", "set_to_pending"]
 
     def export_pos(self, request, queryset):
         if queryset.count() != 1:
@@ -77,6 +77,16 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
         return JsonResponse({'data': data})
 
     export_pos.short_description = _("Export POs for selected Bridges")
+
+    def set_to_pending(self, request, queryset):
+        rows_updated = queryset.update(status=Bridge.PENDING)
+        if rows_updated == 1:
+            message_bit = "1 entry was"
+        else:
+            message_bit = "%s entries were" % rows_updated
+        self.message_user(request, "%s successfully set to pending." % message_bit)
+
+    set_to_pending.short_description = _("Set selected entries to pending")
 
     def has_add_permission(self, request, obj=None):
         return False
