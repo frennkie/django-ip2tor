@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from charged.lnnode.models import LndRestNode, CLightningNode, FakeNode
 from shop.forms import TorBridgeAdminForm, RSshTunnelAdminForm
-from shop.models import Host, PortRange, TorBridge, RSshTunnel, Bridge
+from shop.models import Host, PortRange, TorBridge, RSshTunnel, Bridge, TorDenyList, IpDenyList
 
 
 class TorBridgeInline(admin.TabularInline):
@@ -96,6 +96,23 @@ class RSshTunnelAdmin(BridgeTunnelAdmin):
     form = RSshTunnelAdminForm
 
 
+class IpDenyListAdmin(admin.ModelAdmin):
+    search_fields = ('id', 'ip', 'comment')
+
+    list_display = ('ip', 'is_denied', 'status', 'comment', 'created_at', 'modified_at')
+    list_filter = ('is_denied', 'status', 'created_at', 'modified_at')
+
+    readonly_fields = ('id', 'is_denied', 'created_at', 'modified_at')
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+
+        if obj:
+            readonly_fields = readonly_fields + ('ip',)
+
+        return readonly_fields
+
+
 class TorBridgeAdmin(BridgeTunnelAdmin):
     form = TorBridgeAdminForm
 
@@ -108,6 +125,23 @@ class TorBridgeAdmin(BridgeTunnelAdmin):
         search_fields = super().get_search_fields(request)
         search_fields += ('target',)
         return search_fields
+
+
+class TorDenyListAdmin(admin.ModelAdmin):
+    search_fields = ('id', 'target', 'comment')
+
+    list_display = ('target', 'is_denied', 'status', 'comment', 'created_at', 'modified_at')
+    list_filter = ('is_denied', 'status', 'created_at', 'modified_at')
+
+    readonly_fields = ('id', 'is_denied', 'created_at', 'modified_at')
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+
+        if obj:
+            readonly_fields = readonly_fields + ('target',)
+
+        return readonly_fields
 
 
 class HostAdmin(admin.ModelAdmin):
@@ -163,3 +197,5 @@ admin.site.unregister(FakeNode)
 # admin.site.register(RSshTunnel, RSshTunnelAdmin)
 admin.site.register(TorBridge, TorBridgeAdmin)
 admin.site.register(Host, HostAdmin)
+admin.site.register(IpDenyList, IpDenyListAdmin)
+admin.site.register(TorDenyList, TorDenyListAdmin)

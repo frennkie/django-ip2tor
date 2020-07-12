@@ -19,6 +19,80 @@ from shop.validators import validate_target_has_port
 from shop.validators import validate_target_is_onion
 
 
+class DenyList(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    created_at = models.DateTimeField(verbose_name=_('date created'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
+
+    is_denied = models.BooleanField(default=False,
+                                    editable=False,
+                                    verbose_name=_('Is Denied?'))
+
+    # is_denied must be False for: 0-4
+    INITIAL = 0
+    PROPOSED = 1
+    IN_REVIEW = 2
+    NEUTRAL = 4
+    # is_denied is not defined for: 5
+    # is_denied must be True for: 6-9
+    RECOMMENDED = 7
+    DENIED = 9
+    DENY_LIST_STATUS_CHOICES = (
+        (INITIAL, _('initial')),
+        (PROPOSED, _('proposed')),
+        (IN_REVIEW, _('in review')),
+        (NEUTRAL, _('neutral')),
+        (RECOMMENDED, _('recommended')),
+        (DENIED, _('denied')),
+    )
+
+    status = models.IntegerField(
+        verbose_name=_("Status"),
+        choices=DENY_LIST_STATUS_CHOICES,
+        default=INITIAL
+    )
+
+    comment = models.CharField(max_length=140, blank=True, null=True, verbose_name=_('Comment/Remark'))
+
+    def save(self, *args, **kwargs):
+        if self.is_denied:
+            if self.status < 5:
+                self.is_denied = False
+        else:
+            if self.status > 5:
+                self.is_denied = True
+        super().save(*args, **kwargs)
+
+
+class TorDenyList(DenyList):
+    target = models.CharField(max_length=300)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = _("Deny List Entry (TOR)")
+        verbose_name_plural = _("Deny List Entries (TOR)")
+
+    def __str__(self):
+        if self.is_denied:
+            return "DENY: {}".format(self.target)
+        return "ALLOW: {}".format(self.target)
+
+
+class IpDenyList(DenyList):
+    ip = models.GenericIPAddressField(verbose_name=_('IP Address'), unique=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = _("Deny List Entry (IP)")
+        verbose_name_plural = _("Deny List Entries (IP)")
+
+    def __str__(self):
+        if self.is_denied:
+            return "DENY: {}".format(self.ip)
+        return "ALLOW: {}".format(self.ip)
+
+
 class Host(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
