@@ -49,7 +49,7 @@ def process_initial_purchase_order(obj_id):
             invoice.save()
             obj.ln_invoices.add(invoice)
 
-            obj.status = PurchaseOrder.TOBEPAID
+            obj.status = PurchaseOrder.NEEDS_TO_BE_PAID
             obj.save()
 
             logger.info('Created LnInvoice: %s (%s)' % (invoice.id, invoice))

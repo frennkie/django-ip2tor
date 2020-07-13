@@ -367,5 +367,5 @@ class PurchaseOrderInvoice(Invoice):
             self.po.save()
 
         elif self.status != self.PAID:
-            self.po.status = PurchaseOrder.TOBEPAID
+            self.po.status = PurchaseOrder.NEEDS_TO_BE_PAID
             self.po.save()
