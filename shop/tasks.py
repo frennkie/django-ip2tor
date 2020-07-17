@@ -25,31 +25,43 @@ def delete_due_tor_bridges():
     deleted = TorBridge.objects.filter(status=TorBridge.NEEDS_DELETE)
     if deleted:
         for item in deleted:
-            logger.info('Running on: %s' % item)
-
-            if timezone.now() > item.created_at + timedelta(days=7):
-                logger.info('Needs to be removed from database.')
-                # ToDo(frennkie) actually cleanly delete
-                counter += 1
+            logger.debug('Running on: %s' % item)
+            item.delete()
+            counter += 1
 
     return f'Removed {counter}/{len(deleted)} Tor Bridge(s) from DB (previous state: NEEDS_DELETE).'
 
 
 @shared_task()
-def set_deleted_on_initial_unpaid_tor_bridges():
+def set_needs_delete_on_suspended_tor_bridges(days=45):
     counter = 0
-    initials = TorBridge.objects.filter(status=TorBridge.INITIAL)
-    if initials:
-        for item in initials:
-            logger.info('Running on: %s' % item)
-
-            if timezone.now() > item.created_at + timedelta(days=3):
-                logger.info('Needs to be set to deleted.')
+    suspended = TorBridge.objects.filter(status=TorBridge.SUSPENDED)
+    if suspended:
+        for item in suspended:
+            logger.debug('Running on: %s' % item)
+            if timezone.now() > item.modified_at + timedelta(days=days):
+                logger.debug('Needs to be set to deleted.')
                 item.status = TorBridge.NEEDS_DELETE
                 item.save()
                 counter += 1
 
-    return f'Set DELETED on {counter}/{len(initials)} Tor Bridge(s) (previous state: INITIAL).'
+    return f'Set NEEDS_DELETE on {counter}/{len(suspended)} Tor Bridge(s) (previous state: SUSPENDED).'
+
+
+@shared_task()
+def set_needs_delete_on_initial_tor_bridges(days=3):
+    counter = 0
+    initials = TorBridge.objects.filter(status=TorBridge.INITIAL)
+    if initials:
+        for item in initials:
+            logger.debug('Running on: %s' % item)
+            if timezone.now() > item.modified_at + timedelta(days=days):
+                logger.debug('Needs to be set to deleted.')
+                item.status = TorBridge.NEEDS_DELETE
+                item.save()
+                counter += 1
+
+    return f'Set NEEDS_DELETE on {counter}/{len(initials)} Tor Bridge(s) (previous state: INITIAL).'
 
 
 @shared_task()
