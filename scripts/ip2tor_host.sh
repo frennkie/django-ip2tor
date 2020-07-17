@@ -20,10 +20,10 @@ set -e
 # command info
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ]; then
   echo "management script to fetch and process config from shop"
-  echo "ip2tor_host.sh pending"
-  echo "ip2tor_host.sh list [I|P|A|S|D]"
+  echo "ip2tor_host.sh activate"
+  echo "ip2tor_host.sh list [I|P|A|S|H|Z|D|F]"
   echo "ip2tor_host.sh loop"
-  echo "ip2tor_host.sh suspended"
+  echo "ip2tor_host.sh suspend"
   exit 1
 fi
 
@@ -84,11 +84,11 @@ function get_tor_bridges() {
 }
 
 
-############################
-# NEEDS_ACTIVATE (needs activate) #
-############################
-if [ "$1" = "pending" ]; then
-  get_tor_bridges "P"  # P for pending - sets ${res}
+#############################
+# ACTIVATE (needs activate) #
+#############################
+if [ "$1" = "activate" ]; then
+  get_tor_bridges "P"  # activate (P was pending) - sets ${res}
 
   detail=$(echo "${res}" | jq -c '.detail' &>/dev/null || true)
   if [ -n "${detail}" ]; then
@@ -163,16 +163,16 @@ elif [ "$1" = "loop" ]; then
   echo "Running on Shop: ${IP2TOR_SHOP_URL} (Host ID: ${IP2TOR_HOST_ID})"
   while :
   do
-    "${0}" pending
-    "${0}" suspended
+    "${0}" activate
+    "${0}" suspend
     sleep 2
   done
 
-#############
+#################
 # NEEDS_SUSPEND #
-#############
-elif [ "$1" = "suspended" ]; then
-  get_tor_bridges "S"  # S for suspended - sets ${res}
+#################
+elif [ "$1" = "suspend" ]; then
+  get_tor_bridges "S"  # S for (needs) suspend - update to "H" (suspended/hold) - sets ${res}
 
   detail=$(echo "${res}" | jq -c '.detail' &>/dev/null || true)
   if [ -n "${detail}" ]; then
@@ -181,18 +181,18 @@ elif [ "$1" = "suspended" ]; then
   fi
 
   jsn=$(echo "${res}" | jq -c '.[]|.id,.port,.target | tostring')
-  suspended_list=$(echo "${jsn}" | xargs -L3 | sed 's/ /|/g' | paste -sd "\n" -)
+  suspend_list=$(echo "${jsn}" | xargs -L3 | sed 's/ /|/g' | paste -sd "\n" -)
 
-  if [ -z "${suspended_list}" ]; then
+  if [ -z "${suspend_list}" ]; then
     echo "Nothing to do"
     exit 0
   fi
 
   echo "ToDo List:"
-  echo "${suspended_list}"
+  echo "${suspend_list}"
   echo "---"
 
-  for item in ${suspended_list}; do
+  for item in ${suspend_list}; do
     echo "Item: ${item}"
     b_id=$(echo "${item}" | cut -d'|' -f1)
     port=$(echo "${item}" | cut -d'|' -f2)
@@ -215,7 +215,7 @@ elif [ "$1" = "suspended" ]; then
         curl -X "PATCH" \
         -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" \
         -H "Content-Type: application/json" \
-        --data '{"status": "D"}' \
+        --data '{"status": "H"}' \
         "${patch_url}"
       )
 
