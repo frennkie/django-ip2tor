@@ -52,7 +52,7 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
 
     if shop_item.status == Bridge.INITIAL:
         print(f"set to PENDING")
-        shop_item.status = Bridge.PENDING
+        shop_item.status = Bridge.NEEDS_ACTIVATE
 
     elif shop_item.status == Bridge.ACTIVE:
         print(f"is already ACTIVE - assume extend")
@@ -61,7 +61,7 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
 
     elif shop_item.status == Bridge.DELETED or shop_item.status == Bridge.NEEDS_SUSPEND:
         print(f"is reactivate")
-        shop_item.status = Bridge.PENDING
+        shop_item.status = Bridge.NEEDS_ACTIVATE
 
         # ToDo(frennkie): check/set suspend after time
         if shop_item.suspend_after <= timezone.now():

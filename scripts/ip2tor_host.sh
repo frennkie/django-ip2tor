@@ -84,9 +84,9 @@ function get_tor_bridges() {
 }
 
 
-###########
-# PENDING #
-###########
+############################
+# NEEDS_ACTIVATE (needs activate) #
+############################
 if [ "$1" = "pending" ]; then
   get_tor_bridges "P"  # P for pending - sets ${res}
 
