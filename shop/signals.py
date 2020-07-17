@@ -59,7 +59,7 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
         # ToDo(frennkie): check/set suspend after time
         shop_item.suspend_after = shop_item.suspend_after + timedelta(seconds=shop_item.host.tor_bridge_duration)
 
-    elif shop_item.status == Bridge.DELETED or shop_item.status == Bridge.NEEDS_SUSPEND:
+    elif shop_item.status == Bridge.NEEDS_DELETE or shop_item.status == Bridge.NEEDS_SUSPEND:
         print(f"is reactivate")
         shop_item.status = Bridge.NEEDS_ACTIVATE
 

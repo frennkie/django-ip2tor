@@ -22,7 +22,7 @@ def count_tor_bridges():
 @shared_task()
 def set_deleted_on_unpaid_tor_bridges():
     counter = 0
-    deleted = TorBridge.objects.filter(status=TorBridge.DELETED)
+    deleted = TorBridge.objects.filter(status=TorBridge.NEEDS_DELETE)
     if deleted:
         for item in deleted:
             logger.info('Running on: %s' % item)
@@ -45,7 +45,7 @@ def set_deleted_on_unpaid_tor_bridges():
 
             if timezone.now() > item.created_at + timedelta(days=3):
                 logger.info('Needs to be set to deleted.')
-                item.status = TorBridge.DELETED
+                item.status = TorBridge.NEEDS_DELETE
                 item.save()
                 counter += 1
 
