@@ -20,7 +20,7 @@ def count_tor_bridges():
 
 
 @shared_task()
-def set_deleted_on_unpaid_tor_bridges():
+def delete_need_to_be_deleted_tor_bridges():
     counter = 0
     deleted = TorBridge.objects.filter(status=TorBridge.NEEDS_DELETE)
     if deleted:
@@ -32,11 +32,11 @@ def set_deleted_on_unpaid_tor_bridges():
                 # ToDo(frennkie) actually cleanly delete
                 counter += 1
 
-    return f'Removed {counter}/{len(deleted)} Tor Bridge(s) from DB (previous state: DELETED).'
+    return f'Removed {counter}/{len(deleted)} Tor Bridge(s) from DB (previous state: NEEDS_DELETE).'
 
 
 @shared_task()
-def set_deleted_on_unpaid_tor_bridges():
+def set_deleted_on_initial_unpaid_tor_bridges():
     counter = 0
     initials = TorBridge.objects.filter(status=TorBridge.INITIAL)
     if initials:
