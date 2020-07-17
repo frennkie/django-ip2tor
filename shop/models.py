@@ -243,12 +243,12 @@ class PortRange(models.Model):
     modified_at = models.DateTimeField(verbose_name=_('date modified'), auto_now=True)
 
     start = models.PositiveIntegerField(verbose_name=_('Start Port'),
-                                        help_text=_('Start Port - Must be in range 1025 - 65535.'),
-                                        validators=[MinValueValidator(1025), MaxValueValidator(65535)])
+                                        help_text=_('Start Port - Must be in range 10000 - 65535.'),
+                                        validators=[MinValueValidator(10000), MaxValueValidator(65535)])
 
     end = models.PositiveIntegerField(verbose_name=_('End Port'),
-                                      help_text=_('End Port - Must be in range 1025 - 65535.'),
-                                      validators=[MinValueValidator(1025), MaxValueValidator(65535)])
+                                      help_text=_('End Port - Must be in range 10000 - 65535.'),
+                                      validators=[MinValueValidator(10000), MaxValueValidator(65535)])
 
     _used = models.TextField(editable=False,
                              default='{}',
@@ -401,8 +401,8 @@ class Bridge(Product):
                                        blank=True,
                                        null=True,
                                        editable=False,
-                                       help_text=_('Port - Must be in range 1025 - 65535.'),
-                                       validators=[MinValueValidator(1025), MaxValueValidator(65535)])
+                                       help_text=_('Port - Must be in range 10000 - 65535.'),
+                                       validators=[MinValueValidator(10000), MaxValueValidator(65535)])
 
     comment = models.CharField(max_length=42, blank=True, null=True,
                                verbose_name=_('Bridge/Tunnel comment'))
