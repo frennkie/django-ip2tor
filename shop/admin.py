@@ -79,7 +79,7 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
     export_pos.short_description = _("Export POs for selected Bridges")
 
     def set_to_pending(self, request, queryset):
-        rows_updated = queryset.update(status=Bridge.PENDING)
+        rows_updated = queryset.update(status=Bridge.NEEDS_ACTIVATE)
         if rows_updated == 1:
             message_bit = "1 entry was"
         else:

@@ -52,16 +52,16 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
 
     if shop_item.status == Bridge.INITIAL:
         print(f"set to PENDING")
-        shop_item.status = Bridge.PENDING
+        shop_item.status = Bridge.NEEDS_ACTIVATE
 
     elif shop_item.status == Bridge.ACTIVE:
         print(f"is already ACTIVE - assume extend")
         # ToDo(frennkie): check/set suspend after time
         shop_item.suspend_after = shop_item.suspend_after + timedelta(seconds=shop_item.host.tor_bridge_duration)
 
-    elif shop_item.status == Bridge.DELETED or shop_item.status == Bridge.SUSPENDED:
+    elif shop_item.status == Bridge.NEEDS_DELETE or shop_item.status == Bridge.NEEDS_SUSPEND:
         print(f"is reactivate")
-        shop_item.status = Bridge.PENDING
+        shop_item.status = Bridge.NEEDS_ACTIVATE
 
         # ToDo(frennkie): check/set suspend after time
         if shop_item.suspend_after <= timezone.now():
@@ -91,7 +91,7 @@ def post_save_tor_bridge(sender, instance: TorBridge, **kwargs):
     if instance.previous_status != instance.status or created:
         if instance.status == sender.ACTIVE:
             instance.process_activation()
-        elif instance.status == sender.SUSPENDED:
+        elif instance.status == sender.NEEDS_SUSPEND:
             instance.process_suspension()
 
     if created:

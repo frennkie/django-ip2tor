@@ -84,9 +84,9 @@ function get_tor_bridges() {
 }
 
 
-###########
-# PENDING #
-###########
+############################
+# NEEDS_ACTIVATE (needs activate) #
+############################
 if [ "$1" = "pending" ]; then
   get_tor_bridges "P"  # P for pending - sets ${res}
 
@@ -169,7 +169,7 @@ elif [ "$1" = "loop" ]; then
   done
 
 #############
-# SUSPENDED #
+# NEEDS_SUSPEND #
 #############
 elif [ "$1" = "suspended" ]; then
   get_tor_bridges "S"  # S for suspended - sets ${res}
