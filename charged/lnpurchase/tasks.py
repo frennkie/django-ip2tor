@@ -28,7 +28,11 @@ def process_initial_purchase_order(obj_id):
         return None
 
     # ToDo(frennkie) this should not live in Django Charged
-    target = obj.item_details.first().product.target
+    target_with_port = obj.item_details.first().product.target
+    try:
+        target = target_with_port.split(':')[0]
+    except IndexError:
+        target = target_with_port
 
     if TorDenyList.objects.filter(is_denied=True).filter(target=target):
         logger.info('Target is on Deny List: %s' % target)
