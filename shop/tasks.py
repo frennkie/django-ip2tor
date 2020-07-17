@@ -65,7 +65,7 @@ def set_needs_delete_on_initial_tor_bridges(days=3):
 
 
 @shared_task()
-def set_suspended_on_expired_tor_bridges():
+def set_needs_suspend_on_expired_tor_bridges():
     counter = 0
     actives = TorBridge.objects.filter(status=TorBridge.ACTIVE)
     if actives:
@@ -78,4 +78,4 @@ def set_suspended_on_expired_tor_bridges():
                 item.save()
                 counter += 1
 
-    return f'Set SUSPENDED on {counter}/{len(actives)} Tor Bridge(s) (previous state: ACTIVE).'
+    return f'Set NEEDS_SUSPEND on {counter}/{len(actives)} Tor Bridge(s) (previous state: ACTIVE).'
