@@ -20,7 +20,7 @@ def count_tor_bridges():
 
 
 @shared_task()
-def delete_need_to_be_deleted_tor_bridges():
+def delete_due_tor_bridges():
     counter = 0
     deleted = TorBridge.objects.filter(status=TorBridge.NEEDS_DELETE)
     if deleted:
