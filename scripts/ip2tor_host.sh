@@ -169,7 +169,7 @@ elif [ "$1" = "loop" ]; then
   done
 
 #############
-# SUSPENDED #
+# NEEDS_SUSPEND #
 #############
 elif [ "$1" = "suspended" ]; then
   get_tor_bridges "S"  # S for suspended - sets ${res}

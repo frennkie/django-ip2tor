@@ -358,7 +358,7 @@ class ActiveTorBridgeManager(models.Manager):
 
 class SuspendedTorBridgeManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(review_status=TorBridge.SUSPENDED)
+        return super().get_queryset().filter(review_status=TorBridge.NEEDS_SUSPEND)
 
 
 class DeletedTorBridgeManager(models.Manager):
@@ -370,13 +370,13 @@ class Bridge(Product):
     INITIAL = 'I'
     PENDING = 'P'
     ACTIVE = 'A'
-    SUSPENDED = 'S'
+    NEEDS_SUSPEND = 'S'
     DELETED = 'D'
     BRIDGE_STATUS_CHOICES = (
         (INITIAL, _('initial')),
         (PENDING, _('pending')),
         (ACTIVE, _('active')),
-        (SUSPENDED, _('suspended')),
+        (NEEDS_SUSPEND, _('suspended')),
         (DELETED, _('deleted')),
     )
 

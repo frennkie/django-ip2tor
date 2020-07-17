@@ -62,7 +62,7 @@ def set_suspended_on_expired_tor_bridges():
 
             if timezone.now() > item.suspend_after:
                 logger.info('Needs to be suspended.')
-                item.status = TorBridge.SUSPENDED
+                item.status = TorBridge.NEEDS_SUSPEND
                 item.save()
                 counter += 1
 
