@@ -148,16 +148,16 @@ fi
 Install venv
 
 ```
-sudo apt install -y python3-venv
+sudo apt install -y python3-venv python3-pycurl
 # OR 
-sudo yum install -y python3-virtualenv python3-wheel
+sudo yum install -y python3-virtualenv python3-wheel python3-pycurl
 ```
 
 Change to service user and install + update virtual python environment
 
 ```
 sudo su - ip2tor
-/usr/bin/python3 -m venv /home/ip2tor/venv
+/usr/bin/python3 -m venv --system-site-packages /home/ip2tor/venv
 source /home/ip2tor/venv/bin/activate
 python -m pip install --upgrade pip setuptools
 ```
