@@ -19,11 +19,11 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     inlines = (PurchaseOrderItemDetailInline,)
 
     search_fields = ('id', 'message')
-    list_display = ('id', 'status', 'item_count', 'total_price_sat', 'created_at')
+    list_display = ('id', 'status', 'item_count', 'total_price_sat', 'tax_value', 'created_at')
     list_filter = ('status', 'created_at')
 
     fieldset = ('status', 'message', 'created_at')
-    readonly_fields = ('message', 'created_at', 'item_count', 'total_price_sat',)
+    readonly_fields = ('message', 'created_at', 'item_count', 'tax_value', 'info_value', 'total_price_sat',)
 
     def get_formsets_with_inlines(self, request, obj=None):
         # If parent object has not been saved yet / If there's no screen

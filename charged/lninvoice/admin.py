@@ -27,6 +27,8 @@ class InvoiceAdmin(admin.ModelAdmin):
                        'modified_at',
                        'amount_full_satoshi',
                        'amount_full_satoshi_word',
+                       'tax_rate',
+                       'info_rate',
                        'amount_btc',
                        'status',
                        'qr_img',)
@@ -64,8 +66,8 @@ class InvoiceAdmin(admin.ModelAdmin):
                         'amount_full_satoshi',
                         'amount_full_satoshi',
                         'amount_full_satoshi_word',
-                        'quoted_currency',
-                        'quoted_amount',
+                        'tax_rate',
+                        'info_rate'
                     ),
                 })
             )
