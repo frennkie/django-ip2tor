@@ -8,28 +8,28 @@ from django.utils.translation import gettext_lazy as _
 
 class PurchaseOrder(models.Model):
     INITIAL = 'I'
+    NEEDS_CAPTCHA = 'C'
     NEEDS_LOCAL_CHECKS = 'K'
     NEEDS_REMOTE_CHECKS = 'L'
     NEEDS_INVOICE = 'M'
     NEEDS_TO_BE_PAID = 'T'
     PAID = 'P'
     NEEDS_REFUND = 'N'
-    COMPLETED = 'C'  # unused?!
-    DELETED = 'D'  # unused?!
+    NEEDS_DELETE = 'D'  # unused?!
     REJECTED = 'R'
     FULFILLED = 'F'
     REFUNDED = 'S'
     ARCHIVED = 'A'
     PURCHASE_ORDER_STATUS_CHOICES = (
         (INITIAL, _('initial')),
+        (NEEDS_CAPTCHA, _('needs captcha')),
         (NEEDS_LOCAL_CHECKS, _('needs local checks')),
         (NEEDS_REMOTE_CHECKS, _('needs remote checks')),
         (NEEDS_INVOICE, _('needs invoice')),
         (NEEDS_TO_BE_PAID, _('to_be_paid')),
         (PAID, _('paid')),
         (NEEDS_REFUND, _('needs refund')),
-        (COMPLETED, _('completed')),
-        (DELETED, _('deleted')),
+        (NEEDS_DELETE, _('needs delete')),
         (REJECTED, _('rejected')),
         (FULFILLED, _('fulfilled')),
         (REFUNDED, _('refunded')),
