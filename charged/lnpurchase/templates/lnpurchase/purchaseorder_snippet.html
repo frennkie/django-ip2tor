@@ -13,13 +13,22 @@
         <td>{{ object.get_status_display }}</td>
     </tr>
     <tr>
-        <td>Total Price (Milli-Satoshi)</td>
-        <td>{{ object.total_price_msat }}</td>
+        <td>Message</td>
+        <td>{% if object.message %}{{ object.message }}{% else %}{% endif %}</td>
     </tr>
     <tr>
         <td>Total Price (Satoshi)</td>
-        <td>{{ object.total_price_sat }}</td>
+        <td>{{ object.total_price_sat }} (Milli-Satoshi: {{ object.total_price_msat }})</td>
     </tr>
+    <tr>
+        <td>In Tax Currency</td>
+        <td>{{ object.tax_value }} @ {{ object.tax_rate }}</td>
+    </tr>
+    <tr>
+        <td>In Info Currency</td>
+        <td>{{ object.info_value }} @ {{ object.info_rate }}</td>
+    </tr>
+
     <tr>
         <th colspan="2">Items</th>
     </tr>

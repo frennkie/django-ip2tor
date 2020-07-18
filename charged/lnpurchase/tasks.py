@@ -7,6 +7,7 @@ from celery.utils.log import get_task_logger
 from charged.lninvoice.models import PurchaseOrderInvoice
 from charged.lnnode.models import get_all_nodes
 from charged.lnpurchase.models import PurchaseOrder
+from charged.lnrates.models import FiatRate
 from shop.models import TorDenyList
 
 logger = get_task_logger(__name__)
@@ -103,6 +104,16 @@ def process_initial_purchase_order(obj_id):
     obj.status = PurchaseOrder.NEEDS_INVOICE
     obj.save()
 
+    tax_rate = FiatRate.objects \
+        .filter(is_aggregate=False) \
+        .filter(fiat_symbol=FiatRate.EUR) \
+        .first()
+
+    info_rate = FiatRate.objects \
+        .filter(is_aggregate=False) \
+        .filter(fiat_symbol=FiatRate.USD) \
+        .first()
+
     # ToDo(frennkie) check this!
     owned_nodes = get_all_nodes(obj.owner.id)
     for node_tuple in owned_nodes:
@@ -110,6 +121,8 @@ def process_initial_purchase_order(obj_id):
         if node.is_enabled:
             invoice = PurchaseOrderInvoice(label="PO: {}".format(obj.id),
                                            msatoshi=obj.total_price_msat,
+                                           tax_rate=tax_rate.rate,
+                                           info_rate=info_rate.rate,
                                            lnnode=node)
 
             invoice.save()

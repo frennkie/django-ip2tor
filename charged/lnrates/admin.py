@@ -21,7 +21,8 @@ class SettingsAdmin(admin.ModelAdmin):
     # search_fields = ('name',)
     list_filter = ('is_enabled',)
 
-    readonly_fields = ('id', 'provider',)
+    readonly_fields = ('id',)
+    readonly_fields += ('provider',)
 
     def has_add_permission(self, request, obj=None):
         return False

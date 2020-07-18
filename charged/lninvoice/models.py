@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.timezone import now, make_aware
 from django.utils.translation import gettext_lazy as _
+from djmoney.models.fields import MoneyField
 
 from charged.lninvoice.signals import lninvoice_paid, lninvoice_invoice_created_on_node
 from charged.lnnode.models.base import BaseLnNode
@@ -70,18 +71,24 @@ class Invoice(models.Model):
         null=True, blank=False  # may be NULL in database, but not in GUI
     )
 
-    quoted_currency = models.CharField(
-        max_length=4,
-        verbose_name=_('Quoted Currency'),
-        help_text=_('Originally quoted currency - if any. E.g. "EUR" or "USD".'),
-        null=True, blank=True  # optional
+    tax_rate = MoneyField(
+        decimal_places=2,
+        default_currency=getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'),
+        editable=False,
+        help_text=_('Tax Exchange Rate'),
+        max_digits=14,
+        verbose_name=_("tax rate"),
+        null=True, blank=True
     )
 
-    quoted_amount = models.DecimalField(
-        decimal_places=3, max_digits=20,
-        verbose_name=_('Quoted Amount'),
-        help_text=_('Amount that was quoted in the original currency - if any. E.g. "1.50".'),
-        null=True, blank=True  # optional
+    info_rate = MoneyField(
+        decimal_places=2,
+        default_currency=getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'),
+        editable=False,
+        help_text=_('Informational Exchange Rate'),
+        max_digits=14,
+        verbose_name=_("info rate"),
+        null=True, blank=True
     )
 
     preimage = models.BinaryField(
@@ -326,12 +333,6 @@ class Invoice(models.Model):
         if not self.msatoshi:
             return 0
         return "{:.8f}".format(self.msatoshi / 100_000_000_000)
-
-    @property
-    def amount_quoted(self):
-        if self.quoted_amount and self.quoted_currency:
-            return f'{self.quoted_currency} {round(self.quoted_amount, 2)}'
-        return 'N/A 0.00'
 
 
 class PurchaseOrderInvoice(Invoice):
