@@ -1,4 +1,6 @@
+import logging
 from datetime import timedelta
+from functools import wraps
 
 from django.apps import apps
 from django.conf import settings
@@ -15,6 +17,20 @@ from charged.lnnode.signals import lnnode_invoice_created
 from charged.lnpurchase.models import PurchaseOrder
 from charged.lnpurchase.tasks import process_initial_purchase_order
 from shop.models import TorBridge, RSshTunnel, Bridge
+
+log = logging.getLogger(__name__)
+
+
+def disable_for_loaddata(signal_handler):
+    """Decorator that turns off signal handlers when loading fixture data."""
+
+    @wraps(signal_handler)
+    def wrapper(*args, **kwargs):
+        if kwargs.get('raw'):
+            return
+        signal_handler(*args, **kwargs)
+
+    return wrapper
 
 
 @receiver(lnnode_invoice_created)
@@ -71,6 +87,7 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=PurchaseOrder)
+@disable_for_loaddata
 def post_save_purchase_order(sender, instance: PurchaseOrder, created, **kwargs):
     if created:
         print(f'New PO with pk: {instance.pk} was created.')
@@ -78,6 +95,7 @@ def post_save_purchase_order(sender, instance: PurchaseOrder, created, **kwargs)
 
 
 @receiver(post_save, sender=PurchaseOrderInvoice)
+@disable_for_loaddata
 def post_save_lninvoice(sender, instance: PurchaseOrderInvoice, created, **kwargs):
     if created:
         print(f'New LNI with pk: {instance.pk} was created.')
@@ -85,6 +103,7 @@ def post_save_lninvoice(sender, instance: PurchaseOrderInvoice, created, **kwarg
 
 
 @receiver(post_save, sender=TorBridge)
+@disable_for_loaddata
 def post_save_tor_bridge(sender, instance: TorBridge, **kwargs):
     created = kwargs.get('created')
 
