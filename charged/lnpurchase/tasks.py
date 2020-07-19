@@ -1,8 +1,11 @@
+from decimal import Decimal
 from io import BytesIO
 
 import pycurl
 from celery import shared_task
 from celery.utils.log import get_task_logger
+from django.conf import settings
+from djmoney.money import Money
 
 from charged.lninvoice.models import PurchaseOrderInvoice
 from charged.lnnode.models import get_all_nodes
@@ -104,15 +107,25 @@ def process_initial_purchase_order(obj_id):
     obj.status = PurchaseOrder.NEEDS_INVOICE
     obj.save()
 
-    tax_rate = FiatRate.objects \
+    tax_ex_rate_obj = FiatRate.objects \
         .filter(is_aggregate=False) \
         .filter(fiat_symbol=FiatRate.EUR) \
         .first()
 
-    info_rate = FiatRate.objects \
+    if tax_ex_rate_obj:
+        tax_ex_rate = tax_ex_rate_obj.rate
+    else:
+        tax_ex_rate = Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
+
+    info_ex_rate_obj = FiatRate.objects \
         .filter(is_aggregate=False) \
         .filter(fiat_symbol=FiatRate.USD) \
         .first()
+
+    if info_ex_rate_obj:
+        info_ex_rate = info_ex_rate_obj.rate
+    else:
+        info_ex_rate = Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
 
     # ToDo(frennkie) check this!
     owned_nodes = get_all_nodes(obj.owner.id)
@@ -121,8 +134,9 @@ def process_initial_purchase_order(obj_id):
         if node.is_enabled:
             invoice = PurchaseOrderInvoice(label="PO: {}".format(obj.id),
                                            msatoshi=obj.total_price_msat,
-                                           tax_rate=tax_rate.rate,
-                                           info_rate=info_rate.rate,
+                                           tax_rate=Decimal.from_float(getattr(settings, 'CHARGED_TAX_RATE')),
+                                           tax_currency_ex_rate=tax_ex_rate,
+                                           info_currency_ex_rate=info_ex_rate,
                                            lnnode=node)
 
             invoice.save()

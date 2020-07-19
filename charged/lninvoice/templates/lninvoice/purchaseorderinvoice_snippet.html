@@ -49,7 +49,7 @@
 
         <tr>
             <td>Payed at</td>
-            <td>{{ object.paid_at }}</td>
+            <td>{% if object.paid_at %}{{ object.paid_at }}{% endif %}</td>
         </tr>
 
         <tr>

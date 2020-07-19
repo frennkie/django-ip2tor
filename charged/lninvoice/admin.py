@@ -14,7 +14,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     model = Invoice
 
     search_fields = ('id', 'label')
-    list_display = ['id', 'created_at', 'label', 'get_status_display', 'msatoshi', 'pay_req']
+    list_display = ['id', 'created_at', 'label', 'get_status_display', 'msatoshi', 'price_in_tax_currency', 'pay_req']
     list_filter = ('status', 'created_at')
 
     fields = ('label', 'msatoshi', 'expiry', 'lnnode')
@@ -28,7 +28,11 @@ class InvoiceAdmin(admin.ModelAdmin):
                        'amount_full_satoshi',
                        'amount_full_satoshi_word',
                        'tax_rate',
-                       'info_rate',
+                       'tax_in_tax_currency',
+                       'tax_currency_ex_rate',
+                       'price_in_tax_currency',
+                       'info_currency_ex_rate',
+                       'price_in_info_currency',
                        'amount_btc',
                        'status',
                        'qr_img',)
@@ -66,8 +70,12 @@ class InvoiceAdmin(admin.ModelAdmin):
                         'amount_full_satoshi',
                         'amount_full_satoshi',
                         'amount_full_satoshi_word',
+                        'price_in_tax_currency',
+                        'tax_currency_ex_rate',
+                        'tax_in_tax_currency',
                         'tax_rate',
-                        'info_rate'
+                        'price_in_info_currency',
+                        'info_currency_ex_rate',
                     ),
                 })
             )

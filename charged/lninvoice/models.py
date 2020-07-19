@@ -15,6 +15,7 @@ from django.utils.functional import cached_property
 from django.utils.timezone import now, make_aware
 from django.utils.translation import gettext_lazy as _
 from djmoney.models.fields import MoneyField
+from djmoney.money import Money
 
 from charged.lninvoice.signals import lninvoice_paid, lninvoice_invoice_created_on_node
 from charged.lnnode.models.base import BaseLnNode
@@ -71,23 +72,32 @@ class Invoice(models.Model):
         null=True, blank=False  # may be NULL in database, but not in GUI
     )
 
-    tax_rate = MoneyField(
+    tax_rate = models.DecimalField(
+        decimal_places=2,
+        editable=True,
+        help_text=_('Tax Rate (e.g. 12.5%)'),
+        max_digits=4,
+        verbose_name=_("tax rate"),
+        null=True, blank=True
+    )
+
+    tax_currency_ex_rate = MoneyField(
         decimal_places=2,
         default_currency=getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'),
         editable=False,
         help_text=_('Tax Exchange Rate'),
         max_digits=14,
-        verbose_name=_("tax rate"),
+        verbose_name=_("tax exchange rate"),
         null=True, blank=True
     )
 
-    info_rate = MoneyField(
+    info_currency_ex_rate = MoneyField(
         decimal_places=2,
         default_currency=getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'),
         editable=False,
         help_text=_('Informational Exchange Rate'),
         max_digits=14,
-        verbose_name=_("info rate"),
+        verbose_name=_("info exchange rate"),
         null=True, blank=True
     )
 
@@ -333,6 +343,49 @@ class Invoice(models.Model):
         if not self.msatoshi:
             return 0
         return "{:.8f}".format(self.msatoshi / 100_000_000_000)
+
+    @property
+    def tax_currency_rate2(self):
+        if self.tax_currency_ex_rate:
+            return self.tax_currency_ex_rate
+        return Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
+
+    @property
+    def tax_currency_value(self):
+        try:
+            return self.msatoshi / 1000 / 100_000_000 * self.tax_currency_rate2
+        except ValueError:
+            return Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
+
+    @property
+    def price_in_tax_currency(self):
+        return str(self.tax_currency_value)
+
+    @property
+    def tax_included_value(self):
+        tax = 16.0
+        return self.tax_currency_value - (self.tax_currency_value / (1.00 + tax / 100.0))
+
+    @property
+    def tax_in_tax_currency(self):
+        return str(self.tax_included_value)
+
+    @property
+    def info_currency_rate2(self):
+        if self.info_currency_ex_rate:
+            return self.info_currency_ex_rate
+        return Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
+
+    @property
+    def info_currency_value(self):
+        try:
+            return self.msatoshi / 1000 / 100_000_000 * self.info_currency_rate2
+        except ValueError:
+            return Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
+
+    @property
+    def price_in_info_currency(self):
+        return str(self.info_currency_value)
 
 
 class PurchaseOrderInvoice(Invoice):

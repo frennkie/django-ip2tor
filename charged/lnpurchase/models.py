@@ -1,12 +1,10 @@
 import uuid
 
-from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from djmoney.money import Money
 
 
 class PurchaseOrder(models.Model):
@@ -112,32 +110,6 @@ class PurchaseOrder(models.Model):
     def poi(self):
         poi = self.ln_invoices.first()
         return poi
-
-    @property
-    def tax_rate(self):
-        if self.poi and self.poi.tax_rate:
-            return self.poi.tax_rate
-        return Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
-
-    @property
-    def tax_value(self):
-        try:
-            return int(self.total_price_sat) / 100_000_000 * self.tax_rate
-        except ValueError:
-            return Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
-
-    @property
-    def info_rate(self):
-        if self.poi and self.poi.tax_rate:
-            return self.poi.info_rate
-        return Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
-
-    @property
-    def info_value(self):
-        try:
-            return int(self.total_price_sat) / 100_000_000 * self.info_rate
-        except ValueError:
-            return Money(0.00, getattr(settings, 'CHARGED_TAX_CURRENCY_FIAT'))
 
 
 class PurchaseOrderItemDetail(models.Model):

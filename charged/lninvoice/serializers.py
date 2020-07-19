@@ -1,3 +1,4 @@
+from djmoney.contrib.django_rest_framework import MoneyField
 from rest_framework import serializers
 
 from charged.lninvoice.models import PurchaseOrderInvoice, Invoice
@@ -5,6 +6,13 @@ from charged.lninvoice.models import PurchaseOrderInvoice, Invoice
 
 class InvoiceSerializer(serializers.HyperlinkedModelSerializer):
     lnnode_id = serializers.StringRelatedField(read_only=True, source='object_id')
+
+    tax_currency_ex_rate = MoneyField(max_digits=10, decimal_places=2)
+    info_currency_ex_rate = MoneyField(max_digits=10, decimal_places=2)
+
+    price_in_tax_currency = serializers.CharField()
+    tax_in_tax_currency = serializers.CharField()
+    price_in_info_currency = serializers.CharField()
 
     class Meta:
         model = Invoice

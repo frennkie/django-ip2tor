@@ -14,7 +14,7 @@
     </tr>
     <tr>
         <td>Message</td>
-        <td>{% if object.message %}{{ object.message }}{% else %}{% endif %}</td>
+        <td>{% if object.message %}{{ object.message }}{% endif %}</td>
     </tr>
     <tr>
         <td>Total Price (Satoshi)</td>
@@ -22,11 +22,17 @@
     </tr>
     <tr>
         <td>In Tax Currency</td>
-        <td>{{ object.tax_value }} @ {{ object.tax_rate }}</td>
+        <td>
+            {% if object.poi %}
+                {{ object.poi.price_in_tax_currency }} @ {{ object.poi.tax_currency_rate2 }}
+                (including {{ object.poi.tax_rate|floatformat }}% Tax: {{ object.poi.tax_in_tax_currency }})
+            {% endif %}
+        </td>
     </tr>
     <tr>
         <td>In Info Currency</td>
-        <td>{{ object.info_value }} @ {{ object.info_rate }}</td>
+        <td>{% if object.poi %}
+                {{ object.poi.price_in_info_currency }} @ {{ object.poi.info_currency_rate2 }}{% endif %}</td>
     </tr>
 
     <tr>

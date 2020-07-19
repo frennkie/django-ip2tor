@@ -1,3 +1,4 @@
+from djmoney.contrib.django_rest_framework import MoneyField
 from rest_framework import serializers
 
 from charged.lninvoice.serializers import InvoiceSerializer
@@ -20,4 +21,4 @@ class PurchaseOrderSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = PurchaseOrder
-        fields = ('url', 'status', 'message', 'item_details', 'ln_invoices')
+        fields = ('url', 'status', 'message', 'item_details', 'ln_invoices',)
