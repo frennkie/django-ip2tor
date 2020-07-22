@@ -8,6 +8,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
 
@@ -165,6 +166,39 @@ class Host(models.Model):
                                            help_text=_('Link to a Terms of Service site.'),
                                            null=False, blank=True)
 
+    # Host Check-In
+    ci_date = models.DateTimeField(
+        verbose_name=_('check-in date'),
+        help_text=_('Date of last time the host checked in.'),
+        editable=False,
+        null=True, blank=True  # optional
+    )
+
+    ci_message = models.CharField(
+        max_length=140,
+        editable=False,
+        verbose_name=_('check-in message'),
+        help_text=_('A message (optional) send by the host on last check-in.'),
+        null=True, blank=True  # optional
+    )
+
+    HELLO = 0
+    GOODBYE = 1
+    FAREWELL = 2
+    CI_STATUS_CHOICES = (
+        (HELLO, _('hello')),
+        (GOODBYE, _('goodbye')),
+        (FAREWELL, _('farewell')),
+    )
+
+    ci_status = models.PositiveSmallIntegerField(
+        verbose_name=_("check-in status"),
+        help_text=_('Reported status on last host check-in.'),
+        editable=False,
+        choices=CI_STATUS_CHOICES,
+        default=HELLO
+    )
+
     class Meta:
         ordering = ['ip']
         verbose_name = _('Host')
@@ -173,6 +207,19 @@ class Host(models.Model):
 
     def __str__(self):
         return 'Host:{} ({} - Owner:{})'.format(self.ip, self.name, self.owner)
+
+    def check_in(self, status=None, message=None, date=None):
+        if status is None:
+            status = Host.HELLO
+        if message is None:
+            message = ""
+        if date is None:
+            date = timezone.now().replace(microsecond=0)
+
+        self.ci_date = date
+        self.ci_status = status
+        self.ci_message = message
+        self.save()
 
     def get_random_port(self):
         port_range = self.port_ranges.all()

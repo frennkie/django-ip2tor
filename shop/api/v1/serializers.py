@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework import serializers
 
 from shop.models import TorBridge, Host
@@ -16,7 +17,17 @@ class HostSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('ip', 'name', 'site', 'is_testnet')
+        fields = ('ip', 'name', 'site', 'is_testnet', 'ci_date', 'ci_status', 'ci_message')
+
+
+class HostCheckInSerializer(serializers.HyperlinkedModelSerializer):
+    ci_date = serializers.DateTimeField(read_only=True)
+    ci_status = serializers.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(9)])
+    ci_message = serializers.CharField()
+
+    class Meta:
+        model = Host
+        fields = ('ci_date', 'ci_status', 'ci_message')
 
 
 class TorBridgeSerializer(serializers.HyperlinkedModelSerializer):
