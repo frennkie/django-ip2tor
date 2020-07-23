@@ -5,7 +5,10 @@
 # License: MIT
 # Copyright (c) 2020 The RaspiBlitz developers
 
-set -e
+# set -e  # doesn't work well with exit 1 from ip2torc.sh
+
+# How to show debug logs:
+# DEBUG_LOG=1 ./ip2tor_host.sh
 
 # CONFIGURATION: use either environment or file
 # ENV:
@@ -63,6 +66,9 @@ IP2TORC_CMD=/usr/local/bin/ip2torc.sh
 ###################
 # FUNCTIONS
 ###################
+
+function debug() { ((DEBUG_LOG)) && echo "### $*"; }
+
 function get_tor_bridges() {
   # first parameter to function
   local status=${1-all}
@@ -79,7 +85,7 @@ function get_tor_bridges() {
   res=$(curl -s -q -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" "${url}")
 
   if [ -z "${res///}" ] || [ "${res///}" = "[]" ]; then
-    #echo "Nothing to do"
+    debug "Nothing to do"
     res=''
   fi
 
@@ -102,7 +108,7 @@ if [ "$1" = "activate" ]; then
   active_list=$(echo "${jsn}" | xargs -L3 | sed 's/ /|/g' | paste -sd "\n" -)
 
   if [ -z "${active_list}" ]; then
-    echo "Nothing to do"
+    debug "Nothing to do"
     exit 0
   fi
 
@@ -168,7 +174,7 @@ elif [ "$1" = "checkin" ]; then
 elif [ "$1" = "hello" ]; then
   url="${IP2TOR_SHOP_URL}/api/v1/hosts/${IP2TOR_HOST_ID}/check_in/"
   res=$(curl -s -q -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" "${url}")
-  echo "${res}"
+  debug "${res}"
 
 
 ########
@@ -178,7 +184,7 @@ elif [ "$1" = "list" ]; then
   get_tor_bridges "${2-all}"
 
   if [ -z "${res}" ]; then
-    echo "Nothing"
+    debug "Nothing"
     exit 0
   else
     jsn=$(echo "${res}" | jq -c '.[]|.port,.id,.status,.target | tostring')
@@ -215,7 +221,7 @@ elif [ "$1" = "suspend" ]; then
   suspend_list=$(echo "${jsn}" | xargs -L3 | sed 's/ /|/g' | paste -sd "\n" -)
 
   if [ -z "${suspend_list}" ]; then
-    echo "Nothing to do"
+    # echo "DEBUG: Nothing to do"
     exit 0
   fi
 
@@ -251,7 +257,7 @@ elif [ "$1" = "suspend" ]; then
       )
 
       #echo "Res: ${res}"
-      echo "set to deleted: ${b_id}"
+      echo "set to suspended (hold): ${b_id}"
     fi
 
   done

@@ -8,6 +8,9 @@
 set -e
 set -u
 
+# How to show debug logs:
+# DEBUG_LOG=1 ./ip2torc.sh
+
 # command info
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ]; then
   echo "management script to add, check, list or remove IP2Tor bridges (using socat and systemd)"
@@ -31,6 +34,12 @@ if ! command -v socat >/dev/null; then
   echo "socat installed successfully."
 fi
 
+###################
+# FUNCTIONS
+###################
+
+function debug() { ((DEBUG_LOG)) && echo "### $*"; }
+
 function add_bridge() {
   # requires sudo
   port=${1}
@@ -39,7 +48,7 @@ function add_bridge() {
 
   file_path="/etc/systemd/system/ip2tor_${port}.service"
   if [ -f "${file_path}" ]; then
-    echo "file exists already"
+    debug "file exists already"
     exit 0
   fi
 
