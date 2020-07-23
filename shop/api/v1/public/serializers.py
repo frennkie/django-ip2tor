@@ -134,7 +134,6 @@ class PublicShopPurchaseOrderSerializer(PurchaseOrderSerializer):
 
 
 class PublicTorBridgeSerializer(serializers.HyperlinkedModelSerializer):
-    host_id = serializers.CharField()
 
     class Meta:
         model = TorBridge
