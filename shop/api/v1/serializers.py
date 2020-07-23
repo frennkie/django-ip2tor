@@ -17,13 +17,14 @@ class HostSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('ip', 'name', 'site', 'is_testnet', 'ci_date', 'ci_status', 'ci_message')
+        fields = ('url', 'ip', 'name', 'site', 'is_testnet', 'ci_date', 'ci_status', 'ci_message')
 
 
 class HostCheckInSerializer(serializers.HyperlinkedModelSerializer):
     ci_date = serializers.DateTimeField(read_only=True)
-    ci_status = serializers.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(9)])
-    ci_message = serializers.CharField()
+    ci_status = serializers.IntegerField(required=False,
+                                         validators=[MinValueValidator(0), MaxValueValidator(2)])
+    ci_message = serializers.CharField(required=False)
 
     class Meta:
         model = Host

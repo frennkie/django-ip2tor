@@ -48,39 +48,23 @@ class HostViewSet(viewsets.ModelViewSet):
             return Host.objects.all()
         return Host.objects.filter(host__token_user=user)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get', 'post'], serializer_class=HostCheckInSerializer)
     def check_in(self, request, pk=None):
+        serializer = HostCheckInSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        status = serializer.data.get('ci_status')
+        message = serializer.data.get('ci_message')
+
         host = self.get_object()
-        host.check_in()
+        host.check_in(status=status, message=message)
 
         return Response({
             'check_in': 'ok',
-            'date': host.ci_date
+            'date': host.ci_date,
+            'status': host.ci_status,
+            'message': host.ci_message
         })
-
-    @action(detail=True, methods=['post'], serializer_class=HostCheckInSerializer)
-    def check_in_message(self, request, pk=None):
-
-        serializer = HostCheckInSerializer(data=request.data)
-        if serializer.is_valid():
-            status = serializer.data['ci_status']
-            message = serializer.data['ci_message']
-
-            host = self.get_object()
-            host.check_in(status=status, message=message)
-
-            return Response({
-                'check_in_message': 'ok',
-                'date': host.ci_date,
-                'status': host.ci_status,
-                'message': host.ci_message
-            })
-
-        else:
-            print("invalid")
-            return Response({
-                'check_in_message': 'invalid',
-            })
 
 
 class SiteViewSet(viewsets.ModelViewSet):
