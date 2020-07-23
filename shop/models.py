@@ -318,6 +318,8 @@ class PortRange(models.Model):
     @property
     def used(self):
         if self._used:
+            if self._used == 'set()':  # ToDo(frennkie) this is a bug... _used should never contain "set()"
+                return set()
             return set(ast.literal_eval(self._used))
         return set()
 
