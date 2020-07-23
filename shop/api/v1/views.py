@@ -46,11 +46,11 @@ class HostViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_superuser:
             return Host.objects.all()
-        return Host.objects.filter(host__token_user=user)
+        return Host.objects.filter(token_user=user)
 
     @action(detail=True, methods=['get', 'post'], serializer_class=HostCheckInSerializer)
     def check_in(self, request, pk=None):
-        serializer = HostCheckInSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
         status = serializer.data.get('ci_status')

@@ -21,6 +21,8 @@ set -e
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ]; then
   echo "management script to fetch and process config from shop"
   echo "ip2tor_host.sh activate"
+  echo "ip2tor_host.sh checkin NUMBER \"MESSAGE\""
+  echo "ip2tor_host.sh hello"
   echo "ip2tor_host.sh list [I|P|A|S|H|Z|D|F]"
   echo "ip2tor_host.sh loop"
   echo "ip2tor_host.sh suspend"
@@ -141,6 +143,34 @@ if [ "$1" = "activate" ]; then
   done
 
 
+############
+# CHECK-IN #
+############
+elif [ "$1" = "checkin" ]; then
+  ci_status="$2"
+  ci_message="$3"
+  url="${IP2TOR_SHOP_URL}/api/v1/hosts/${IP2TOR_HOST_ID}/check_in/"
+
+  res=$(
+      curl -X "POST" \
+      -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" \
+      -H "Content-Type: application/json" \
+      --data "{\"ci_status\": \"${ci_status}\", \"ci_message\": \"${ci_message}\"}" \
+      "${url}"
+  )
+
+  echo "${res}"
+
+
+#########
+# HELLO #
+#########
+elif [ "$1" = "hello" ]; then
+  url="${IP2TOR_SHOP_URL}/api/v1/hosts/${IP2TOR_HOST_ID}/check_in/"
+  res=$(curl -s -q -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" "${url}")
+  echo "${res}"
+
+
 ########
 # LIST #
 ########
@@ -165,6 +195,7 @@ elif [ "$1" = "loop" ]; then
   do
     "${0}" activate
     "${0}" suspend
+    "${0}" hello
     sleep 2
   done
 

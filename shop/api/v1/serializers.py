@@ -20,12 +20,11 @@ class HostSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class HostCheckInSerializer(serializers.HyperlinkedModelSerializer):
+    ci_status = serializers.IntegerField(required=False, read_only=False, min_value=0, max_value=2)
+    ci_message = serializers.CharField(required=False, read_only=False)
+
     class Meta:
         model = Host
-        extra_kwargs = {
-            'ci_message': {'required': False, 'read_only': False},
-            'ci_status': {'required': False, 'read_only': False, 'min_value': 0, 'max_value': 2}
-        }
         fields = ('ci_date', 'ci_status', 'ci_message')
 
 
