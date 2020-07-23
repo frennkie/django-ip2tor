@@ -196,7 +196,8 @@ class Host(models.Model):
         help_text=_('Reported status on last host check-in.'),
         editable=False,
         choices=CI_STATUS_CHOICES,
-        default=HELLO
+        default=HELLO,
+        validators=[MinValueValidator(0), MaxValueValidator(2)]  # also set/update this on Serializers
     )
 
     class Meta:

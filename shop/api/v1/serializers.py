@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
-from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework import serializers
 
 from shop.models import TorBridge, Host
@@ -21,13 +20,12 @@ class HostSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class HostCheckInSerializer(serializers.HyperlinkedModelSerializer):
-    ci_date = serializers.DateTimeField(read_only=True)
-    ci_status = serializers.IntegerField(required=False,
-                                         validators=[MinValueValidator(0), MaxValueValidator(2)])
-    ci_message = serializers.CharField(required=False)
-
     class Meta:
         model = Host
+        extra_kwargs = {
+            'ci_message': {'required': False, 'read_only': False},
+            'ci_status': {'required': False, 'read_only': False, 'min_value': 0, 'max_value': 2}
+        }
         fields = ('ci_date', 'ci_status', 'ci_message')
 
 
