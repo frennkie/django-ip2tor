@@ -104,6 +104,12 @@ class Host(models.Model):
                                       help_text=_('IP Address of Host.'),
                                       unique=True)
 
+    is_enabled = models.BooleanField(
+        default=True,
+        verbose_name=_('Is enabled?'),
+        help_text=_('Is enabled?')
+    )
+
     owner = models.ForeignKey(get_user_model(),
                               editable=True,
                               on_delete=models.CASCADE,
