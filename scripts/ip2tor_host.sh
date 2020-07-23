@@ -152,7 +152,7 @@ elif [ "$1" = "checkin" ]; then
   url="${IP2TOR_SHOP_URL}/api/v1/hosts/${IP2TOR_HOST_ID}/check_in/"
 
   res=$(
-      curl -X "POST" \
+      curl -s -q -X "POST" \
       -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" \
       -H "Content-Type: application/json" \
       --data "{\"ci_status\": \"${ci_status}\", \"ci_message\": \"${ci_message}\"}" \
