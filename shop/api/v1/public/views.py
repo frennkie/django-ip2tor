@@ -21,7 +21,7 @@ class PublicHostViewSet(mixins.RetrieveModelMixin,
     API endpoint that allows **anybody** to `list` and `retrieve` hosts.
     `Create`, `edit` and `delete` is **not possible**.
     """
-    queryset = Host.objects.all()
+    queryset = Host.active.all()
     serializer_class = serializers.PublicHostSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]

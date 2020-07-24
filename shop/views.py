@@ -9,6 +9,9 @@ from .models import Host, ShopPurchaseOrder
 class HostListView(generic.ListView):
     model = Host
 
+    def get_queryset(self):
+        return Host.active.all()
+
 
 class PurchaseTorBridgeOnHostView(generic.UpdateView):
     model = Host
