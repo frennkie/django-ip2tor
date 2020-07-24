@@ -192,7 +192,9 @@ Examples
 
 ```
 DATABASE_URL="postgres://username:password@host:5432/database"
-EMAIL_URL="smtps://sender@example.com:password@smtp.exmaple.com:587/"
+EMAIL_URL="submission://sender@example.com:password@smtp.exmaple.com:587/"
+ADMIN_NAME="Joe"
+ADMIN_EMAIL"joe@example.com
 ```
 
 
