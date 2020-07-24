@@ -24,6 +24,9 @@ class PurchaseTorBridgeOnHostView(generic.UpdateView):
         # print(context)
         return context
 
+    def get_queryset(self):
+        return Host.active.all()
+
     def get_success_url(self):
         pass
 
