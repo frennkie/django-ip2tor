@@ -158,6 +158,9 @@ EMAIL_HOST_PASSWORD = email["EMAIL_HOST_PASSWORD"]
 EMAIL_HOST_USER = email["EMAIL_HOST_USER"]
 EMAIL_USE_TLS = email["EMAIL_USE_TLS"]
 
+SERVER_EMAIL = email.get('SERVER_EMAIL', 'root@localhost')
+DEFAULT_FROM_EMAIL = email.get('DEFAULT_FROM_EMAIL', 'webmaster@localhost')
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
