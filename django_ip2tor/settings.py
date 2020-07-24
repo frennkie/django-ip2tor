@@ -47,6 +47,34 @@ DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = ['*']
 
+# Django logging setup
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': env.str('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+    },
+}
+
+
 INSTALLED_APPS = [
     'channels',
     'django.contrib.admin',
@@ -160,6 +188,8 @@ EMAIL_USE_TLS = email["EMAIL_USE_TLS"]
 
 SERVER_EMAIL = email.get('SERVER_EMAIL', 'root@localhost')
 DEFAULT_FROM_EMAIL = email.get('DEFAULT_FROM_EMAIL', 'webmaster@localhost')
+
+ADMINS = [(env.str("ADMIN_NAME", "admin"), env.str("ADMIN_EMAIL", "root@localhost"))]
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
