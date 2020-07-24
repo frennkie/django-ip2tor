@@ -250,15 +250,15 @@ class Host(models.Model):
     @property
     def tor_bridge_ports_available(self):
         total = 0
-        for range in self.port_ranges.filter(type=PortRange.TOR_BRIDGE):
-            total += range.ports_available
+        for _range in self.port_ranges.filter(type=PortRange.TOR_BRIDGE):
+            total += _range.ports_available
         return total
 
     @property
     def rssh_tunnels_ports_available(self):
         total = 0
-        for range in self.port_ranges.filter(type=PortRange.RSSH_TUNNEL):
-            total += range.ports_available
+        for _range in self.port_ranges.filter(type=PortRange.RSSH_TUNNEL):
+            total += _range.ports_available
         return total
 
     def save(self, *args, **kwargs):
