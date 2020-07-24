@@ -1,5 +1,6 @@
 import ast
 import uuid
+from datetime import timedelta
 from random import randint
 
 from django.contrib.auth import get_user_model
@@ -92,6 +93,13 @@ class IpDenyList(DenyList):
         if self.is_denied:
             return "DENY: {}".format(self.ip)
         return "ALLOW: {}".format(self.ip)
+
+
+class ActiveHostManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset() \
+            .filter(is_enabled=True) \
+            .filter(ci_date__gt=timezone.now() - timedelta(minutes=5))
 
 
 class Host(models.Model):
@@ -205,6 +213,9 @@ class Host(models.Model):
         default=HELLO,
         validators=[MinValueValidator(0), MaxValueValidator(2)]  # also set/update this on Serializers
     )
+
+    objects = models.Manager()  # default
+    active = ActiveHostManager()
 
     class Meta:
         ordering = ['ip']
