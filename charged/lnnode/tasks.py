@@ -24,7 +24,10 @@ def handle_alive_change(node, new_status):
 
     if node.owner.email:
         try:
-            node.owner.email_user("Task: Check_alive -> set is_alive=%s" % new_status, 'k.t.')
+            node.owner.email_user(
+                "[IP2TOR] check_alive status change: is_alive is now %s" % new_status,
+                'Node %s - is_alive now: %s' % (node, new_status)
+            )
         except Exception as err:
             logger.warning("Unable to notify owner by email. Error:\n{}".format(err))
 
