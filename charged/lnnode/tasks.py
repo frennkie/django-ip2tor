@@ -1,9 +1,7 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from django.contrib.admin.models import LogEntry, CHANGE
 from django.contrib.admin.options import get_content_type_for_model
-from django.core.mail import send_mail
 
 from charged.lnnode.models import get_all_nodes
 
@@ -25,7 +23,10 @@ def handle_alive_change(node, new_status):
     )
 
     if node.owner.email:
-        node.owner.email_user("Task: Check_alive -> set is_alive=%s" % new_status, 'k.t.')
+        try:
+            node.owner.email_user("Task: Check_alive -> set is_alive=%s" % new_status, 'k.t.')
+        except Exception as err:
+            logger.warning("Unable to notify owner by email. Error:\n{}".format(err))
 
     if new_status:
         node.is_alive = True
