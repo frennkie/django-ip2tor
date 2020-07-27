@@ -64,13 +64,16 @@ def host_alive_check(self, obj_id=None):
         hosts = Host.objects.filter(is_enabled=True)
 
     for host in hosts:
+        logger.info(f"Running on Host: {host}")
         alive = host.check_alive_status()
+        logger.info(f"Result: {alive}")
 
         if host.is_alive == alive:
-            logger.debug(f"Host status did not change - {host} is still: {host.is_alive}")
+            logger.info(f"Host status did not change - {host} is still: {host.is_alive}")
             return  # no change
-
-        handle_alive_change(host, alive)
+        else:
+            logger.info(f"Host status changed - {host} is now: {host.is_alive}")
+            handle_alive_change(host, alive)
 
 
 @shared_task()
