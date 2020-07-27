@@ -21,6 +21,12 @@ if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ];
   exit 1
 fi
 
+
+###################
+# DEBUG + CHECKS
+###################
+function debug() { ((DEBUG_LOG)) && echo "### $*"; }
+
 if ! command -v tor >/dev/null; then
   echo "TOR is not installed - exiting."
   echo "Please setup TOR and run again."
@@ -34,12 +40,10 @@ if ! command -v socat >/dev/null; then
   echo "socat installed successfully."
 fi
 
+
 ###################
 # FUNCTIONS
 ###################
-
-function debug() { ((DEBUG_LOG)) && echo "### $*"; }
-
 function add_bridge() {
   # requires sudo
   port=${1}

@@ -32,6 +32,17 @@ if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--help" ];
   exit 1
 fi
 
+
+###################
+# DEBUG + CHECKS
+###################
+function debug() { ((DEBUG_LOG)) && echo "### $*"; }
+
+if ! command -v tor >/dev/null; then
+  echo "TOR not found - please install it!"
+  exit 1
+fi
+
 if ! command -v jq >/dev/null; then
   echo "jq not found - installing it now..."
   sudo apt-get update &>/dev/null
@@ -39,10 +50,10 @@ if ! command -v jq >/dev/null; then
   echo "jq installed successfully."
 fi
 
+
 ###################
 # GET CONFIG
 ###################
-
 if [ -f "/etc/ip2tor.conf" ]; then
   unset IP2TOR_SHOP_URL
   unset IP2TOR_HOST_ID
@@ -56,6 +67,22 @@ if [ -z "${IP2TOR_SHOP_URL}" ] || [ -z "${IP2TOR_HOST_ID}" ] || [ -z "${IP2TOR_H
   exit 1
 fi
 
+if [[ "${IP2TOR_SHOP_URL}" == *".onion" ]]; then
+  debug "IP2TOR_SHOP_URL is .onion"
+  CURL_TOR="-x socks5h://127.0.0.1:9050/"
+  if [[ "${IP2TOR_SHOP_URL}" == "https://"* ]]; then
+    echo "Error: IP2TOR_SHOP_URL is .onion but tries HTTPS. Change to HTTP."
+    exit 1
+  fi
+else
+  debug "IP2TOR_SHOP_URL is NOT .onion"
+  CURL_TOR=""
+    if [[ "${IP2TOR_SHOP_URL}" == "http://"* ]]; then
+    echo "Error: Change IP2TOR_SHOP_URL to HTTPS"
+    exit 1
+  fi
+fi
+
 if [ ! -f "/usr/local/bin/ip2torc.sh" ]; then
   echo "Error: /usr/local/bin/ip2torc.sh is missing"
   exit 1
@@ -63,26 +90,24 @@ fi
 
 IP2TORC_CMD=/usr/local/bin/ip2torc.sh
 
+
 ###################
 # FUNCTIONS
 ###################
-
-function debug() { ((DEBUG_LOG)) && echo "### $*"; }
-
 function get_tor_bridges() {
   # first parameter to function
   local status=${1-all}
 
   if [ "${status}" = "all" ]; then
-    #echo "filter: None"
+    debug "filter: None"
     local url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/?host=${IP2TOR_HOST_ID}"
 
   else
-    #echo "filter: ${status}"
+    debug "filter: ${status}"
     local url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/?host=${IP2TOR_HOST_ID}&status=${status}"
   fi
 
-  res=$(curl -s -q -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" "${url}")
+  res=$(curl -q ${CURL_TOR} -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" "${url}" 2>/dev/null)
 
   if [ -z "${res///}" ] || [ "${res///}" = "[]" ]; then
     debug "Nothing to do"
@@ -117,32 +142,28 @@ if [ "$1" = "activate" ]; then
   echo "---"
 
   for item in ${active_list}; do
-    #echo "Item: ${item}"
     b_id=$(echo "${item}" | cut -d'|' -f1)
     port=$(echo "${item}" | cut -d'|' -f2)
     target=$(echo "${item}" | cut -d'|' -f3)
-    #echo "${b_id}"
-    #echo "${port}"
-    #echo "${target}"
 
     res=$("${IP2TORC_CMD}" add "${port}" "${target}")
-    #echo "Status Code: $?"
-    #echo "${res}"
+    debug "Status Code: $?"
+    debug "${res}"
 
     if [ $? -eq 0 ]; then
       patch_url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/${b_id}/"
 
-      #echo "now send PATCH to ${patch_url} that ${b_id} is done"
-
+      # now send PATCH to ${patch_url} that ${b_id} is done
       res=$(
         curl -X "PATCH" \
+        ${CURL_TOR} \
         -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" \
         -H "Content-Type: application/json" \
         --data '{"status": "A"}' \
-        "${patch_url}"
+        "${patch_url}" 2>/dev/null
       )
 
-      #echo "Res: ${res}"
+      debug "Res: ${res}"
       echo "set to active: ${b_id}"
     fi
 
@@ -158,14 +179,14 @@ elif [ "$1" = "checkin" ]; then
   url="${IP2TOR_SHOP_URL}/api/v1/hosts/${IP2TOR_HOST_ID}/check_in/"
 
   res=$(
-      curl -s -q -X "POST" \
+      curl -q -X "POST" \
+      ${CURL_TOR} \
       -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" \
       -H "Content-Type: application/json" \
       --data "{\"ci_status\": \"${ci_status}\", \"ci_message\": \"${ci_message}\"}" \
-      "${url}"
+      "${url}" 2>/dev/null
   )
-
-  echo "${res}"
+  debug "${res}"
 
 
 #########
@@ -173,7 +194,7 @@ elif [ "$1" = "checkin" ]; then
 #########
 elif [ "$1" = "hello" ]; then
   url="${IP2TOR_SHOP_URL}/api/v1/hosts/${IP2TOR_HOST_ID}/check_in/"
-  res=$(curl -s -q -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" "${url}")
+  res=$(curl -q ${CURL_TOR} -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" "${url}" 2>/dev/null)
   debug "${res}"
 
 
@@ -230,33 +251,28 @@ elif [ "$1" = "suspend" ]; then
   echo "---"
 
   for item in ${suspend_list}; do
-    echo "Item: ${item}"
     b_id=$(echo "${item}" | cut -d'|' -f1)
     port=$(echo "${item}" | cut -d'|' -f2)
     target=$(echo "${item}" | cut -d'|' -f3)
-    #echo "${b_id}"
-    #echo "${port}"
-    #echo "${target}"
 
-    set -x
     res=$("${IP2TORC_CMD}" remove "${port}")
-    echo "Status Code: $?"
-    echo "${res}"
+    debug "Status Code: $?"
+    debug "${res}"
 
     if [ $? -eq 0 ]; then
       patch_url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/${b_id}/"
 
-      echo "now send PATCH to ${patch_url} that ${b_id} is done"
-
+      # now send PATCH to ${patch_url} that ${b_id} is done
       res=$(
         curl -X "PATCH" \
+        ${CURL_TOR} \
         -H "Authorization: Token ${IP2TOR_HOST_TOKEN}" \
         -H "Content-Type: application/json" \
         --data '{"status": "H"}' \
-        "${patch_url}"
+        "${patch_url}" 2>/dev/null
       )
 
-      #echo "Res: ${res}"
+      debug "Res: ${res}"
       echo "set to suspended (hold): ${b_id}"
     fi
 
