@@ -153,9 +153,8 @@ class HostAdmin(admin.ModelAdmin):
                    'owner', 'ip', 'offers_tor_bridges', 'offers_rssh_tunnels')
 
     readonly_fields = ('id', 'auth_token', 'ci_status', 'ci_date', 'ci_message')
-    # inlines = (PortRangeInline)  # Bridges and RSS might too many to be useful
-    # inlines = (PortRangeInline, TorBridgeInline, RSshTunnelInline)
-    inlines = (PortRangeInline, TorBridgeInline)
+    inlines = (PortRangeInline, )
+    # inlines = (PortRangeInline, TorBridgeInline)  # Bridges are too many to be useful
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
