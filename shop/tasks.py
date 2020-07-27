@@ -70,7 +70,7 @@ def host_alive_check(self, obj_id=None):
 
         if host.is_alive == alive:
             logger.info(f"Host status did not change - {host} is still: {host.is_alive}")
-            return  # no change
+            continue  # no change
         else:
             logger.info(f"Host status changed - {host} is now: {host.is_alive}")
             handle_alive_change(host, alive)
