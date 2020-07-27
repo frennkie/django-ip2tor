@@ -67,7 +67,7 @@ def host_alive_check(self, obj_id=None):
         alive = host.check_alive_status()
 
         if host.is_alive == alive:
-            logger.debug(f"Host status did not change - {obj_id} is still: {host.is_alive}")
+            logger.debug(f"Host status did not change - {host} is still: {host.is_alive}")
             return  # no change
 
         handle_alive_change(host, alive)
