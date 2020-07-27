@@ -64,15 +64,13 @@ def host_alive_check(self, obj_id=None):
         hosts = Host.objects.filter(is_enabled=True)
 
     for host in hosts:
-        logger.info(f"Running on Host: {host}")
         alive = host.check_alive_status()
-        logger.info(f"Result: {alive}")
 
         if host.is_alive == alive:
-            logger.info(f"Host status did not change - {host} is still: {host.is_alive}")
+            logger.debug(f"Host {host} *is_alive* status did not change - is still: {alive}")
             continue  # no change
         else:
-            logger.info(f"Host status changed - {host} is now: {host.is_alive}")
+            logger.debug(f"Host {host} *is_alive* status changed - is now: {alive}")
             handle_alive_change(host, alive)
 
 
