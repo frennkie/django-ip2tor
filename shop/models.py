@@ -3,6 +3,7 @@ import uuid
 from datetime import timedelta
 from random import randint
 
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -118,6 +119,13 @@ class Host(models.Model):
         help_text=_('Is enabled?')
     )
 
+    is_alive = models.BooleanField(
+        default=False,
+        editable=False,
+        verbose_name=_('Is alive?'),
+        help_text=_('Is alive?')
+    )
+
     owner = models.ForeignKey(get_user_model(),
                               editable=True,
                               on_delete=models.CASCADE,
@@ -225,6 +233,10 @@ class Host(models.Model):
 
     def __str__(self):
         return 'Host:{} ({} - Owner:{})'.format(self.ip, self.name, self.owner)
+
+    def check_alive_status(self):
+        has_fresh_check_in = self.ci_date > timezone.now() - timedelta(minutes=5)
+        return self.ci_status == self.HELLO and has_fresh_check_in
 
     def check_in(self, status=None, message=None, date=None):
         if status is None:

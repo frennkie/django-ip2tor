@@ -2,11 +2,17 @@ from datetime import timedelta
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
+from django.contrib.admin.models import LogEntry, CHANGE
+from django.contrib.admin.options import get_content_type_for_model
 from django.utils import timezone
 
-from shop.models import TorBridge
+from shop.models import TorBridge, Host
 
 logger = get_task_logger(__name__)
+
+
+class HostNotFoundError(Exception):
+    pass
 
 
 @shared_task()
@@ -17,6 +23,54 @@ def add(x, y):
 @shared_task()
 def count_tor_bridges():
     return TorBridge.objects.count()
+
+
+def handle_alive_change(host, new_status):
+    LogEntry.objects.log_action(
+        user_id=1,
+        content_type_id=get_content_type_for_model(host).pk,
+        object_id=host.pk,
+        object_repr=str(host),
+        action_flag=CHANGE,
+        change_message="Task: Check_alive -> set is_alive=%s" % new_status,
+    )
+
+    if host.owner.email:
+        try:
+            host.owner.email_user(
+                "[IP2TOR] check_alive status change: is_alive is now %s" % new_status,
+                'Host %s - is_alive now: %s' % (host, new_status)
+            )
+        except Exception as err:
+            logger.warning("Unable to notify owner by email. Error:\n{}".format(err))
+
+    if new_status:
+        host.is_alive = True
+        host.save()
+    else:
+        host.is_alive = False
+        host.save()
+
+
+@shared_task(bind=True)
+def host_alive_check(self, obj_id=None):
+    if obj_id:
+        hosts = Host.objects.filter(pk=obj_id)
+
+        if not hosts[0]:
+            logger.warning(f"Host not found: {obj_id}")
+            raise HostNotFoundError
+    else:
+        hosts = Host.objects.filter(is_enabled=True)
+
+    for host in hosts:
+        alive = host.check_alive_status()
+
+        if host.is_alive == alive:
+            logger.debug(f"Host status did not change - {obj_id} is still: {host.is_alive}")
+            return  # no change
+
+        handle_alive_change(host, alive)
 
 
 @shared_task()
