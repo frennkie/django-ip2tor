@@ -5,7 +5,6 @@
 # License: MIT
 # Copyright (c) 2020 The RaspiBlitz developers
 
-set -e
 set -u
 
 # How to show debug logs:
@@ -25,6 +24,7 @@ fi
 ###################
 # DEBUG + CHECKS
 ###################
+DEBUG_LOG=${DEBUG_LOG:-0}
 function debug() { ((DEBUG_LOG)) && echo "### $*"; }
 
 if ! command -v tor >/dev/null; then
