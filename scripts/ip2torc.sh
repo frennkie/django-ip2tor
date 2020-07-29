@@ -6,7 +6,7 @@
 # Copyright (c) 2020 The RaspiBlitz developers
 
 set -e
-set -u
+#set -u  # does not work with DEBUG_LOG
 
 # How to show debug logs:
 # DEBUG_LOG=1 ./ip2torc.sh
