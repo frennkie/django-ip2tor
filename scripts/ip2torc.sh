@@ -5,8 +5,7 @@
 # License: MIT
 # Copyright (c) 2020 The RaspiBlitz developers
 
-set -e
-#set -u  # does not work with DEBUG_LOG
+set -u
 
 # How to show debug logs:
 # DEBUG_LOG=1 ./ip2torc.sh
@@ -25,6 +24,7 @@ fi
 ###################
 # DEBUG + CHECKS
 ###################
+DEBUG_LOG=${DEBUG_LOG:-0}
 function debug() { ((DEBUG_LOG)) && echo "### $*"; }
 
 if ! command -v tor >/dev/null; then

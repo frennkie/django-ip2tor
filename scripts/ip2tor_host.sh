@@ -36,6 +36,7 @@ fi
 ###################
 # DEBUG + CHECKS
 ###################
+DEBUG_LOG=${DEBUG_LOG:-0}
 function debug() { ((DEBUG_LOG)) && echo "### $*"; }
 
 if ! command -v tor >/dev/null; then
@@ -146,9 +147,7 @@ if [ "$1" = "activate" ]; then
     port=$(echo "${item}" | cut -d'|' -f2)
     target=$(echo "${item}" | cut -d'|' -f3)
 
-    res=$("${IP2TORC_CMD}" add "${port}" "${target}")
-    debug "Status Code: $?"
-    debug "${res}"
+    DEBUG_LOG=$DEBUG_LOG "${IP2TORC_CMD}" add "${port}" "${target}"
 
     if [ $? -eq 0 ]; then
       patch_url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/${b_id}/"
@@ -255,9 +254,7 @@ elif [ "$1" = "suspend" ]; then
     port=$(echo "${item}" | cut -d'|' -f2)
     target=$(echo "${item}" | cut -d'|' -f3)
 
-    res=$("${IP2TORC_CMD}" remove "${port}")
-    debug "Status Code: $?"
-    debug "${res}"
+    DEBUG_LOG=$DEBUG_LOG "${IP2TORC_CMD}" remove "${port}"
 
     if [ $? -eq 0 ]; then
       patch_url="${IP2TOR_SHOP_URL}/api/v1/tor_bridges/${b_id}/"
