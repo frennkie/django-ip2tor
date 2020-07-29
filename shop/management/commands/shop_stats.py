@@ -13,7 +13,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         tags = options['tags']
 
-        ts = int(timezone.now().replace(microsecond=0).timestamp() * 1000_000)
+        ts = int(timezone.now().replace(microsecond=0).timestamp() * 1000_000_000)
 
         hosts = Host.objects.all()
 
