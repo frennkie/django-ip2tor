@@ -47,18 +47,18 @@ class Command(BaseCommand):
 
         for k, v in results.items():
             if tags:
-                print(f'bridge,host={k},status=initial value={v["initial"]}i {ts}')
-                print(f'bridge,host={k},status=needs_activate value={v["needs_activate"]}i {ts}')
-                print(f'bridge,host={k},status=active value={v["active"]}i {ts}')
-                print(f'bridge,host={k},status=needs_suspend value={v["needs_suspend"]}i {ts}')
-                print(f'bridge,host={k},status=suspended value={v["suspended"]}i {ts}')
-                print(f'bridge,host={k},status=archived value={v["archived"]}i {ts}')
-                print(f'bridge,host={k},status=needs_delete value={v["needs_delete"]}i {ts}')
-                print(f'bridge,host={k},status=failed value={v["failed"]}i {ts}')
+                print(f'bridge,hostname={k},status=initial value={v["initial"]}i {ts}')
+                print(f'bridge,hostname={k},status=needs_activate value={v["needs_activate"]}i {ts}')
+                print(f'bridge,hostname={k},status=active value={v["active"]}i {ts}')
+                print(f'bridge,hostname={k},status=needs_suspend value={v["needs_suspend"]}i {ts}')
+                print(f'bridge,hostname={k},status=suspended value={v["suspended"]}i {ts}')
+                print(f'bridge,hostname={k},status=archived value={v["archived"]}i {ts}')
+                print(f'bridge,hostname={k},status=needs_delete value={v["needs_delete"]}i {ts}')
+                print(f'bridge,hostname={k},status=failed value={v["failed"]}i {ts}')
 
             else:
                 print(
-                    f'bridge,host={k}'
+                    f'bridge,hostname={k}'
                     f' initial={v["initial"]}i'
                     f',needs_activate={v["needs_activate"]}i'
                     f',active={v["active"]}i'
