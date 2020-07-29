@@ -1,4 +1,3 @@
-from asgiref.sync import async_to_sync
 from django.core.management.base import BaseCommand
 
 from charged.lnnode.models import LndGRpcNode
