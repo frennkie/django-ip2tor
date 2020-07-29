@@ -14,7 +14,6 @@ class LnNodeConfig(AppConfig):
         now_iso = timezone.now().isoformat()
         try:
             cache.set(key, now_iso, timeout=None)
-            print(f'Info [{self.verbose_name}]: started {cache.get(key)}')
         except Exception as err:
             print(f'Error [{self.verbose_name}]: '
                   'Cache backend not reachable (check settings/service).')
