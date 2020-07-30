@@ -38,8 +38,8 @@ def handle_alive_change(host, new_status):
     if host.owner.email:
         try:
             host.owner.email_user(
-                "[IP2TOR] check_alive status change: is_alive is now %s" % new_status,
-                'Host %s - is_alive now: %s' % (host, new_status)
+                "[IP2TOR] Host check_alive status change: %s" % host.name,
+                '%s - is_alive now: %s' % (host, new_status)
             )
         except Exception as err:
             logger.warning("Unable to notify owner by email. Error:\n{}".format(err))
