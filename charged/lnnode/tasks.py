@@ -39,7 +39,7 @@ def handle_alive_change(node, new_status):
         node.save()
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, ignore_result=True)
 def node_alive_check(self, obj_id=None):
     # checks
     all_nodes = get_all_nodes()

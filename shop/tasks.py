@@ -20,9 +20,9 @@ def add(x, y):
     return x + y
 
 
-@shared_task()
+@shared_task(ignore_result=True)
 def update_metrics():
-    return TorBridge.update_metrics()
+    TorBridge.update_metrics()
 
 
 @shared_task()
@@ -57,7 +57,7 @@ def handle_alive_change(host, new_status):
         host.save()
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, ignore_result=True)
 def host_alive_check(self, obj_id=None):
     if obj_id:
         hosts = Host.objects.filter(pk=obj_id)

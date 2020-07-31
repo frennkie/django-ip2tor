@@ -12,7 +12,7 @@ from charged.lnrates.models import FiatRate, Settings
 logger = get_task_logger(__name__)
 
 
-@shared_task()
+@shared_task(ignore_result=True)
 def fetch_rates_from_provider(obj_id=None):
     if not obj_id:
         objs: [Settings] = Settings.objects.filter(is_enabled=True).all()
@@ -31,7 +31,7 @@ def fetch_rates_from_provider(obj_id=None):
             provider_obj.fetch_rates()
 
 
-@shared_task()
+@shared_task(ignore_result=True)
 def aggregate_rates(source=1, coin='bitcoin', timedelta_min=60, delay_min=0, include_aggr=False):
     # ToDo(frennkie) only doing source 1
 
