@@ -10,8 +10,10 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Count
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django_redis import get_redis_connection
 from rest_framework.authtoken.models import Token
 
 from charged.lnpurchase.models import Product, PurchaseOrder, PurchaseOrderItemDetail
@@ -524,6 +526,19 @@ class Bridge(Product):
 
     def process_suspension(self):
         print("{} status was change to suspended.".format(self._meta.verbose_name))
+
+    @classmethod
+    def export_metrics(cls):
+        res = cls.objects.values_list('status').order_by('status').annotate(value=Count('status'))
+        return {'status': dict(res)}
+
+    @classmethod
+    def update_metrics(cls):
+        key = f'ip2tor.metrics.{cls.__qualname__.lower()}.status'
+        res = cls.objects.values_list('status').order_by('status').annotate(value=Count('status'))
+
+        con = get_redis_connection("default")
+        con.hmset(key, dict(res))
 
 
 class TorBridge(Bridge):

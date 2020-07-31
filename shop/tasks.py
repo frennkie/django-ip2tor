@@ -21,6 +21,11 @@ def add(x, y):
 
 
 @shared_task()
+def update_metrics():
+    return TorBridge.update_metrics()
+
+
+@shared_task()
 def count_tor_bridges():
     return TorBridge.objects.count()
 
