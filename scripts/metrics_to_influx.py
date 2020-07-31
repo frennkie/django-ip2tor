@@ -62,7 +62,7 @@ def to_influx_line_as_tags(data: dict) -> list:
         f'bridge_t,status=active count={active}i {ts}',
         f'bridge_t,status=needs_suspend count={needs_suspend}i {ts}',
         f'bridge_t,status=suspended count={suspended}i {ts}',
-        f'bridge_t,status=archived count={initial}i {ts}',
+        f'bridge_t,status=archived count={archived}i {ts}',
         f'bridge_t,status=needs_delete count={needs_delete}i {ts}',
         f'bridge_t,status=failed count={failed}i {ts}',
     ]
