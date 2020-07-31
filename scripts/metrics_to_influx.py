@@ -46,6 +46,28 @@ def to_influx_line(data: dict) -> str:
     )
 
 
+def to_influx_line_as_tags(data: dict) -> list:
+    initial = int(data.get(b"I", 0))
+    needs_activate = int(data.get(b"P", 0))
+    active = int(data.get(b"A", 0))
+    needs_suspend = int(data.get(b"S", 0))
+    suspended = int(data.get(b"H", 0))
+    archived = int(data.get(b"Z", 0))
+    needs_delete = int(data.get(b"D", 0))
+    failed = int(data.get(b"F", 0))
+
+    return [
+        f'bridge_t,status=initial count={initial}i {ts}',
+        f'bridge_t,status=needs_activate count={needs_activate}i {ts}',
+        f'bridge_t,status=active count={active}i {ts}',
+        f'bridge_t,status=needs_suspend count={needs_suspend}i {ts}',
+        f'bridge_t,status=suspended count={suspended}i {ts}',
+        f'bridge_t,status=archived count={initial}i {ts}',
+        f'bridge_t,status=needs_delete count={needs_delete}i {ts}',
+        f'bridge_t,status=failed count={failed}i {ts}',
+    ]
+
+
 def main():
     # make sure CTRL+C works
     signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -68,6 +90,8 @@ def main():
     parser.add_argument("-p", "--password", dest="password", default=None,
                         help="Password for Redis", type=str)
 
+    parser.add_argument("-t", "--tags", help="Use separate tags", action='store_true')
+
     # parse args
     args = parser.parse_args()
 
@@ -75,8 +99,12 @@ def main():
 
     torbridge_status = get_from_redis(con, key='ip2tor.metrics.torbridge.status')
 
-    data = to_influx_line(torbridge_status)
-    print(data)
+    if args.tags:
+        data = to_influx_line_as_tags(torbridge_status)
+        print("\n".join(data))
+    else:
+        data = to_influx_line(torbridge_status)
+        print(data)
 
 
 if __name__ == "__main__":
