@@ -46,7 +46,7 @@ def to_influx_line(data: dict) -> str:
     )
 
 
-def to_influx_line_as_tags(data: dict) -> list:
+def to_influx_lines_as_tags(data: dict) -> list:
     initial = int(data.get(b"I", 0))
     needs_activate = int(data.get(b"P", 0))
     active = int(data.get(b"A", 0))
@@ -100,7 +100,7 @@ def main():
     torbridge_status = get_from_redis(con, key='ip2tor.metrics.torbridge.status')
 
     if args.tags:
-        data = to_influx_line_as_tags(torbridge_status)
+        data = to_influx_lines_as_tags(torbridge_status)
         print("\n".join(data))
     else:
         data = to_influx_line(torbridge_status)
