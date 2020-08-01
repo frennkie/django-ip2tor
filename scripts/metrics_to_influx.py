@@ -28,7 +28,7 @@ def get_payment_from_redis(con, key: str):
     return results
 
 
-def to_influx_line(data: dict) -> str:
+def to_influx_line(data: dict, bridge_host: str = "bridge_host") -> str:
     initial = int(data.get(b"I", 0))
     needs_activate = int(data.get(b"P", 0))
     active = int(data.get(b"A", 0))
@@ -40,6 +40,7 @@ def to_influx_line(data: dict) -> str:
 
     return (
         f'bridge'
+        f',bridge_host={bridge_host}'
         f' I={initial}i'
         f',P={needs_activate}i'
         f',A={active}i'
@@ -52,7 +53,7 @@ def to_influx_line(data: dict) -> str:
     )
 
 
-def to_influx_lines_as_tags(data: dict) -> list:
+def to_influx_lines_as_tags(data: dict, bridge_host: str = "bridge_host") -> list:
     initial = int(data.get(b"I", 0))
     needs_activate = int(data.get(b"P", 0))
     active = int(data.get(b"A", 0))
@@ -63,14 +64,14 @@ def to_influx_lines_as_tags(data: dict) -> list:
     failed = int(data.get(b"F", 0))
 
     return [
-        f'bridge_t,status=initial count={initial}i {TS}',
-        f'bridge_t,status=needs_activate count={needs_activate}i {TS}',
-        f'bridge_t,status=active count={active}i {TS}',
-        f'bridge_t,status=needs_suspend count={needs_suspend}i {TS}',
-        f'bridge_t,status=suspended count={suspended}i {TS}',
-        f'bridge_t,status=archived count={archived}i {TS}',
-        f'bridge_t,status=needs_delete count={needs_delete}i {TS}',
-        f'bridge_t,status=failed count={failed}i {TS}',
+        f'bridge_t,bridge_host={bridge_host},status=initial count={initial}i {TS}',
+        f'bridge_t,bridge_host={bridge_host},status=needs_activate count={needs_activate}i {TS}',
+        f'bridge_t,bridge_host={bridge_host},status=active count={active}i {TS}',
+        f'bridge_t,bridge_host={bridge_host},status=needs_suspend count={needs_suspend}i {TS}',
+        f'bridge_t,bridge_host={bridge_host},status=suspended count={suspended}i {TS}',
+        f'bridge_t,bridge_host={bridge_host},status=archived count={archived}i {TS}',
+        f'bridge_t,bridge_host={bridge_host},status=needs_delete count={needs_delete}i {TS}',
+        f'bridge_t,bridge_host={bridge_host},status=failed count={failed}i {TS}',
     ]
 
 
@@ -103,14 +104,18 @@ def main():
 
     con = redis_connection(args.host, args.port, args.password)
 
-    torbridge_status = get_from_redis(con, key='ip2tor.metrics.torbridge.status')
+    keys = con.keys('ip2tor.metrics.torbridge.status.*')
+    for full_key in keys:
+        key = full_key.decode()
+        bridge_host = key.split(".")[-1:][0]
+        torbridge_status = get_from_redis(con, key=key)
 
-    if args.tags:
-        data = to_influx_lines_as_tags(torbridge_status)
-        print("\n".join(data))
-    else:
-        data = to_influx_line(torbridge_status)
-        print(data)
+        if args.tags:
+            data = to_influx_lines_as_tags(torbridge_status, bridge_host=bridge_host)
+            print("\n".join(data))
+        else:
+            data = to_influx_line(torbridge_status, bridge_host=bridge_host)
+            print(data)
 
     payment = get_payment_from_redis(con, "ip2tor.metrics.payments.sats")
     try:

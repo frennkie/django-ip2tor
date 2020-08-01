@@ -100,9 +100,7 @@ class IpDenyList(DenyList):
 
 class ActiveHostManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset() \
-            .filter(is_enabled=True) \
-            .filter(ci_date__gt=timezone.now() - timedelta(minutes=5))
+        return super().get_queryset().filter(is_enabled=True).filter(is_alive=True)
 
 
 class Host(models.Model):
@@ -529,16 +527,31 @@ class Bridge(Product):
 
     @classmethod
     def export_metrics(cls):
-        res = cls.objects.values_list('status').order_by('status').annotate(value=Count('status'))
-        return {'status': dict(res)}
+        ret_dict = dict()
+        for item in cls.objects.values_list('host__name', 'status').order_by('host', 'status').annotate(
+                value=Count('status')):
+            try:
+                ret_dict[item[0]].update({item[1]: item[2]})
+            except KeyError:
+                ret_dict.update({item[0]: {item[1]: item[2]}})
+
+        return {'status': ret_dict}
 
     @classmethod
     def update_metrics(cls):
         key = f'ip2tor.metrics.{cls.__qualname__.lower()}.status'
-        res = cls.objects.values_list('status').order_by('status').annotate(value=Count('status'))
+
+        ret_dict = dict()
+        for item in cls.objects.values_list('host__name', 'status').order_by('host', 'status').annotate(
+                value=Count('status')):
+            try:
+                ret_dict[item[0]].update({item[1]: item[2]})
+            except KeyError:
+                ret_dict.update({item[0]: {item[1]: item[2]}})
 
         con = get_redis_connection("default")
-        con.hmset(key, dict(res))
+        for item in ret_dict:
+            con.hmset(f'{key}.{item}', ret_dict[item])
 
 
 class TorBridge(Bridge):
