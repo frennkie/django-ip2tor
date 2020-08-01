@@ -1,0 +1,9 @@
+/var/log/ip2tor/*.log {
+    daily
+    missingok
+    rotate 5
+    compress
+    delaycompress
+    notifempty
+    copytruncate
+}

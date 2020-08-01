@@ -75,6 +75,14 @@ be hosted on this `Host` and in which status they are.
 
 ```
 
+### Log Rotation
+
+To make sure that logs are rotated and deleted a the logrotate config
+
+```
+sudo install -m 0644 -o root -g root -t /etc/logrotate.d/ contrib/ip2tor
+```
+
 
 ## Shop
 
