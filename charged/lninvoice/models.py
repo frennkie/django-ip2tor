@@ -316,7 +316,7 @@ class Invoice(models.Model):
 
             key = f'ip2tor.metrics.payments.sats'
             con = get_redis_connection("default")
-            con.rush(key, self.amount_full_satoshi)
+            con.rpush(key, self.amount_full_satoshi)
 
             lninvoice_paid.send(sender=self.__class__, instance=self)
 

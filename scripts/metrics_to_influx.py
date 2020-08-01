@@ -8,7 +8,7 @@ from datetime import datetime
 
 import redis
 
-ts = int(datetime.utcnow().replace(microsecond=0).timestamp() * 1000_000_000)
+TS = int(datetime.utcnow().replace(microsecond=0).timestamp() * 1000_000_000)
 
 
 def redis_connection(host: str, port: int, password: str):
@@ -20,6 +20,14 @@ def get_from_redis(con, key: str) -> dict:
     results = con.hgetall(key)
 
     return results
+
+
+def get_payments_from_redis(con, key, prefetch_count=100):
+    pipe = con.pipeline()
+    pipe.lrange(key, 0, prefetch_count - 1)  # Get payments (w/o pop)
+    pipe.ltrim(key, prefetch_count, -1)  # Trim (pop) list to new value
+    payments, trim_success = pipe.execute()
+    return payments
 
 
 def to_influx_line(data: dict) -> str:
@@ -42,7 +50,7 @@ def to_influx_line(data: dict) -> str:
         f',Z={archived}i'
         f',D={needs_delete}i'
         f',F={failed}i'
-        f' {ts}'
+        f' {TS}'
     )
 
 
@@ -57,14 +65,14 @@ def to_influx_lines_as_tags(data: dict) -> list:
     failed = int(data.get(b"F", 0))
 
     return [
-        f'bridge_t,status=initial count={initial}i {ts}',
-        f'bridge_t,status=needs_activate count={needs_activate}i {ts}',
-        f'bridge_t,status=active count={active}i {ts}',
-        f'bridge_t,status=needs_suspend count={needs_suspend}i {ts}',
-        f'bridge_t,status=suspended count={suspended}i {ts}',
-        f'bridge_t,status=archived count={archived}i {ts}',
-        f'bridge_t,status=needs_delete count={needs_delete}i {ts}',
-        f'bridge_t,status=failed count={failed}i {ts}',
+        f'bridge_t,status=initial count={initial}i {TS}',
+        f'bridge_t,status=needs_activate count={needs_activate}i {TS}',
+        f'bridge_t,status=active count={active}i {TS}',
+        f'bridge_t,status=needs_suspend count={needs_suspend}i {TS}',
+        f'bridge_t,status=suspended count={suspended}i {TS}',
+        f'bridge_t,status=archived count={archived}i {TS}',
+        f'bridge_t,status=needs_delete count={needs_delete}i {TS}',
+        f'bridge_t,status=failed count={failed}i {TS}',
     ]
 
 
@@ -105,6 +113,15 @@ def main():
     else:
         data = to_influx_line(torbridge_status)
         print(data)
+
+    payments = get_payments_from_redis(con, "ip2tor.metrics.payments.sats")
+    for idx, payment in enumerate(payments):
+        try:
+            print(f'payments sats={int(payment)}i {TS}')
+        except (TypeError, ValueError):
+            pass
+    # else:
+    #     print(f'No new payments')
 
 
 if __name__ == "__main__":
