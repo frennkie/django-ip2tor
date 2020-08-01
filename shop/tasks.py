@@ -7,6 +7,7 @@ from django.contrib.admin.options import get_content_type_for_model
 from django.utils import timezone
 
 from shop.models import TorBridge, Host
+from shop.utils import create_email_message
 
 logger = get_task_logger(__name__)
 
@@ -42,10 +43,11 @@ def handle_alive_change(host, new_status):
 
     if host.owner.email:
         try:
-            host.owner.email_user(
-                "[IP2TOR] Host check_alive status change: %s" % host.name,
-                '%s - is_alive now: %s' % (host, new_status)
-            )
+            msg = create_email_message(f'[IP2TOR] Host status change: {host.name}',
+                                       f'{host} - is_alive now: {new_status}',
+                                       [host.owner.email],
+                                       reference_tag=f'host/{host.id}')
+            msg.send()
         except Exception as err:
             logger.warning("Unable to notify owner by email. Error:\n{}".format(err))
 
