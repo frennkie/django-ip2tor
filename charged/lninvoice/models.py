@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.timezone import now, make_aware
 from django.utils.translation import gettext_lazy as _
+from django_redis import get_redis_connection
 from djmoney.models.fields import MoneyField
 from djmoney.money import Money
 
@@ -312,6 +313,11 @@ class Invoice(models.Model):
 
         if payment_detected:
             print('Has been PAID!')  # ToDo(frennkie) remove this
+
+            key = f'ip2tor.metrics.payments.sats'
+            con = get_redis_connection("default")
+            con.rush(key, self.amount_full_satoshi)
+
             lninvoice_paid.send(sender=self.__class__, instance=self)
 
         return True
