@@ -22,12 +22,10 @@ def get_from_redis(con, key: str) -> dict:
     return results
 
 
-def get_payments_from_redis(con, key, prefetch_count=100):
-    pipe = con.pipeline()
-    pipe.lrange(key, 0, prefetch_count - 1)  # Get payments (w/o pop)
-    pipe.ltrim(key, prefetch_count, -1)  # Trim (pop) list to new value
-    payments, trim_success = pipe.execute()
-    return payments
+def get_payment_from_redis(con, key: str):
+    results = con.lpop(key)
+
+    return results
 
 
 def to_influx_line(data: dict) -> str:
@@ -114,14 +112,11 @@ def main():
         data = to_influx_line(torbridge_status)
         print(data)
 
-    payments = get_payments_from_redis(con, "ip2tor.metrics.payments.sats")
-    for idx, payment in enumerate(payments):
-        try:
-            print(f'payments sats={int(payment)}i {TS}')
-        except (TypeError, ValueError):
-            pass
-    # else:
-    #     print(f'No new payments')
+    payment = get_payment_from_redis(con, "ip2tor.metrics.payments.sats")
+    try:
+        print(f'payments sats={int(payment)}i {TS}')
+    except (TypeError, ValueError):
+        pass
 
 
 if __name__ == "__main__":
