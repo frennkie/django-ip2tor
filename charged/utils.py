@@ -3,7 +3,10 @@ from django.contrib.admin.models import LogEntry, CHANGE
 from django.contrib.admin.options import get_content_type_for_model
 from django.core.mail import EmailMessage
 
-from charged.lnnode.tasks import logger
+
+class MailNotificationToOwnerError(Exception):
+    """E-Mail notification to owner raise an error"""
+    pass
 
 
 def create_email_message(subject: str, body: str, recipients: list,
@@ -32,6 +35,13 @@ def handle_obj_is_alive_change(obj, new_status):
         change_message="Task: Check_alive -> set is_alive=%s" % new_status,
     )
 
+    if new_status:
+        obj.is_alive = True
+        obj.save()
+    else:
+        obj.is_alive = False
+        obj.save()
+
     if obj.owner.email:
         try:
             msg = create_email_message(f'[IP2TOR] {obj.__class__.__name__} status change: {obj.name}',
@@ -40,12 +50,5 @@ def handle_obj_is_alive_change(obj, new_status):
                                        reference_tag=f'{obj.__class__.__name__.lower()}/{obj.id}')
             msg.send()
 
-        except Exception as err:
-            logger.warning("Unable to notify owner by email. Error:\n{}".format(err))
-
-    if new_status:
-        obj.is_alive = True
-        obj.save()
-    else:
-        obj.is_alive = False
-        obj.save()
+        except Exception:
+            raise MailNotificationToOwnerError
