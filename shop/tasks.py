@@ -2,12 +2,10 @@ from datetime import timedelta
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.contrib.admin.models import LogEntry, CHANGE
-from django.contrib.admin.options import get_content_type_for_model
 from django.utils import timezone
 
+from charged.utils import handle_obj_is_alive_change
 from shop.models import TorBridge, Host
-from shop.utils import create_email_message
 
 logger = get_task_logger(__name__)
 
@@ -31,34 +29,6 @@ def count_tor_bridges():
     return TorBridge.objects.count()
 
 
-def handle_alive_change(host, new_status):
-    LogEntry.objects.log_action(
-        user_id=1,
-        content_type_id=get_content_type_for_model(host).pk,
-        object_id=host.pk,
-        object_repr=str(host),
-        action_flag=CHANGE,
-        change_message="Task: Check_alive -> set is_alive=%s" % new_status,
-    )
-
-    if host.owner.email:
-        try:
-            msg = create_email_message(f'[IP2TOR] Host status change: {host.name}',
-                                       f'{host} - is_alive now: {new_status}',
-                                       [host.owner.email],
-                                       reference_tag=f'host/{host.id}')
-            msg.send()
-        except Exception as err:
-            logger.warning("Unable to notify owner by email. Error:\n{}".format(err))
-
-    if new_status:
-        host.is_alive = True
-        host.save()
-    else:
-        host.is_alive = False
-        host.save()
-
-
 @shared_task(bind=True, ignore_result=True)
 def host_alive_check(self, obj_id=None):
     if obj_id:
@@ -78,7 +48,7 @@ def host_alive_check(self, obj_id=None):
             continue  # no change
         else:
             logger.debug(f"Host {host} *is_alive* status changed - is now: {alive}")
-            handle_alive_change(host, alive)
+            handle_obj_is_alive_change(host, alive)
 
 
 @shared_task()
