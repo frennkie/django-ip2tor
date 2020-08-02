@@ -235,6 +235,8 @@ class Host(models.Model):
         return 'Host:{} ({} - Owner:{})'.format(self.ip, self.name, self.owner)
 
     def check_alive_status(self):
+        if self.ci_date is None:
+            return False
         has_fresh_check_in = self.ci_date > timezone.now() - timedelta(minutes=5)
         return self.ci_status == self.HELLO and has_fresh_check_in
 
