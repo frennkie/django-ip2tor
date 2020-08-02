@@ -62,6 +62,7 @@ class BaseLnNode(models.Model):
             raise ValidationError(f"Check Alive failed: {error}")
 
     def save(self, **kwargs):
+        # ToDo(frennkie) reconsider this.... makes it impossible to manually change this
         status, _ = self.check_alive_status()
         if status:
             self.is_alive = True
