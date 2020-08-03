@@ -97,7 +97,7 @@ def main():
     parser.add_argument("-p", "--password", dest="password", default=None,
                         help="Password for Redis", type=str)
 
-    parser.add_argument("-t", "--tags", help="Use separate tags", action='store_true')
+    parser.add_argument("-f", "--fields", help="Use fields/columns instead of tags", action='store_true')
 
     # parse args
     args = parser.parse_args()
@@ -110,12 +110,12 @@ def main():
         bridge_host = key.split(".")[-1:][0]
         torbridge_status = get_from_redis(con, key=key)
 
-        if args.tags:
-            data = to_influx_lines_as_tags(torbridge_status, bridge_host=bridge_host)
-            print("\n".join(data))
-        else:
+        if args.fields:
             data = to_influx_line(torbridge_status, bridge_host=bridge_host)
             print(data)
+        else:
+            data = to_influx_lines_as_tags(torbridge_status, bridge_host=bridge_host)
+            print("\n".join(data))
 
     payment = get_payment_from_redis(con, "ip2tor.metrics.payments.sats")
     try:
