@@ -1,6 +1,9 @@
 from uuid import UUID
 
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from charged.lnpurchase.forms import PurchaseOrderItemDetailAdminForm, PurchaseOrderItemDetailFormSet
 from charged.lnpurchase.models import PurchaseOrder, PurchaseOrderItemDetail
@@ -11,6 +14,16 @@ class PurchaseOrderItemDetailInline(admin.TabularInline):
     form = PurchaseOrderItemDetailAdminForm
     formset = PurchaseOrderItemDetailFormSet
     extra = 1
+
+    exclude = ('content_type', 'object_id', )
+    readonly_fields = ('position', 'product', 'quantity', 'price')
+
+    def product(self, obj):
+        product_type_ct = ContentType.objects.get(app_label=obj.content_type.app_label, model=obj.content_type.model)
+
+        redirect_url = reverse(f'admin:{product_type_ct.app_label}_{product_type_ct.model}_change',
+                               args=(obj.product.id,))
+        return mark_safe("<a href='{}'>{}</a>".format(redirect_url, obj.product))
 
 
 @admin.register(PurchaseOrder)

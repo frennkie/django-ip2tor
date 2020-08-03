@@ -173,11 +173,14 @@ class PurchaseOrderItemDetail(models.Model):
         #        "Q:{0.quantity}".format(self)
 
         # shorter
-        return """GenericM2M (PO Items) """ \
-               "ID:{0.id} " \
-               "Product:({0.product}) " \
-               "P:{0.price} " \
-               "Q:{0.quantity}".format(self)
+        # return """GenericM2M (PO Items) """ \
+        #        "ID:{0.id} " \
+        #        "Product:({0.product}) " \
+        #        "P:{0.price} " \
+        #        "Q:{0.quantity}".format(self)
+
+        # even shorter
+        return "GenericM2M (PO Items) ID:{0.id}".format(self)
 
 
 class Product(models.Model):
