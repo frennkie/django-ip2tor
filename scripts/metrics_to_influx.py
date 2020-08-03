@@ -39,7 +39,7 @@ def to_influx_line(data: dict, bridge_host: str = "bridge_host") -> str:
     failed = int(data.get(b"F", 0))
 
     return (
-        f'bridge'
+        f'bridge_fields'
         f',bridge_host={bridge_host}'
         f' I={initial}i'
         f',P={needs_activate}i'
@@ -64,14 +64,14 @@ def to_influx_lines_as_tags(data: dict, bridge_host: str = "bridge_host") -> lis
     failed = int(data.get(b"F", 0))
 
     return [
-        f'bridge_t,bridge_host={bridge_host},status=initial count={initial}i {TS}',
-        f'bridge_t,bridge_host={bridge_host},status=needs_activate count={needs_activate}i {TS}',
-        f'bridge_t,bridge_host={bridge_host},status=active count={active}i {TS}',
-        f'bridge_t,bridge_host={bridge_host},status=needs_suspend count={needs_suspend}i {TS}',
-        f'bridge_t,bridge_host={bridge_host},status=suspended count={suspended}i {TS}',
-        f'bridge_t,bridge_host={bridge_host},status=archived count={archived}i {TS}',
-        f'bridge_t,bridge_host={bridge_host},status=needs_delete count={needs_delete}i {TS}',
-        f'bridge_t,bridge_host={bridge_host},status=failed count={failed}i {TS}',
+        f'bridge,bridge_host={bridge_host},status=initial count={initial}i {TS}',
+        f'bridge,bridge_host={bridge_host},status=needs_activate count={needs_activate}i {TS}',
+        f'bridge,bridge_host={bridge_host},status=active count={active}i {TS}',
+        f'bridge,bridge_host={bridge_host},status=needs_suspend count={needs_suspend}i {TS}',
+        f'bridge,bridge_host={bridge_host},status=suspended count={suspended}i {TS}',
+        f'bridge,bridge_host={bridge_host},status=archived count={archived}i {TS}',
+        f'bridge,bridge_host={bridge_host},status=needs_delete count={needs_delete}i {TS}',
+        f'bridge,bridge_host={bridge_host},status=failed count={failed}i {TS}',
     ]
 
 
