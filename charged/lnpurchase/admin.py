@@ -15,7 +15,7 @@ class PurchaseOrderItemDetailInline(admin.TabularInline):
     formset = PurchaseOrderItemDetailFormSet
     extra = 1
 
-    exclude = ('content_type', 'object_id', )
+    exclude = ('content_type', 'object_id',)
     readonly_fields = ('position', 'product', 'quantity', 'price')
 
     def product(self, obj):
@@ -36,7 +36,7 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
 
     fieldset = ('status', 'message', 'created_at')
-    readonly_fields = ('message', 'created_at', 'item_count', 'total_price_sat',)
+    readonly_fields = ('message', 'created_at', 'item_count', 'total_price_sat', 'newest_invoice')
 
     def get_formsets_with_inlines(self, request, obj=None):
         # If parent object has not been saved yet / If there's no screen
@@ -77,6 +77,11 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
 
     def item_count(self, obj):
         return obj.item_details.count()
+
+    def newest_invoice(self, obj):
+        poi = obj.ln_invoices.first()
+        redirect_url = reverse(f'admin:lninvoice_purchaseorderinvoice_change', args=(poi.id,))
+        return mark_safe("<a href='{}'>{} ({})</a>".format(redirect_url, poi.id, poi.get_status_display()))
 
 
 class ProductAdmin(admin.ModelAdmin):
