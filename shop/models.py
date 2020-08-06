@@ -553,6 +553,7 @@ class Bridge(Product):
 
         con = get_redis_connection("default")
         for item in ret_dict:
+            con.delete(f'{key}.{item}')
             con.hmset(f'{key}.{item}', ret_dict[item])
 
 
