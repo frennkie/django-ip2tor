@@ -48,7 +48,7 @@ def lninvoice_invoice_created_on_node_handler(sender, instance, **kwargs):
     print("received by: lninvoice_invoice_created_on_node_handler")
     print(f"received Sender: {sender}")
     print(f"received Instance: {instance}")
-    check_lni_for_successful_payment.apply_async(priority=6, args=(instance.id,), countdown=1)
+    check_lni_for_successful_payment.apply_async(priority=6, args=(instance.id,), countdown=30)
 
 
 @receiver(lninvoice_paid)
