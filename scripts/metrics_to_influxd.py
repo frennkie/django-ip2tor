@@ -49,13 +49,13 @@ def my_monitor(app, client, hostname):
 
         runtime = task.info().get("runtime")
         if runtime:
-            print(f'tasks,status=failed,name={short_name},fullname={task.name} {runtime} {TS}')
+            print(f'tasks,status=failed,name={short_name},fullname={task.name} runtime={runtime} {TS}')
             influx_write_point(client, 'tasks',
                                tags={'host': hostname, 'status': 'failed',
                                      'name': short_name, 'fullname': task.name},
                                fields={'runtime': runtime})
         else:
-            print(f'tasks,status=failed,name={short_name},fullname={task.name} 0.0 {TS}')
+            print(f'tasks,status=failed,name={short_name},fullname={task.name} runtime=0.0 {TS}')
             influx_write_point(client, 'tasks',
                                tags={'host': hostname, 'status': 'failed',
                                      'name': short_name, 'fullname': task.name},
@@ -74,13 +74,13 @@ def my_monitor(app, client, hostname):
 
         runtime = task.info().get("runtime")
         if runtime:
-            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} {runtime} {TS}')
+            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} runtime={runtime} {TS}')
             influx_write_point(client, 'tasks',
                                tags={'host': hostname, 'status': 'succeeded',
                                      'name': short_name, 'fullname': task.name},
                                fields={'runtime': runtime})
         else:
-            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} value=0.0 {TS}')
+            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} runtime=0.0 {TS}')
             influx_write_point(client, 'tasks',
                                tags={'host': hostname, 'status': 'succeeded',
                                      'name': short_name, 'fullname': task.name},
@@ -127,7 +127,10 @@ def main():
                         help="Database for InfluxDB", type=str)
 
     parser.add_argument("-s", "--ssl", dest="ssl", default=True,
-                        help="Database for InfluxDB", type=bool)
+                        help="SSL for InfluxDB", type=bool)
+
+    parser.add_argument("--verify", dest="verify", default=True,
+                        help="Verify for InfluxDB", type=bool)
 
     parser.add_argument("--redis-host", dest="redis_host", default="127.0.0.1",
                         help="Host for Redis", type=str)
@@ -141,7 +144,7 @@ def main():
     # parse args
     args = parser.parse_args()
 
-    client = InfluxDBClient(args.host, args.port, args.username, args.password, args.database, args.ssl)
+    client = InfluxDBClient(args.host, args.port, args.username, args.password, args.database, args.ssl, args.verify)
 
     app = Celery(broker=f'redis://{args.redis_host}:{args.redis_port}/0')
     my_monitor(app, client, args.hostname)
