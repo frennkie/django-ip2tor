@@ -106,13 +106,13 @@ def main():
     parser.add_argument("-P", "--port", dest="port", default=8086,
                         help="Port for InfluxDB", type=int)
 
-    parser.add_argument("-u", "--username", dest="username", default=None,
+    parser.add_argument("-u", "--username", dest="username", default="root",
                         help="Username for InfluxDB", type=str)
 
-    parser.add_argument("-p", "--password", dest="password", default=None,
+    parser.add_argument("-p", "--password", dest="password", default="root",
                         help="Password for InfluxDB", type=str)
 
-    parser.add_argument("-d", "--database", dest="database", default=None,
+    parser.add_argument("-d", "--database", dest="database", default="ip2tor",
                         help="Database for InfluxDB", type=str)
 
     parser.add_argument("--redis-host", dest="redis_host", default="127.0.0.1",
