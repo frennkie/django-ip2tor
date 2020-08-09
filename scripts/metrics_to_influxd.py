@@ -144,7 +144,9 @@ def main():
     # parse args
     args = parser.parse_args()
 
-    client = InfluxDBClient(args.host, args.port, args.username, args.password, args.database, args.ssl, args.verify)
+    client = InfluxDBClient(args.host, args.port,
+                            args.username, args.password, args.database, args.ssl, args.verify,
+                            timeout=30)
 
     app = Celery(broker=f'redis://{args.redis_host}:{args.redis_port}/0')
     my_monitor(app, client, args.hostname)
