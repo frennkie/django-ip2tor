@@ -13,6 +13,7 @@ django-widget-tweaks
 djangorestframework>=3.11.1
 environs[django]
 grpcio
+influxdb
 lnd-rpc
 pylightning
 qrcode[pil]>=6.1

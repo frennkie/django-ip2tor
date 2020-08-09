@@ -101,20 +101,35 @@ def main():
                         version="0.1")
 
     parser.add_argument("-H", "--host", dest="host", default="127.0.0.1",
-                        help="Host for Redis", type=str)
+                        help="Host for InfluxDB", type=str)
 
-    parser.add_argument("-P", "--port", dest="port", default=6379,
-                        help="Port for Redis", type=int)
+    parser.add_argument("-P", "--port", dest="port", default=8086,
+                        help="Port for InfluxDB", type=int)
+
+    parser.add_argument("-u", "--username", dest="username", default=None,
+                        help="Username for InfluxDB", type=str)
 
     parser.add_argument("-p", "--password", dest="password", default=None,
+                        help="Password for InfluxDB", type=str)
+
+    parser.add_argument("-d", "--database", dest="database", default=None,
+                        help="Database for InfluxDB", type=str)
+
+    parser.add_argument("--redis-host", dest="redis_host", default="127.0.0.1",
+                        help="Host for Redis", type=str)
+
+    parser.add_argument("--redis-port", dest="redis_port", default=6379,
+                        help="Port for Redis", type=int)
+
+    parser.add_argument("--redis-password", dest="redis_password", default=None,
                         help="Password for Redis", type=str)
 
     # parse args
     args = parser.parse_args()
 
-    client = InfluxDBClient('localhost', 8086, 'root', 'root', 'example')
+    client = InfluxDBClient(args.host, args.port, args.username, args.password, args.database)
 
-    app = Celery(broker=f'redis://{args.host}:{args.port}/0')
+    app = Celery(broker=f'redis://{args.redis_host}:{args.redis_port}/0')
     my_monitor(app, client)
 
 
