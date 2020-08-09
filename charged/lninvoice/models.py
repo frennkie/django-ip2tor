@@ -312,10 +312,11 @@ class Invoice(models.Model):
             self.status = self.EXPIRED
 
         self.save()
-        add_change_log_entry(self, f"set to {self.status}")
+        add_change_log_entry(self, f"synced (current status: {self.status})")
 
         if payment_detected:
             print('Has been PAID!')  # ToDo(frennkie) remove this
+            add_change_log_entry(self, "payment detected")
 
             key = f'ip2tor.metrics.payments.sats'
             con = get_redis_connection("default")
