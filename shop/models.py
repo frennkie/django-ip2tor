@@ -589,7 +589,7 @@ class PurchaseOrderTorBridgeManager(models.Manager):
         po_item.save()
         add_change_log_entry(po_item, "added item_details")
         po.save()
-        add_change_log_entry(po, "not sure")
+        add_change_log_entry(po, "new po created")
 
         return po
 
