@@ -17,6 +17,11 @@ from shop.models import TorDenyList
 logger = get_task_logger(__name__)
 
 
+class NoInvoiceCreatedError(Exception):
+    """No invoice was created"""
+    pass
+
+
 # ToDo(frennkie) not the best place for this
 def ensure_https(url):
     if not url.startswith('https://'):
@@ -151,10 +156,10 @@ def process_initial_purchase_order(obj_id):
             obj.ln_invoices.add(invoice)
             add_change_log_entry(obj, f'added new poi: {invoice.id}')
 
-            obj.refresh_from_db()
-            obj.status = PurchaseOrder.NEEDS_TO_BE_PAID
-            obj.save()
-            add_change_log_entry(obj, 'set to: NEEDS_TO_BE_PAID')
+            # obj.refresh_from_db()
+            # obj.status = PurchaseOrder.NEEDS_TO_BE_PAID
+            # obj.save()
+            # add_change_log_entry(obj, 'set to: NEEDS_TO_BE_PAID')
 
             logger.info('Created LnInvoice: %s (%s)' % (invoice.id, invoice))
 
@@ -163,4 +168,7 @@ def process_initial_purchase_order(obj_id):
     else:
         raise RuntimeError("no owned nodes found")
 
-    return invoice.id
+    if invoice:
+        return invoice.id
+    else:
+        raise NoInvoiceCreatedError
