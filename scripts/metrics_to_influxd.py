@@ -106,14 +106,17 @@ def main():
     parser.add_argument("-P", "--port", dest="port", default=8086,
                         help="Port for InfluxDB", type=int)
 
-    parser.add_argument("-u", "--username", dest="username", default="root",
+    parser.add_argument("-u", "--username", dest="username", default="ip2tor",
                         help="Username for InfluxDB", type=str)
 
-    parser.add_argument("-p", "--password", dest="password", default="root",
+    parser.add_argument("-p", "--password", dest="password", default="ip2tor",
                         help="Password for InfluxDB", type=str)
 
     parser.add_argument("-d", "--database", dest="database", default="ip2tor",
                         help="Database for InfluxDB", type=str)
+
+    parser.add_argument("-s", "--ssl", dest="ssl", default=True,
+                        help="Database for InfluxDB", type=bool)
 
     parser.add_argument("--redis-host", dest="redis_host", default="127.0.0.1",
                         help="Host for Redis", type=str)
@@ -127,7 +130,7 @@ def main():
     # parse args
     args = parser.parse_args()
 
-    client = InfluxDBClient(args.host, args.port, args.username, args.password, args.database)
+    client = InfluxDBClient(args.host, args.port, args.username, args.password, args.database, args.ssl)
 
     app = Celery(broker=f'redis://{args.redis_host}:{args.redis_port}/0')
     my_monitor(app, client)
