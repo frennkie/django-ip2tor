@@ -231,11 +231,18 @@ class Invoice(models.Model):
         return temporary_file_name, File(temporary_file)
 
     def lnnode_create_invoice(self):
+
+        add_change_log_entry(self, "create_invoice on node started")
+
         create_result = self.lnnode.create_invoice(
             memo=f'{self.label}',
             value=int(self.amount_full_satoshi),
             expiry=self.expiry
         )
+
+        add_change_log_entry(self, "create_invoice on node finished")
+
+        self.refresh_from_db()
 
         # ToDo(frennkie) error handling?
         _r_hash = create_result.get('r_hash')
