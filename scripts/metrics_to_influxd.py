@@ -21,10 +21,12 @@ def my_monitor(app):
         # will keep track of this for us.
         task = state.tasks.get(event['uuid'])
 
-        # print('TASK FAILED: %s[%s] %s' % (task.name, task.uuid, task.info(),))
+        try:
+            short_name = task.name.split(".")[-1]
+        except (AttributeError, IndexError):
+            short_name = "unknown"
 
         runtime = task.info().get("runtime")
-        short_name = task.name.split(".")[-1]
         if runtime:
             print(f'tasks,status=failed,name={short_name},fullname={task.name} {runtime} {TS}')
         else:
@@ -36,10 +38,12 @@ def my_monitor(app):
         # will keep track of this for us.
         task = state.tasks.get(event['uuid'])
 
-        # print('TASK SUCCEEDED: %s[%s] %s' % (task.name, task.uuid, task.info(),))
-
+        try:
+            short_name = task.name.split(".")[-1]
+        except (AttributeError, IndexError):
+            short_name = "unknown"
         runtime = task.info().get("runtime")
-        short_name = task.name.split(".")[-1]
+
         if runtime:
             print(f'tasks,status=succeeded,name={short_name},fullname={task.name} {runtime} {TS}')
         else:
