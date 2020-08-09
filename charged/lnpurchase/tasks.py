@@ -151,6 +151,7 @@ def process_initial_purchase_order(obj_id):
             obj.ln_invoices.add(invoice)
             add_change_log_entry(obj, f'added new poi: {invoice.id}')
 
+            obj.refresh_from_db()
             obj.status = PurchaseOrder.NEEDS_TO_BE_PAID
             obj.save()
             add_change_log_entry(obj, 'set to: NEEDS_TO_BE_PAID')
