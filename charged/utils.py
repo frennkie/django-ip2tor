@@ -52,3 +52,14 @@ def handle_obj_is_alive_change(obj, new_status):
 
         except Exception:
             raise MailNotificationToOwnerError
+
+
+def add_change_log_entry(obj, message: str, user_id=1):
+    LogEntry.objects.log_action(
+        user_id=user_id,
+        content_type_id=get_content_type_for_model(obj).pk,
+        object_id=obj.pk,
+        object_repr=str(obj),
+        action_flag=CHANGE,
+        change_message=message,
+    )

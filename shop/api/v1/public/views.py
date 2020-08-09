@@ -10,6 +10,7 @@ from charged.lninvoice.serializers import InvoiceSerializer, PurchaseOrderInvoic
 from charged.lnnode.models import LndGRpcNode
 from charged.lnnode.serializers import LndGRpcNodeSerializer
 from charged.lnpurchase.models import PurchaseOrder, PurchaseOrderItemDetail
+from charged.utils import add_change_log_entry
 from shop.models import TorBridge, Host
 from . import serializers
 
@@ -124,7 +125,9 @@ class PublicTorBridgeViewSet(mixins.RetrieveModelMixin,
                                           quantity=1)
         po.item_details.add(po_item, bulk=False)
         po_item.save()
+        add_change_log_entry(po_item, "set created")
         po.save()
+        add_change_log_entry(po, "added item_details")
 
         return Response({
             'status': 'ok',

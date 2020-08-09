@@ -3,7 +3,6 @@ import uuid
 from datetime import timedelta
 from random import randint
 
-from django.contrib.admin.models import LogEntry
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
@@ -17,6 +16,7 @@ from django_redis import get_redis_connection
 from rest_framework.authtoken.models import Token
 
 from charged.lnpurchase.models import Product, PurchaseOrder, PurchaseOrderItemDetail
+from charged.utils import add_change_log_entry
 from shop.exceptions import PortNotInUseError, PortInUseError
 from shop.validators import validate_host_name_blacklist
 from shop.validators import validate_host_name_no_underscore
@@ -587,7 +587,9 @@ class PurchaseOrderTorBridgeManager(models.Manager):
                                           quantity=1)
         po.item_details.add(po_item, bulk=False)
         po_item.save()
+        add_change_log_entry(po_item, "added item_details")
         po.save()
+        add_change_log_entry(po, "not sure")
 
         return po
 

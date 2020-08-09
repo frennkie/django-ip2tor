@@ -11,6 +11,7 @@ from charged.lninvoice.models import PurchaseOrderInvoice
 from charged.lnnode.models import get_all_nodes
 from charged.lnpurchase.models import PurchaseOrder
 from charged.lnrates.models import FiatRate
+from charged.utils import add_change_log_entry
 from shop.models import TorDenyList
 
 logger = get_task_logger(__name__)
@@ -64,6 +65,7 @@ def process_initial_purchase_order(obj_id):
     logger.debug('set to: NEEDS_LOCAL_CHECKS')
     obj.status = PurchaseOrder.NEEDS_LOCAL_CHECKS
     obj.save()
+    add_change_log_entry(obj, 'set to: NEEDS_LOCAL_CHECKS')
 
     # ToDo(frennkie) this should not live in Django Charged
     target_with_port = obj.item_details.first().product.target
@@ -82,11 +84,13 @@ def process_initial_purchase_order(obj_id):
         obj.status = PurchaseOrder.REJECTED
         obj.message = "Target is on Deny List"
         obj.save()
+        add_change_log_entry(obj, 'set to: REJECTED')
         return None
 
     logger.debug('set to: NEEDS_REMOTE_CHECKS')
     obj.status = PurchaseOrder.NEEDS_REMOTE_CHECKS
     obj.save()
+    add_change_log_entry(obj, 'set to: NEEDS_REMOTE_CHECKS')
 
     # ToDo(frennkie) move to settings (env)
     whitelisted_service_ports = ['8333', '9735']
@@ -101,11 +105,13 @@ def process_initial_purchase_order(obj_id):
             obj.status = PurchaseOrder.REJECTED
             obj.message = "Target is not HTTPS"
             obj.save()
+            add_change_log_entry(obj, 'set to: REJECTED')
             return None
 
     logger.debug('set to: NEEDS_INVOICE')
     obj.status = PurchaseOrder.NEEDS_INVOICE
     obj.save()
+    add_change_log_entry(obj, 'set to: NEEDS_INVOICE')
 
     tax_ex_rate_obj = FiatRate.objects \
         .filter(is_aggregate=False) \
@@ -140,10 +146,14 @@ def process_initial_purchase_order(obj_id):
                                            lnnode=node)
 
             invoice.save()
+            add_change_log_entry(obj, 'created')
+
             obj.ln_invoices.add(invoice)
+            add_change_log_entry(obj, 'added invoice')
 
             obj.status = PurchaseOrder.NEEDS_TO_BE_PAID
             obj.save()
+            add_change_log_entry(obj, 'set to: NEEDS_TO_BE_PAID')
 
             logger.info('Created LnInvoice: %s (%s)' % (invoice.id, invoice))
 

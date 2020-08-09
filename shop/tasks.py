@@ -4,7 +4,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.utils import timezone
 
-from charged.utils import handle_obj_is_alive_change
+from charged.utils import handle_obj_is_alive_change, add_change_log_entry
 from shop.models import TorBridge, Host
 
 logger = get_task_logger(__name__)
@@ -75,6 +75,7 @@ def set_needs_delete_on_suspended_tor_bridges(days=45):
                 logger.debug('Needs to be set to deleted.')
                 item.status = TorBridge.NEEDS_DELETE
                 item.save()
+                add_change_log_entry(item, "set to NEEDS_DELETE")
                 counter += 1
 
     return f'Set NEEDS_DELETE on {counter}/{len(suspended)} Tor Bridge(s) (previous state: SUSPENDED).'
@@ -91,6 +92,7 @@ def set_needs_delete_on_initial_tor_bridges(days=3):
                 logger.debug('Needs to be set to deleted.')
                 item.status = TorBridge.NEEDS_DELETE
                 item.save()
+                add_change_log_entry(item, "set to NEEDS_DELETE")
                 counter += 1
 
     return f'Set NEEDS_DELETE on {counter}/{len(initials)} Tor Bridge(s) (previous state: INITIAL).'
@@ -108,6 +110,7 @@ def set_needs_suspend_on_expired_tor_bridges():
                 logger.info('Needs to be suspended.')
                 item.status = TorBridge.NEEDS_SUSPEND
                 item.save()
+                add_change_log_entry(item, "set to NEEDS_SUSPEND")
                 counter += 1
 
     return f'Set NEEDS_SUSPEND on {counter}/{len(actives)} Tor Bridge(s) (previous state: ACTIVE).'

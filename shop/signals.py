@@ -16,6 +16,7 @@ from charged.lninvoice.tasks import process_initial_lni, check_lni_for_successfu
 from charged.lnnode.signals import lnnode_invoice_created
 from charged.lnpurchase.models import PurchaseOrder
 from charged.lnpurchase.tasks import process_initial_purchase_order
+from charged.utils import add_change_log_entry
 from shop.models import TorBridge, RSshTunnel, Bridge
 
 log = logging.getLogger(__name__)
@@ -84,6 +85,7 @@ def lninvoice_paid_handler(sender, instance, **kwargs):
             shop_item.suspend_after = timezone.now() + timedelta(seconds=shop_item.host.tor_bridge_duration)
 
     shop_item.save()
+    add_change_log_entry(shop_item, "ran lninvoice_paid_handler")
 
 
 @receiver(post_save, sender=PurchaseOrder)
@@ -126,6 +128,7 @@ def post_save_tor_bridge(sender, instance: TorBridge, **kwargs):
                                      + timedelta(seconds=getattr(settings, 'SHOP_BRIDGE_DURATION_GRACE_TIME', 600))
 
         instance.save()
+        add_change_log_entry(instance, "created")
 
 
 @receiver(post_init, sender=TorBridge)

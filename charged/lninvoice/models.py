@@ -21,6 +21,7 @@ from djmoney.money import Money
 from charged.lninvoice.signals import lninvoice_paid, lninvoice_invoice_created_on_node
 from charged.lnnode.models.base import BaseLnNode
 from charged.lnpurchase.models import PurchaseOrder
+from charged.utils import add_change_log_entry
 
 
 def get_qr_image_path(_, filename):
@@ -243,6 +244,7 @@ class Invoice(models.Model):
 
         self.status = self.UNPAID
         self.save()
+        add_change_log_entry(self, "set to UNPAID")
 
         self.refresh_from_db()
 
@@ -310,6 +312,7 @@ class Invoice(models.Model):
             self.status = self.EXPIRED
 
         self.save()
+        add_change_log_entry(self, f"set to {self.status}")
 
         if payment_detected:
             print('Has been PAID!')  # ToDo(frennkie) remove this
@@ -425,7 +428,9 @@ class PurchaseOrderInvoice(Invoice):
         if self.status == self.PAID:
             self.po.status = PurchaseOrder.PAID
             self.po.save()
+            add_change_log_entry(self.po, "set to PAID")
 
         elif self.status != self.PAID:
             self.po.status = PurchaseOrder.NEEDS_TO_BE_PAID
             self.po.save()
+            add_change_log_entry(self.po, "set to NEEDS_TO_BE_PAID")
