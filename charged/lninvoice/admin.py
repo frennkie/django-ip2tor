@@ -132,14 +132,6 @@ class InvoiceAdmin(admin.ModelAdmin):
 
         return readonly_fields
 
-    def get_search_results(self, request, queryset, search_term):
-        try:
-            # allow search for full uuid (including the dashes)
-            UUID(search_term)
-            return super().get_search_results(request, queryset, search_term.replace('-', ''))
-        except ValueError:
-            return super().get_search_results(request, queryset, search_term)
-
     def pay_req(self, obj: Invoice):
         if obj.payment_request:
             return f'{obj.payment_request[0:14]}...'

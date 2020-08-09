@@ -52,14 +52,6 @@ class BridgeTunnelAdmin(admin.ModelAdmin):
             return qs  # super admins are unrestricted
         return qs.filter(host__owner=request.user)
 
-    def get_search_results(self, request, queryset, search_term):
-        try:
-            # allow search for full uuid (including the dashes)
-            UUID(search_term)
-            return super().get_search_results(request, queryset, search_term.replace('-', ''))
-        except ValueError:
-            return super().get_search_results(request, queryset, search_term)
-
     def po_count(self, obj):
         return obj.po_details.count()
 
@@ -175,14 +167,6 @@ class HostAdmin(admin.ModelAdmin):
             form.base_fields['owner'].initial = get_user_model().objects.filter(id=request.user.id).first()
 
         return form
-
-    def get_search_results(self, request, queryset, search_term):
-        try:
-            # allow search for full uuid (including the dashes)
-            UUID(search_term)
-            return super().get_search_results(request, queryset, search_term.replace('-', ''))
-        except ValueError:
-            return super().get_search_results(request, queryset, search_term)
 
 
 # unregister the charged.models.Backend. Make sure to place

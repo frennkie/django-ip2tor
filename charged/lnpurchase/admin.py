@@ -61,14 +61,6 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
             )
         return fieldsets
 
-    def get_search_results(self, request, queryset, search_term):
-        try:
-            # allow search for full uuid (including the dashes)
-            UUID(search_term)
-            return super().get_search_results(request, queryset, search_term.replace('-', ''))
-        except ValueError:
-            return super().get_search_results(request, queryset, search_term)
-
     def has_add_permission(self, request, obj=None):
         return False
 

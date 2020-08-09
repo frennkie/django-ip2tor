@@ -77,14 +77,6 @@ class LndNodeAdmin(admin.ModelAdmin):
 
         return readonly_fields
 
-    def get_search_results(self, request, queryset, search_term):
-        try:
-            # allow search for full uuid (including the dashes)
-            UUID(search_term)
-            return super().get_search_results(request, queryset, search_term.replace('-', ''))
-        except ValueError:
-            return super().get_search_results(request, queryset, search_term)
-
     actions = ["set_disabled", "set_enabled", "check_alive"]
 
     def set_disabled(self, request, queryset):
