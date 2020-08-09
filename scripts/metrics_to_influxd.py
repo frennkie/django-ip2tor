@@ -8,11 +8,28 @@ import signal
 from datetime import datetime
 
 from celery import Celery
+from influxdb import InfluxDBClient
 
 TS = int(datetime.utcnow().replace(microsecond=0).timestamp() * 1000_000_000)
 
 
-def my_monitor(app):
+def influx_write_point(client, measurement, tags, fields, time=None):
+    if not time:
+        time = TS
+
+    json_body = [
+        {
+            "measurement": measurement,
+            "tags": tags,
+            "time": time,
+            "fields": fields
+        }
+    ]
+
+    return client.write_points(json_body)
+
+
+def my_monitor(app, client):
     state = app.events.State()
 
     def announce_failed_tasks(event):
@@ -29,8 +46,14 @@ def my_monitor(app):
         runtime = task.info().get("runtime")
         if runtime:
             print(f'tasks,status=failed,name={short_name},fullname={task.name} {runtime} {TS}')
+            influx_write_point(client, 'tasks',
+                               tags={'status': 'failed', 'name': short_name, 'fullname': task.name},
+                               fields={'runtime': runtime})
         else:
             print(f'tasks,status=failed,name={short_name},fullname={task.name} 0.0 {TS}')
+            influx_write_point(client, 'tasks',
+                               tags={'status': 'failed', 'name': short_name, 'fullname': task.name},
+                               fields={'runtime': runtime})
 
     def announce_succeeded_tasks(event):
         state.event(event)
@@ -42,12 +65,18 @@ def my_monitor(app):
             short_name = task.name.split(".")[-1]
         except (AttributeError, IndexError):
             short_name = "unknown"
-        runtime = task.info().get("runtime")
 
+        runtime = task.info().get("runtime")
         if runtime:
             print(f'tasks,status=succeeded,name={short_name},fullname={task.name} {runtime} {TS}')
+            influx_write_point(client, 'tasks',
+                               tags={'status': 'succeeded', 'name': short_name, 'fullname': task.name},
+                               fields={'runtime': runtime})
         else:
-            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} 0.0 {TS}')
+            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} value=0.0 {TS}')
+            influx_write_point(client, 'tasks',
+                               tags={'status': 'succeeded', 'name': short_name, 'fullname': task.name},
+                               fields={'runtime': runtime})
 
     with app.connection() as connection:
         recv = app.events.Receiver(connection, handlers={
@@ -83,8 +112,10 @@ def main():
     # parse args
     args = parser.parse_args()
 
+    client = InfluxDBClient('localhost', 8086, 'root', 'root', 'example')
+
     app = Celery(broker=f'redis://{args.host}:{args.port}/0')
-    my_monitor(app)
+    my_monitor(app, client)
 
 
 if __name__ == "__main__":
