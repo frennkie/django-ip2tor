@@ -26,7 +26,10 @@ def influx_write_point(client, measurement, tags, fields, time=None):
         }
     ]
 
-    return client.write_points(json_body)
+    try:
+        return client.write_points(json_body)
+    except Exception as err:
+        print(f"an error occurred: {err}")
 
 
 def my_monitor(app, client):
