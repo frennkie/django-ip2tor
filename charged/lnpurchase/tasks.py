@@ -146,10 +146,10 @@ def process_initial_purchase_order(obj_id):
                                            lnnode=node)
 
             invoice.save()
-            add_change_log_entry(invoice, 'created poi')
+            add_change_log_entry(invoice, f'created poi for po: {obj.id}')
 
             obj.ln_invoices.add(invoice)
-            add_change_log_entry(obj, 'added new poi')
+            add_change_log_entry(obj, f'added new poi: {invoice.id}')
 
             obj.status = PurchaseOrder.NEEDS_TO_BE_PAID
             obj.save()
