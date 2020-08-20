@@ -10,12 +10,11 @@ from datetime import datetime
 from celery import Celery
 from influxdb import InfluxDBClient
 
-TS = int(datetime.utcnow().replace(microsecond=0).timestamp() * 1000_000_000)
-
 
 def influx_write_point(client, measurement, tags, fields, time=None):
     if not time:
-        time = TS
+        ts = int(datetime.utcnow().replace(microsecond=0).timestamp() * 1000_000_000)
+        time = ts
 
     json_body = [
         {
@@ -42,6 +41,7 @@ def my_monitor(app, client, hostname):
         # will keep track of this for us.
         task = state.tasks.get(event['uuid'])
 
+        ts = int(datetime.utcnow().replace(microsecond=0).timestamp() * 1000_000_000)
         try:
             short_name = task.name.split(".")[-1]
         except (AttributeError, IndexError):
@@ -49,13 +49,13 @@ def my_monitor(app, client, hostname):
 
         runtime = task.info().get("runtime")
         if runtime:
-            print(f'tasks,status=failed,name={short_name},fullname={task.name} runtime={runtime} {TS}')
+            print(f'tasks,status=failed,name={short_name},fullname={task.name} runtime={runtime} {ts}')
             influx_write_point(client, 'tasks',
                                tags={'host': hostname, 'status': 'failed',
                                      'name': short_name, 'fullname': task.name},
                                fields={'runtime': runtime})
         else:
-            print(f'tasks,status=failed,name={short_name},fullname={task.name} runtime=0.0 {TS}')
+            print(f'tasks,status=failed,name={short_name},fullname={task.name} runtime=0.0 {ts}')
             influx_write_point(client, 'tasks',
                                tags={'host': hostname, 'status': 'failed',
                                      'name': short_name, 'fullname': task.name},
@@ -67,6 +67,7 @@ def my_monitor(app, client, hostname):
         # will keep track of this for us.
         task = state.tasks.get(event['uuid'])
 
+        ts = int(datetime.utcnow().replace(microsecond=0).timestamp() * 1000_000_000)
         try:
             short_name = task.name.split(".")[-1]
         except (AttributeError, IndexError):
@@ -74,13 +75,13 @@ def my_monitor(app, client, hostname):
 
         runtime = task.info().get("runtime")
         if runtime:
-            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} runtime={runtime} {TS}')
+            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} runtime={runtime} {ts}')
             influx_write_point(client, 'tasks',
                                tags={'host': hostname, 'status': 'succeeded',
                                      'name': short_name, 'fullname': task.name},
                                fields={'runtime': runtime})
         else:
-            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} runtime=0.0 {TS}')
+            print(f'tasks,status=succeeded,name={short_name},fullname={task.name} runtime=0.0 {ts}')
             influx_write_point(client, 'tasks',
                                tags={'host': hostname, 'status': 'succeeded',
                                      'name': short_name, 'fullname': task.name},
