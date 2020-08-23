@@ -216,6 +216,7 @@ class LndGRpcNode(LndNode):
     )
 
     class Meta:
+        ordering = ('-priority', )
         verbose_name = _("LND gRPC Node")
         verbose_name_plural = _("LND gRPC Nodes")
         unique_together = ('hostname', 'port')
@@ -363,6 +364,7 @@ class LndRestNode(LndNode):
     )
 
     class Meta:
+        ordering = ('-priority', )
         verbose_name = _("LND REST Node")
         verbose_name_plural = _("LND REST Nodes")
 

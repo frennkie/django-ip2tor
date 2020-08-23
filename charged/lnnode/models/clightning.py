@@ -20,6 +20,7 @@ class CLightningNode(BaseLnNode):
     )
 
     class Meta:
+        ordering = ('-priority', )
         verbose_name = _("c-lightning Node")
         verbose_name_plural = _("c-lightning Nodes")
 

@@ -8,6 +8,7 @@ class FakeNode(BaseLnNode):
     streaming = False
 
     class Meta:
+        ordering = ('-priority', )
         verbose_name = _("Fake Node")
         verbose_name_plural = _("Fake Nodes")
 

@@ -12,7 +12,7 @@ from charged.lnnode.models import LndGRpcNode, CLightningNode, LndRestNode, Fake
 class FakeNodeAdmin(admin.ModelAdmin):
     form = FakeNodeForm
 
-    list_display = ('name', 'type', 'owner')
+    list_display = ('name', 'type', 'owner', 'priority')
     search_fields = ('name',)
     readonly_fields = ('type',)
 
@@ -32,7 +32,7 @@ class LndNodeAdmin(admin.ModelAdmin):
         }
 
     search_fields = ('id', 'name', 'hostname')
-    list_display = ('id', 'name', 'type', 'owner', 'hostname', 'port', 'is_enabled', 'is_alive')
+    list_display = ('id', 'name', 'type', 'owner', 'hostname', 'port', 'priority', 'is_enabled', 'is_alive')
     list_filter = ('is_enabled', 'is_alive', 'created_at', 'owner')
 
     readonly_fields = ('type', 'is_alive')

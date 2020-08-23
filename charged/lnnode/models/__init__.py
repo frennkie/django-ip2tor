@@ -27,6 +27,6 @@ def get_all_nodes(owner_id=None):
 
     node_list = sorted(
         chain(fake, lnd_grpc, lnd_rest, clightning),
-        key=lambda node: node.created_at, reverse=True)
+        key=lambda node: node.priority, reverse=False)
 
     return [(str(x.id), x) for x in node_list]

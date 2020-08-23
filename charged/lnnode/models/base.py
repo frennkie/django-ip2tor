@@ -34,6 +34,12 @@ class BaseLnNode(models.Model):
         help_text=_('Is alive?')
     )
 
+    priority = models.PositiveSmallIntegerField(
+        verbose_name=_('Priority'),
+        default=0,
+        help_text=_('The lower the better: 0 is the highest and 32767 the lowest priority.'),
+    )
+
     name = models.CharField(
         max_length=128,
         verbose_name=_('Name'),
