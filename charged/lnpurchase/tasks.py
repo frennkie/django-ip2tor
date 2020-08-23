@@ -142,27 +142,32 @@ def process_initial_purchase_order(obj_id):
     owned_nodes = get_all_nodes(obj.owner.id)
     for node_tuple in owned_nodes:
         node = node_tuple[1]
-        if node.is_enabled:
-            invoice = PurchaseOrderInvoice(label="PO: {}".format(obj.id),
-                                           msatoshi=obj.total_price_msat,
-                                           tax_rate=Decimal.from_float(getattr(settings, 'CHARGED_TAX_RATE')),
-                                           tax_currency_ex_rate=tax_ex_rate,
-                                           info_currency_ex_rate=info_ex_rate,
-                                           lnnode=node)
 
-            invoice.save()
-            add_change_log_entry(invoice, f'created poi for po: {obj.id}')
+        if not node.is_enabled:
+            continue  # skip disabled nodes
+        if not node.is_alive:
+            continue  # skip dead nodes
 
-            obj.ln_invoices.add(invoice)
-            add_change_log_entry(obj, f'added new poi: {invoice.id}')
+        invoice = PurchaseOrderInvoice(label="PO: {}".format(obj.id),
+                                       msatoshi=obj.total_price_msat,
+                                       tax_rate=Decimal.from_float(getattr(settings, 'CHARGED_TAX_RATE')),
+                                       tax_currency_ex_rate=tax_ex_rate,
+                                       info_currency_ex_rate=info_ex_rate,
+                                       lnnode=node)
 
-            obj.status = PurchaseOrder.NEEDS_TO_BE_PAID
-            obj.save()
-            add_change_log_entry(obj, 'set to: NEEDS_TO_BE_PAID')
+        invoice.save()
+        add_change_log_entry(invoice, f'created poi for po: {obj.id}')
 
-            logger.info('Created LnInvoice: %s (%s)' % (invoice.id, invoice))
+        obj.ln_invoices.add(invoice)
+        add_change_log_entry(obj, f'added new poi: {invoice.id}')
 
-            break
+        obj.status = PurchaseOrder.NEEDS_TO_BE_PAID
+        obj.save()
+        add_change_log_entry(obj, 'set to: NEEDS_TO_BE_PAID')
+
+        logger.info('Created LnInvoice: %s (%s)' % (invoice.id, invoice))
+
+        break
 
     else:
         raise RuntimeError("no owned nodes found")
