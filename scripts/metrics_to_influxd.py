@@ -4,6 +4,7 @@
 # requires celery with redis (e.g. python3-celery python3-redis)
 
 import argparse
+import os
 import signal
 from datetime import datetime
 
@@ -109,22 +110,28 @@ def main():
                         help="print version", action="version",
                         version="0.1")
 
-    parser.add_argument("--hostname", dest="hostname", default="localhost",
-                        help="System Hostname", type=str)
+    parser.add_argument("--hostname", dest="hostname",
+                        default=os.environ.get("METRICS_INFLUX_TAG_HOSTNAME", "localhost"),
+                        help="System Hostname (Tag)", type=str)
 
-    parser.add_argument("-H", "--host", dest="host", default="127.0.0.1",
+    parser.add_argument("-H", "--host", dest="host",
+                        default=os.environ.get("METRICS_INFLUX_HOST", "127.0.0.1"),
                         help="Host for InfluxDB", type=str)
 
-    parser.add_argument("-P", "--port", dest="port", default=8086,
-                        help="Port for InfluxDB", type=int)
+    parser.add_argument("-P", "--port", dest="port",
+                        default=os.environ.get("METRICS_INFLUX_PORT", "8086"),
+                        help="Port for InfluxDB", type=str)
 
-    parser.add_argument("-u", "--username", dest="username", default="ip2tor",
+    parser.add_argument("-u", "--username", dest="username",
+                        default=os.environ.get("METRICS_INFLUX_USER", "ip2tor"),
                         help="Username for InfluxDB", type=str)
 
-    parser.add_argument("-p", "--password", dest="password", default="ip2tor",
+    parser.add_argument("-p", "--password", dest="password",
+                        default=os.environ.get("METRICS_INFLUX_PASS", "ip2tor"),
                         help="Password for InfluxDB", type=str)
 
-    parser.add_argument("-d", "--database", dest="database", default="ip2tor",
+    parser.add_argument("-d", "--database", dest="database",
+                        default=os.environ.get("METRICS_INFLUX_DATABASE", "ip2tor"),
                         help="Database for InfluxDB", type=str)
 
     parser.add_argument("-s", "--ssl", dest="ssl", default=True,
