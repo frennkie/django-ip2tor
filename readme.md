@@ -330,7 +330,8 @@ switch on sites (in APPs and Site_id)
 Using httpie (easy CLI http client)
 
 ```
-http GET  http://127.0.0.1:8000/api/v1/tor_bridges/?host=000000000-e578-...a "Authorization:Token be..b2"
+http GET http://127.0.0.1:8000/api/v1/tor_bridges/?host=58b61c0b-0a00-0b00-0c00-0d0000000000 "Authorization:Token 5eceb05d00000000000000000000000000000000"
+http GET http://127.0.0.1:8000/api/v1/tor_bridges/get_telegraf_config/ "Authorization:Token 5eceb05d00000000000000000000000000000000" port==9065
 ```
 
 ToDo
