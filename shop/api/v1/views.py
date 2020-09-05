@@ -1,13 +1,23 @@
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
+from django.utils.encoding import smart_text
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, viewsets
+from rest_framework import renderers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from shop.models import TorBridge, Host
 from . import serializers
 from .serializers import HostCheckInSerializer
+
+
+class PlainTextRenderer(renderers.BaseRenderer):
+    media_type = 'text/plain'
+    format = 'txt'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        return smart_text(data, encoding=self.charset)
 
 
 class TorBridgeViewSet(viewsets.ModelViewSet):
@@ -29,6 +39,44 @@ class TorBridgeViewSet(viewsets.ModelViewSet):
         if user.is_superuser:
             return TorBridge.objects.all()
         return TorBridge.objects.filter(host__token_user=user)
+
+    @action(detail=False, methods=['get'], renderer_classes=[PlainTextRenderer])
+    def get_telegraf_config(self, request, **kwargs):
+        # print(self.queryset.filter(status__exact=TorBridge.ACTIVE))
+        # print(self.queryset.order_by('host'))
+        tor_port = request.GET.get('port', '9065')
+
+        data = ""
+        for item in self.queryset.filter(status=TorBridge.ACTIVE).order_by('host'):
+            data += ('''
+# via-ip2tor: {0.host}
+[[inputs.http_response]]
+  urls = ["https://{0.host.ip}:{0.port}"]
+
+  response_timeout = "15s"
+  insecure_skip_verify = true
+
+  [inputs.http_response.tags]
+    bridge_host = "{0.host.name}"
+    bridge_port = "{0.port}"
+    checks = "via-ip2tor"
+
+# via-tor: {0.host}
+[[inputs.http_response]]
+  urls = ["https://{0.target}"]
+  http_proxy = "http://localhost:{1}"
+
+  response_timeout = "15s"
+  insecure_skip_verify = true
+
+  [inputs.http_response.tags]
+    bridge_host = "{0.host.name}"
+    bridge_port = "{0.port}"
+    checks = "via-tor"
+'''.format(item, tor_port))
+
+        # now return data
+        return Response(data)
 
 
 class HostViewSet(viewsets.ModelViewSet):
