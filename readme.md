@@ -11,11 +11,11 @@ There is the `Shop` and there are `Hosts` (or `Bridge Hosts`). The `Shop` is an 
 based on the Python Django Web Framework that provides a management interface to register 
 multiple operator accounts and also Bitcoin Lightning wallets/nodes. Within the `Shop` it 
 is also possible to register multiple `Hosts` that will take over the role of actually 
-hosting the IP to TOR (or more precisely TCP-Port to TOR Hidden Service).
+hosting the IP to Tor (or more precisely TCP-Port to Tor Hidden Service).
 
 ### Installing a Host
 
-First make sure that TOR is installed and configured/enabled. 
+First make sure that Tor is installed and configured/enabled. 
 
 Secondly install any other dependencies. Currently these are
  

@@ -75,8 +75,8 @@ class TorDenyList(DenyList):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = _("Deny List Entry (TOR)")
-        verbose_name_plural = _("Deny List Entries (TOR)")
+        verbose_name = _("Deny List Entry (Tor)")
+        verbose_name_plural = _("Deny List Entries (Tor)")
 
     def __str__(self):
         if self.is_denied:

@@ -40,7 +40,7 @@ DEBUG_LOG=${DEBUG_LOG:-0}
 function debug() { ((DEBUG_LOG)) && echo "### $*"; }
 
 if ! command -v tor >/dev/null; then
-  echo "TOR not found - please install it!"
+  echo "Tor not found - please install it!"
   exit 1
 fi
 

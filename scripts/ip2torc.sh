@@ -28,8 +28,8 @@ DEBUG_LOG=${DEBUG_LOG:-0}
 function debug() { ((DEBUG_LOG)) && echo "### $*"; }
 
 if ! command -v tor >/dev/null; then
-  echo "TOR is not installed - exiting."
-  echo "Please setup TOR and run again."
+  echo "Tor is not installed - exiting."
+  echo "Please setup Tor and run again."
   exit 1
 fi
 
