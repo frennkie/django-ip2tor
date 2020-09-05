@@ -490,6 +490,9 @@ class Bridge(Product):
 
     suspend_after = models.DateTimeField(verbose_name=_('suspend after'), null=True, blank=True)
 
+    is_monitored = models.BooleanField(default=True,
+                                       verbose_name=_('Is bridge actively monitored?'))
+
     objects = models.Manager()  # default
     initial = InitialTorBridgeManager()
     pending = PendingTorBridgeManager()
