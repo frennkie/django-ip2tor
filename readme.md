@@ -327,6 +327,12 @@ switch on sites (in APPs and Site_id)
 
 `lnnode` requires Redis (used to reduces external calls (e.g. getinfo) and improve performance)
 
+Using httpie (easy CLI http client)
+
+```
+http GET  http://127.0.0.1:8000/api/v1/tor_bridges/?host=000000000-e578-...a "Authorization:Token be..b2"
+```
+
 ToDo
 
 - Heartbeat / Check
