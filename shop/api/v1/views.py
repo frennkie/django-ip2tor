@@ -38,12 +38,15 @@ class TorBridgeViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_superuser:
             return TorBridge.objects.all()
+
+        # monitoring user 'telegraf' may see all bridges
+        if user.username == 'telegraf':
+            return TorBridge.objects.all()
+
         return TorBridge.objects.filter(host__token_user=user)
 
     @action(detail=False, methods=['get'], renderer_classes=[PlainTextRenderer])
     def get_telegraf_config(self, request, **kwargs):
-        # print(self.queryset.filter(status__exact=TorBridge.ACTIVE))
-        # print(self.queryset.order_by('host'))
         tor_port = request.GET.get('port', '9065')
 
         data = ""
