@@ -47,16 +47,23 @@ class TorBridgeViewSet(viewsets.ModelViewSet):
 
         user = self.request.user
         if user.is_superuser:
-            # admin can see absolutely all bridges
-            qs = self.queryset.filter().order_by('host')
+            # admin can see all monitored bridges
+            qs = self.queryset.filter()\
+                .filter(is_monitored=True)\
+                .order_by('host')
 
         elif user.username == 'telegraf':
             # monitoring user 'telegraf' may see all active bridges
-            qs = self.queryset.filter(status=TorBridge.ACTIVE).order_by('host')
+            qs = self.queryset.filter(status=TorBridge.ACTIVE)\
+                .filter(is_monitored=True)\
+                .order_by('host')
 
         else:
             # others will see their own active bridges
-            qs = self.queryset.filter(host__token_user=user).filter(status=TorBridge.ACTIVE).order_by('host')
+            qs = self.queryset.filter(host__token_user=user)\
+                .filter(is_monitored=True)\
+                .filter(status=TorBridge.ACTIVE)\
+                .order_by('host')
 
         data = ""
         for item in qs:
