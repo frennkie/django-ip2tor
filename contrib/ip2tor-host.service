@@ -1,5 +1,5 @@
 [Unit]
-Description=IP2TOR Host Service
+Description=IP2Tor Host Service
 After=network.target
 
 [Service]

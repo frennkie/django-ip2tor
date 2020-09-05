@@ -1,5 +1,5 @@
 [Unit]
-Description=IP2TOR Celery Worker Service
+Description=IP2Tor Celery Worker Service
 After=network.target
 
 [Service]

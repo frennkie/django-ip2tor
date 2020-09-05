@@ -1,5 +1,5 @@
 [Unit]
-Description=IP2TOR Django Web Server
+Description=IP2Tor Django Web Server
 After=network.target
 
 [Service]

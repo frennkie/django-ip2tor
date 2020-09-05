@@ -5,7 +5,7 @@
 
 ## Installation
 
-Please be aware that the IP2TOR consist of two separate server roles. 
+Please be aware that the IP2Tor consist of two separate server roles. 
 
 There is the `Shop` and there are `Hosts` (or `Bridge Hosts`). The `Shop` is an application 
 based on the Python Django Web Framework that provides a management interface to register 
@@ -57,7 +57,7 @@ Check the logs using `sudo journalctl --follow -u ip2tor-host`
 
 Two useful commands to see what's going on are these:
 
-`ip2torc.sh list` shows a list of the IP2TOR systemd services that are active on this `Host`. 
+`ip2torc.sh list` shows a list of the IP2Tor systemd services that are active on this `Host`. 
 
 ```
 /usr/local/bin/ip2torc.sh list
