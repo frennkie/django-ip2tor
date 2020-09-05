@@ -44,7 +44,7 @@ def handle_obj_is_alive_change(obj, new_status):
 
     if obj.owner.email:
         try:
-            msg = create_email_message(f'[IP2TOR] {obj.__class__.__name__} status change: {obj.name}',
+            msg = create_email_message(f'[IP2Tor] {obj.__class__.__name__} status change: {obj.name}',
                                        f'{obj} - is_alive now: {new_status}',
                                        [obj.owner.email],
                                        reference_tag=f'{obj.__class__.__name__.lower()}/{obj.id}')
