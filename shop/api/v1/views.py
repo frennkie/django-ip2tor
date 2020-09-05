@@ -39,18 +39,27 @@ class TorBridgeViewSet(viewsets.ModelViewSet):
         if user.is_superuser:
             return TorBridge.objects.all()
 
-        # monitoring user 'telegraf' may see all bridges
-        if user.username == 'telegraf':
-            return TorBridge.objects.all()
-
         return TorBridge.objects.filter(host__token_user=user)
 
     @action(detail=False, methods=['get'], renderer_classes=[PlainTextRenderer])
     def get_telegraf_config(self, request, **kwargs):
         tor_port = request.GET.get('port', '9065')
 
+        user = self.request.user
+        if user.is_superuser:
+            # admin can see absolutely all bridges
+            qs = self.queryset.filter().order_by('host')
+
+        elif user.username == 'telegraf':
+            # monitoring user 'telegraf' may see all active bridges
+            qs = self.queryset.filter(status=TorBridge.ACTIVE).order_by('host')
+
+        else:
+            # others will see their own active bridges
+            qs = self.queryset.filter(host__token_user=user).filter(status=TorBridge.ACTIVE).order_by('host')
+
         data = ""
-        for item in self.queryset.filter(status=TorBridge.ACTIVE).order_by('host'):
+        for item in qs:
             data += ('''
 # via-ip2tor: {0.host}
 [[inputs.http_response]]
