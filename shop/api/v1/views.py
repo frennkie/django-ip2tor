@@ -68,7 +68,7 @@ class TorBridgeViewSet(viewsets.ModelViewSet):
         data = ""
         for item in qs:
             data += ('''
-# via-ip2tor: {0.host}
+# Port:{0.port} via-ip2tor on {0.host}
 [[inputs.http_response]]
   urls = ["https://{0.host.ip}:{0.port}"]
 
@@ -80,7 +80,7 @@ class TorBridgeViewSet(viewsets.ModelViewSet):
     bridge_port = "{0.port}"
     checks = "via-ip2tor"
 
-# via-tor: {0.host}
+# Port:{0.port} via-tor on {0.host}
 [[inputs.http_response]]
   urls = ["https://{0.target}"]
   http_proxy = "http://localhost:{1}"
