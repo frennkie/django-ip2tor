@@ -5,7 +5,7 @@ TELEGRAF_CONFIG="/etc/telegraf/telegraf.d/ip2tor_tor_bridges_all.conf"
 TMP_FILE="/tmp/ip2tor_tor_bridges_all.conf"
 
 # How to show debug logs:
-# DEBUG_LOG=1 ./update_ip2tor_telegraf.sh
+# DEBUG_LOG=1 ./telegraf_ip2tor_update_.sh
 DEBUG_LOG=${DEBUG_LOG:-0}
 function debug() { ((DEBUG_LOG)) && echo "### $*"; }
 
