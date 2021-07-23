@@ -281,12 +281,11 @@ Option 1)
 python -m pip install psycopg2-binary
 ```
 
-Option 2) (untested)
-
+Option 2) 
 As root/sudo
 
 ```
-sudo yum install -y libpq-devel
+sudo yum install -y libpq-devel gcc gcc-c++ make 
 ln -s /usr/pgsql-12/bin/pg_config /usr/sbin/pg_config
 ```
 
