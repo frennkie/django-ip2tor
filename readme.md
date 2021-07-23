@@ -127,6 +127,13 @@ sudo yum install -y nginx redis git
 Setup nginx (see contrib/shop.ip2t.org.conf)
 
 
+Enable and start services
+
+```
+sudo systemctl enable nginx redis
+sudo systemctl start nginx redis
+```
+
 #### User account for services
 
 Create a dedicated user account which is used to run the needed services. Celery needs this 
