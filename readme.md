@@ -295,6 +295,12 @@ In virtualenv
 python -m pip install --upgrade psycopg2
 ```
 
+Firewall
+
+sudo firewall-cmd --add-service http --permanent
+sudo firewall-cmd --add-service https --permanent
+sudo firewall-cmd --reload
+
 
 #### Initial setup
 
