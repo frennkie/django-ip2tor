@@ -73,6 +73,16 @@ def process_initial_purchase_order(obj_id):
     add_change_log_entry(obj, 'set to: NEEDS_LOCAL_CHECKS')
 
     # ToDo(frennkie) this should not live in Django Charged
+    bridge_host = obj.item_details.first().product.host
+    if not bridge_host.is_enabled:
+        logger.info('Bridge Host is disabled: %s' % bridge_host)
+        obj.status = PurchaseOrder.REJECTED
+        obj.message = "Bridge Host is disabled"
+        obj.save()
+        add_change_log_entry(obj, 'set to: REJECTED')
+        return None
+
+    # ToDo(frennkie) this should not live in Django Charged
     target_with_port = obj.item_details.first().product.target
     try:
         target = target_with_port.split(':')[0]
