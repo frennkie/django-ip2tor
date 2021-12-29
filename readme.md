@@ -15,23 +15,50 @@ hosting the IP to Tor (or more precisely TCP-Port to Tor Hidden Service).
 
 ### Installing a Host
 
-First make sure that Tor is installed and configured/enabled. 
+#### Prerequisites
 
-Secondly install any other dependencies. Currently these are
- 
-* `jq`
-* `socat`
+Install `jq` and `socat` with:
 
-Thirdly you need to register the `Hosts` in at least one `Shop` first to get the credentials
-that are needed to retrieve the specific information for this `Host` from the `Shop` database
-and to make updates (e.g. mark a `Bridge` as active).
+```
+sudo apt install -y jq socat tor
+# OR
+sudo yum install -y jq socat tor
+```
 
-Don't forget to allow the TCP port ranges on your firewall (both local and network/cloud based).
+Open the following port ranges in your firewall:
+
+```
+TODO
+```
+
+#### Tor configuration
+
+Open the tor config `vi /etc/tor/torrc` and adjust the following settings: 
+
+```
+TODO
+```
+
+#### Host registration
+
+Now you need to register the `Hosts` in at least one `Shop` instance. This will get the credentials that are needed to retrieve the specific information for this `Host` from the `Shop` database and to make updates (e.g. mark a `Bridge` as active).
+
+Get the code ...
 
 ```
 cd /tmp
+curl -o django-ip2tor.zip https://codeload.github.com/frennkie/django-ip2tor/zip/master
+unzip django-ip2tor.zip
+mv django-ip2tor-master django-ip2tor
+rm -f django-ip2tor.zip
+# OR
+cd /tmp
 git clone https://github.com/frennkie/django-ip2tor/
-cd django-ip2tor
+```
+
+... and copy the following files via:
+
+```
 sudo install -m 0755 -o root -g root -t /usr/local/bin scripts/ip2tor_host.sh
 sudo install -m 0755 -o root -g root -t /usr/local/bin scripts/ip2torc.sh
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-host.service
@@ -75,7 +102,7 @@ be hosted on this `Host` and in which status they are.
 
 ```
 
-### Log Rotation
+#### Log Rotation
 
 To make sure that logs are rotated and deleted add the logrotate config
 
@@ -83,12 +110,11 @@ To make sure that logs are rotated and deleted add the logrotate config
 sudo install -m 0644 -o root -g root -t /etc/logrotate.d/ contrib/ip2tor
 ```
 
-
 ## Shop
 
 About...
 
-### Requirements
+### Sizing
 
 Current assumption for sizing is:
 
@@ -116,16 +142,37 @@ processing of jobs and to schedule the executing of periodic events (a substitut
 
 ### Installing the Shop 
 
-#### System packages
+#### Prerequisites
+
+Install `nginx`, `redis`, `git` and `certbot` with:
 
 ```
-sudo apt install -y nginx redis git
+sudo apt install -y nginx redis git python3-certbot-nginx
 # OR
-sudo yum install -y nginx redis git
+sudo yum install -y nginx redis git python3-certbot-nginx
 ```
 
-Setup nginx (see contrib/shop.ip2t.org.conf)
+#### Service configuration
 
+Copy the nginx config (contrib/shop.ip2tor.org.conf) with ...
+
+```
+cp contrib/shop.ip2tor.org.conf /etc/nginx/conf.d/shop.ip2tor.org.conf
+```
+
+.. and replace `ip2tor.domain.org` with your actual domain.
+
+After configuring your firewall ...
+
+```
+sudo systemctl start firewalld
+sudo systemctl enable firewalld
+sudo firewall-cmd --add-service http --permanent
+sudo firewall-cmd --add-service https --permanent
+sudo firewall-cmd --reload
+```
+
+Make sure your DNS configuration is correct and the domain resolves properly. Get a certificate via `certbot --nginx` (fire up a temporary webserver and select the domain).
 
 Enable and start services
 
@@ -156,9 +203,7 @@ else
 fi
 ```
 
-
-
-#### Python etc.
+#### Python environment
 
 Install venv
 
@@ -180,12 +225,14 @@ python -m pip install --upgrade pip setuptools
 Get the code (either last release as zip or latest master) from Github
 
 ```
+cd /home/ip2tor
 curl -o django-ip2tor.zip https://codeload.github.com/frennkie/django-ip2tor/zip/master
 unzip django-ip2tor.zip
 mv django-ip2tor-master django-ip2tor
 rm -f django-ip2tor.zip
 # OR
-git clone https://github.com/frennkie/django-ip2tor
+cd /home/ip2tor
+git clone https://github.com/frennkie/django-ip2tor/
 ```
 
 Install python dependencies
@@ -195,7 +242,37 @@ cd django-ip2tor
 python -m pip install --upgrade -r requirements.txt
 ````
 
-Setup Environment (e.g. SECRET_KEY!)
+#### Optional: Install PostgreSQL Server on CentOS
+
+https://www.postgresql.org/download/linux/redhat/
+
+```
+sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+sudo dnf -qy module disable postgresql
+sudo dnf install -y postgresql13-server
+sudo /usr/pgsql-13/bin/postgresql-13-setup initdb
+sudo systemctl enable postgresql-13
+sudo systemctl start postgresql-13
+```
+
+Create a PostgreSQL database and user with:
+
+```
+sudo -u postgres psql
+postgres=# create database db_ip2tor;
+postgres=# create user ip2tor with encrypted password 'password';
+postgres=# grant all privileges on database db_ip2tor to ip2tor;
+```
+
+Install the PostgreSQL database adapter for Python:
+
+```
+sudo yum install python3-psycopg2
+#OR
+sudo apt-get build-dep python3-psycopg2
+```
+
+#### Continue with the environment setup (e.g. SECRET_KEY!)
 
 ```
 /home/ip2tor/venv/bin/python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
@@ -203,17 +280,16 @@ cp example.env .env
 vi .env  # update stuff
 ```
 
-Examples
+Examples:
 
 ```
-DATABASE_URL="postgres://username:password@host:5432/database"
+DATABASE_URL="postgres://ip2tor:password@localhost:5432/db_ip2tor"
 EMAIL_URL="submission://sender@example.com:password@smtp.exmaple.com:587/"
 ADMIN_NAME="Joe"
 ADMIN_EMAIL"joe@example.com
 ```
 
-
-Run django setup jobs
+Now run the django setup jobs with:
 
 ```
 python manage.py collectstatic
@@ -248,6 +324,7 @@ cat <<EOF | sudo tee "/etc/tmpfiles.d/ip2tor.conf" >/dev/null
 d /run/ip2tor 0755 ip2tor ip2tor -
 d /var/log/ip2tor 0755 ip2tor ip2tor -
 EOF
+
 sudo systemd-tmpfiles --create --remove
 
 sudo install -m 0644 -o root -g root -t /etc/systemd/system contrib/ip2tor-beat.service
@@ -265,42 +342,13 @@ sudo systemctl start ip2tor-beat.service
 sudo systemctl start ip2tor-worker.service
 ```
 
-CentOS Stuff
+#### Optional: Configure CentOS SELinux (required if sestatus is enabled)
 
 ```
 setsebool -P httpd_can_network_connect 1
 chcon -Rt httpd_sys_content_t /home/ip2tor/static
 chcon -Rt httpd_sys_content_t /home/ip2tor/media
 ```
- 
-Postgres on CentOS
-
-Option 1)
-
-```
-python -m pip install psycopg2-binary
-```
-
-Option 2) 
-As root/sudo
-
-```
-sudo yum install -y libpq-devel gcc gcc-c++ make 
-ln -s /usr/pgsql-12/bin/pg_config /usr/sbin/pg_config
-```
-
-In virtualenv
-
-```
-python -m pip install --upgrade psycopg2
-```
-
-Firewall
-
-sudo firewall-cmd --add-service http --permanent
-sudo firewall-cmd --add-service https --permanent
-sudo firewall-cmd --reload
-
 
 #### Initial setup
 
@@ -309,7 +357,6 @@ sudo firewall-cmd --reload
 -> go to user and create operator (and add to "operators" group)
 
 -> go to Hosts and create your first host
-
 
 
 ### Troubleshooting
@@ -327,21 +374,6 @@ Check worker stats
 ```
 celery -A django_ip2tor worker -l inspect stats
 ```
-
-
-## Postgres Server on CentOS
-
-https://computingforgeeks.com/how-to-install-postgresql-12-on-centos-7/
-
-```
-sudo yum -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-sudo dnf -y install postgresql12 postgresql12-server
-sudo /usr/pgsql-12/bin/postgresql-12-setup initdb
-sudo systemctl enable --now postgresql-12
-systemctl status postgresql-12
-```
-
-
 
 ## Loose Notes
 
@@ -393,4 +425,28 @@ do
   ./tor2ipc.sh list
   sleep 10
 done
+```
+
+#### Obsolete?
+
+Postgres on CentOS
+
+Option 1)
+
+```
+python -m pip install psycopg2-binary
+```
+
+Option 2) 
+As root/sudo
+
+```
+sudo yum install -y libpq-devel gcc gcc-c++ make 
+ln -s /usr/pgsql-12/bin/pg_config /usr/sbin/pg_config
+```
+
+In virtualenv
+
+```
+python -m pip install --upgrade psycopg2
 ```
